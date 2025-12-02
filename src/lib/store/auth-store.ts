@@ -31,9 +31,24 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
 
-      setUser: (user, token) => set({ user, token, isAuthenticated: true }),
+      setUser: (user, token) => {
+        // Update in-memory + persisted state
+        set({ user, token, isAuthenticated: true });
+        // Also set a lightweight cookie so Next.js middleware can detect auth
+        if (typeof document !== "undefined") {
+          const maxAgeSeconds = 7 * 24 * 60 * 60; // 7 days
+          document.cookie = `auth-storage=1; Path=/; Max-Age=${maxAgeSeconds}`;
+        }
+      },
 
-      logout: () => set({ user: null, token: null, isAuthenticated: false }),
+      logout: () => {
+        set({ user: null, token: null, isAuthenticated: false });
+        // Clear the auth cookie used by middleware
+        if (typeof document !== "undefined") {
+          document.cookie =
+            "auth-storage=; Path=/; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        }
+      },
     }),
     {
       name: "auth-storage",

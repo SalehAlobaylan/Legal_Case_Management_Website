@@ -21,7 +21,6 @@ interface ToastOptions {
 export function toast(options: ToastOptions) {
   // For now, just log to the console to avoid runtime errors.
   // UI toast renderer will be added in the shadcn/ui setup phase.
-  // eslint-disable-next-line no-console
   console.log(
     `[toast:${options.variant ?? "default"}]`,
     options.title ?? "",
