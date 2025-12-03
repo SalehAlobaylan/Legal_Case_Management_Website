@@ -15,6 +15,7 @@ import { usePathname } from "next/navigation";
 import { Search, Bell } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { cn } from "@/lib/utils/cn";
+import { useWebSocket } from "@/lib/hooks/use-websocket";
 
 function resolvePageMeta(pathname: string) {
   if (pathname.startsWith("/cases")) {
@@ -48,6 +49,11 @@ export function Header() {
   const pathname = usePathname();
   const { user } = useAuthStore();
   const meta = resolvePageMeta(pathname);
+
+  // Establish a WebSocket connection for authenticated dashboard users.
+  // This keeps case/regulation data and AI links in sync with backend events
+  // (see `use-websocket.ts` for details about the real-time flow).
+  useWebSocket();
 
   return (
     <header className="border-b border-gray-200 bg-white/80 backdrop-blur dark:border-gray-800 dark:bg-gray-900/80">
