@@ -127,8 +127,5 @@ export function useWebSocket() {
       socketRef.current = null;
     };
   }, [token, queryClient]);
-
-  return socketRef.current;
 }
-
 
