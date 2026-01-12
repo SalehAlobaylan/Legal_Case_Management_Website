@@ -13,11 +13,11 @@
  * │                  (pb-32 for dock clearance)             │
  * │                                                         │
  * └─────────────────────────────────────────────────────────┘
- *               ┌─────────────────────────────┐
- *               │    FLOATING NAV DOCK        │
- *               │ [📊][📁] ⚖️ [📖][👥][🔔]    │
- *               │    (fixed bottom-8)         │
- *               └─────────────────────────────┘
+ *               ┌─────────────────────────────────┐
+ *               │    FLOATING NAV DOCK            │
+ *               │ [📊][📁] ⚖️ [📖][👥][🔔]        │
+ *               │    (fixed bottom-8)             │
+ *               └─────────────────────────────────┘
  *
  * Routes under this group include:
  *  - /dashboard
@@ -28,11 +28,16 @@
  *  - /settings
  */
 
+"use client";
+
 import type { ReactNode } from "react";
 import { Header } from "@/components/layout/header";
 import { NavigationDock } from "@/components/layout/navigation-dock";
+import { useAlertsStore } from "@/lib/store/alerts-store";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
+  const { unreadAlerts } = useAlertsStore();
+
   return (
     <div className="flex min-h-screen flex-col bg-[#f8fafc] text-slate-900 dark:bg-slate-950 dark:text-slate-50">
       {/* Header - Dark navy with Madar branding */}
@@ -46,7 +51,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       </main>
 
       {/* Floating Navigation Dock */}
-      <NavigationDock />
+      <NavigationDock unreadAlerts={unreadAlerts} />
     </div>
   );
 }
