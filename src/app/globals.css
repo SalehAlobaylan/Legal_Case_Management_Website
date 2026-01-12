@@ -480,7 +480,198 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* =============================================================================
-   RTL SUPPORT
+   ANIMATIONS - Phase 4 Enhancement
+   ============================================================================= */
+
+/* Keyframes */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes slide-in-from-top {
+  from { transform: translateY(-1rem); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-in-from-bottom {
+  from { transform: translateY(1rem); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-in-from-left {
+  from { transform: translateX(-1rem); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slide-in-from-right {
+  from { transform: translateX(1rem); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes zoom-in {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes zoom-out {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0.95); opacity: 0; }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+  20%, 40%, 60%, 80% { transform: translateX(2px); }
+}
+
+/* Animation utility classes */
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+.animate-fade-out {
+  animation: fade-out 0.3s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slide-in-from-bottom 0.4s ease-out forwards;
+}
+
+.animate-slide-down {
+  animation: slide-in-from-top 0.4s ease-out forwards;
+}
+
+.animate-slide-left {
+  animation: slide-in-from-right 0.4s ease-out forwards;
+}
+
+.animate-slide-right {
+  animation: slide-in-from-left 0.4s ease-out forwards;
+}
+
+.animate-zoom-in {
+  animation: zoom-in 0.3s ease-out forwards;
+}
+
+.animate-zoom-out {
+  animation: zoom-out 0.3s ease-out forwards;
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* Staggered animation delays */
+.stagger-1 { animation-delay: 50ms; }
+.stagger-2 { animation-delay: 100ms; }
+.stagger-3 { animation-delay: 150ms; }
+.stagger-4 { animation-delay: 200ms; }
+.stagger-5 { animation-delay: 250ms; }
+.stagger-6 { animation-delay: 300ms; }
+.stagger-7 { animation-delay: 350ms; }
+.stagger-8 { animation-delay: 400ms; }
+
+/* Hover animations */
+.hover-lift {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.hover-scale {
+  transition: transform 0.2s ease-out;
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+.hover-glow {
+  transition: box-shadow 0.3s ease-out;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(217, 119, 6, 0.3);
+}
+
+/* Page transition wrapper */
+.page-transition {
+  animation: fade-in 0.4s ease-out, slide-in-from-bottom 0.5s ease-out;
+}
+
+/* Skeleton loading animation */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-muted) 25%,
+    var(--color-surface-hover) 50%,
+    var(--color-surface-muted) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+
+/* =============================================================================
+   RTL SUPPORT - Enhanced for Phase 4
    ============================================================================= */
 
 [dir="rtl"] {
@@ -491,6 +682,153 @@ h1, h2, h3, h4, h5, h6 {
 /* RTL-aware icon flipping */
 [dir="rtl"] .rtl-flip {
   transform: scaleX(-1);
+}
+
+/* RTL-aware margin/padding utilities */
+[dir="rtl"] .ms-auto {
+  margin-inline-start: auto;
+}
+
+[dir="rtl"] .me-auto {
+  margin-inline-end: auto;
+}
+
+/* RTL-aware flex direction */
+[dir="rtl"] .rtl-flex-reverse {
+  flex-direction: row-reverse;
+}
+
+/* RTL-aware border radius */
+[dir="rtl"] .rtl-rounded-start {
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+}
+
+[dir="rtl"] .rtl-rounded-end {
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+}
+
+/* RTL-aware absolute positioning */
+[dir="rtl"] .rtl-inset-flip {
+  left: auto;
+  right: 0;
+}
+
+/* RTL transitions - reverse slide directions */
+[dir="rtl"] .animate-slide-left {
+  animation: slide-in-from-left 0.4s ease-out forwards;
+}
+
+[dir="rtl"] .animate-slide-right {
+  animation: slide-in-from-right 0.4s ease-out forwards;
+}
+
+/* RTL navigation dock adjustments */
+[dir="rtl"] nav[aria-label="Main navigation"] {
+  direction: rtl;
+}
+
+/* RTL form inputs */
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select {
+  text-align: right;
+}
+
+/* RTL search inputs - keep placeholder aligned correctly */
+[dir="rtl"] input[type="search"] {
+  text-align: right;
+}
+
+/* RTL table alignment */
+[dir="rtl"] th,
+[dir="rtl"] td {
+  text-align: right;
+}
+
+[dir="rtl"] th:last-child,
+[dir="rtl"] td:last-child {
+  text-align: left;
+}
+
+/* RTL chevron icons */
+[dir="rtl"] .chevron-right {
+  transform: rotate(180deg);
+}
+
+[dir="rtl"] .chevron-left {
+  transform: rotate(0deg);
+}
+
+/* RTL unread indicator position */
+[dir="rtl"] .unread-indicator {
+  left: auto;
+  right: 0;
+}
+
+/* =============================================================================
+   ACCESSIBILITY ENHANCEMENTS
+   ============================================================================= */
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .animate-bounce-subtle,
+  .animate-pulse-subtle,
+  .animate-shimmer,
+  .animate-spin,
+  .animate-ping {
+    animation: none !important;
+  }
+}
+
+/* Focus visible improvements */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Skip link for accessibility */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  z-index: 9999;
+  padding: 1rem;
+  background: var(--color-brand-primary);
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  :root {
+    --color-border-default: #000;
+    --color-text-primary: #000;
+    --color-text-secondary: #333;
+  }
+  
+  .dark {
+    --color-border-default: #fff;
+    --color-text-primary: #fff;
+    --color-text-secondary: #ccc;
+  }
 }
 
 /* =============================================================================
@@ -505,5 +843,33 @@ h1, h2, h3, h4, h5, h6 {
   
   .no-print {
     display: none !important;
+  }
+  
+  /* Hide navigation and interactive elements */
+  nav,
+  header,
+  .navigation-dock,
+  button:not(.print-button),
+  .dialog-overlay {
+    display: none !important;
+  }
+  
+  /* Ensure readable fonts */
+  * {
+    font-family: Georgia, 'Times New Roman', serif !important;
+  }
+  
+  /* Remove backgrounds */
+  .bg-white,
+  .bg-slate-50,
+  .bg-slate-100 {
+    background: white !important;
+  }
+  
+  /* Ensure text is black */
+  .text-slate-500,
+  .text-slate-600,
+  .text-slate-700 {
+    color: black !important;
   }
 }

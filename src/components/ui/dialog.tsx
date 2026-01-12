@@ -1,16 +1,19 @@
 /**
  * File: src/components/ui/dialog.tsx
- * Purpose: Lightweight dialog/modal primitives styled for the Madar design system.
+ * Purpose: Polished dialog/modal primitives styled for the Madar design system.
  *
  * Features:
- * - Overlay with 60% black + backdrop blur
- * - Centered content with rounded-2xl corners and soft shadow
+ * - Smooth animations with spring-like effects
+ * - Overlay with blur and gradient
+ * - Centered content with rounded-2xl corners and elegant shadow
  * - ESC key to close, overlay click to close
- * - Optional Trigger / Close helpers
- * - Header, Title, Description, Footer slots
+ * - Multiple size variants (sm, default, lg, xl, full)
+ * - Header with optional icon slot
+ * - Body with scroll support
+ * - Footer with action buttons
+ * - Accessible with proper ARIA attributes
  *
- * Note: This is a minimal, dependency-free alternative to Radix Dialog, tuned to
- * the visual specifications in the refactoring plan.
+ * Version: 2.0 - Enhanced for Phase 4
  */
 
 "use client";
@@ -111,11 +114,14 @@ function DialogOverlay({ className, ...props }: DialogOverlayProps) {
   return (
     <div
       className={cn(
-        "fixed inset-0 z-50 bg-black/60 backdrop-blur-sm",
-        "transition-opacity duration-200",
+        "fixed inset-0 z-50",
+        "bg-gradient-to-b from-slate-900/70 via-slate-900/60 to-slate-900/70",
+        "backdrop-blur-sm",
+        "animate-in fade-in duration-300",
         className
       )}
       onClick={() => setOpen(false)}
+      aria-hidden="true"
       {...props}
     />
   );
@@ -125,22 +131,37 @@ function DialogOverlay({ className, ...props }: DialogOverlayProps) {
    CONTENT
    ============================================================================= */
 
+type DialogSize = "sm" | "default" | "lg" | "xl" | "full";
+
+const sizeClasses: Record<DialogSize, string> = {
+  sm: "max-w-sm",
+  default: "max-w-lg",
+  lg: "max-w-2xl",
+  xl: "max-w-4xl",
+  full: "max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)]",
+};
+
 export interface DialogContentProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Close when pressing Escape (default: true) */
   closeOnEsc?: boolean;
+  /** Modal size variant */
+  size?: DialogSize;
 }
 
 export function DialogContent({
   className,
   children,
   closeOnEsc = true,
+  size = "default",
   ...props
 }: DialogContentProps) {
   const { open, setOpen } = useDialogContext("DialogContent");
   const [mounted, setMounted] = React.useState(false);
+  const contentRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => setMounted(true), []);
 
+  // Handle ESC key
   React.useEffect(() => {
     if (!open || !closeOnEsc) return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -153,20 +174,68 @@ export function DialogContent({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, closeOnEsc, setOpen]);
 
+  // Lock body scroll when open
+  React.useEffect(() => {
+    if (open) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [open]);
+
+  // Focus trap
+  React.useEffect(() => {
+    if (open && contentRef.current) {
+      const focusableElements = contentRef.current.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      const handleTab = (e: KeyboardEvent) => {
+        if (e.key !== "Tab") return;
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            lastElement?.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            firstElement?.focus();
+            e.preventDefault();
+          }
+        }
+      };
+
+      firstElement?.focus();
+      document.addEventListener("keydown", handleTab);
+      return () => document.removeEventListener("keydown", handleTab);
+    }
+  }, [open]);
+
   if (!open || !mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 sm:px-0">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <DialogOverlay />
 
       <div
+        ref={contentRef}
         role="dialog"
         aria-modal="true"
         className={cn(
-          "relative z-50 w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden",
-          "border border-slate-200",
-          "animate-in fade-in zoom-in-95 duration-200",
-          "dark:bg-slate-900 dark:border-slate-800",
+          "relative z-50 w-full",
+          sizeClasses[size],
+          "bg-white rounded-2xl",
+          "shadow-2xl shadow-slate-900/20",
+          "border border-slate-200/80",
+          "overflow-hidden",
+          // Animation
+          "animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300",
+          // Dark mode
+          "dark:bg-slate-900 dark:border-slate-700",
           className
         )}
         {...props}
@@ -179,27 +248,49 @@ export function DialogContent({
 }
 
 /* =============================================================================
-   HEADER / TITLE / DESCRIPTION
+   HEADER
    ============================================================================= */
 
-export function DialogHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+export interface DialogHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Optional icon to display before title */
+  icon?: React.ReactNode;
+}
+
+export function DialogHeader({ className, icon, children, ...props }: DialogHeaderProps) {
   return (
     <div
       className={cn(
-        "p-6 border-b border-slate-100 bg-slate-50",
-        "flex items-center justify-between",
-        "dark:border-slate-800 dark:bg-slate-900/50",
+        "px-6 py-5",
+        "border-b border-slate-100",
+        "bg-gradient-to-r from-slate-50 to-white",
+        "flex items-center gap-4",
+        "dark:border-slate-800 dark:from-slate-900/80 dark:to-slate-900/50",
         className
       )}
       {...props}
-    />
+    >
+      {icon && (
+        <div className="p-2 rounded-xl bg-[#0F2942] text-white shadow-lg shadow-slate-900/10">
+          {icon}
+        </div>
+      )}
+      <div className="flex-1 min-w-0">{children}</div>
+    </div>
   );
 }
+
+/* =============================================================================
+   TITLE & DESCRIPTION
+   ============================================================================= */
 
 export function DialogTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h3
-      className={cn("text-lg font-bold text-[#0F2942] dark:text-white", className)}
+      className={cn(
+        "text-lg font-bold text-[#0F2942]",
+        "dark:text-white",
+        className
+      )}
       {...props}
     />
   );
@@ -211,33 +302,57 @@ export function DialogDescription({
 }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
     <p
-      className={cn("text-sm text-slate-500 dark:text-slate-400", className)}
-      {...props}
-    />
-  );
-}
-
-/* =============================================================================
-   BODY / FOOTER / CLOSE
-   ============================================================================= */
-
-export function DialogBody({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("p-6", className)} {...props} />;
-}
-
-export function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
       className={cn(
-        "p-6 border-t border-slate-100 bg-slate-50",
-        "flex justify-end gap-3",
-        "dark:border-slate-800 dark:bg-slate-900/50",
+        "text-sm text-slate-500 mt-1",
+        "dark:text-slate-400",
         className
       )}
       {...props}
     />
   );
 }
+
+/* =============================================================================
+   BODY
+   ============================================================================= */
+
+export function DialogBody({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn(
+        "p-6",
+        "max-h-[60vh] overflow-y-auto",
+        "scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent",
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+/* =============================================================================
+   FOOTER
+   ============================================================================= */
+
+export function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn(
+        "px-6 py-4",
+        "border-t border-slate-100",
+        "bg-gradient-to-r from-slate-50 to-white",
+        "flex items-center justify-end gap-3",
+        "dark:border-slate-800 dark:from-slate-900/80 dark:to-slate-900/50",
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+/* =============================================================================
+   CLOSE CONTROLS
+   ============================================================================= */
 
 export interface DialogCloseProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   asChild?: boolean;
@@ -267,7 +382,7 @@ export function DialogClose({ asChild, onClick, children, ...props }: DialogClos
 }
 
 /* =============================================================================
-   CLOSE BUTTON (ICON)
+   CLOSE ICON BUTTON
    ============================================================================= */
 
 export function DialogCloseIconButton({
@@ -277,11 +392,12 @@ export function DialogCloseIconButton({
   return (
     <DialogClose
       className={cn(
-        "absolute top-4 right-4 rounded-full",
+        "absolute top-4 right-4",
+        "p-2 rounded-full",
         "text-slate-400 hover:text-slate-600",
-        "hover:bg-slate-200",
-        "p-1 transition-colors",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D97706]",
+        "bg-transparent hover:bg-slate-100",
+        "transition-all duration-200",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D97706] focus-visible:ring-offset-2",
         className
       )}
       {...props}
@@ -289,5 +405,77 @@ export function DialogCloseIconButton({
       <X className="h-5 w-5" />
       <span className="sr-only">Close</span>
     </DialogClose>
+  );
+}
+
+/* =============================================================================
+   CONFIRMATION DIALOG HELPER
+   ============================================================================= */
+
+export interface ConfirmDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description?: string;
+  confirmText?: string;
+  cancelText?: string;
+  variant?: "danger" | "warning" | "default";
+  onConfirm: () => void;
+  onCancel?: () => void;
+}
+
+export function ConfirmDialog({
+  open,
+  onOpenChange,
+  title,
+  description,
+  confirmText = "Confirm",
+  cancelText = "Cancel",
+  variant = "default",
+  onConfirm,
+  onCancel,
+}: ConfirmDialogProps) {
+  const handleConfirm = () => {
+    onConfirm();
+    onOpenChange(false);
+  };
+
+  const handleCancel = () => {
+    onCancel?.();
+    onOpenChange(false);
+  };
+
+  const confirmButtonClass = cn(
+    "px-5 py-2.5 rounded-xl font-bold text-sm transition-all",
+    variant === "danger" && "bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20",
+    variant === "warning" && "bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20",
+    variant === "default" && "bg-[#D97706] hover:bg-[#B45309] text-white shadow-lg shadow-orange-500/20"
+  );
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent size="sm">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          {description && <DialogDescription>{description}</DialogDescription>}
+        </DialogHeader>
+        <DialogFooter>
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+          >
+            {cancelText}
+          </button>
+          <button
+            type="button"
+            onClick={handleConfirm}
+            className={confirmButtonClass}
+          >
+            {confirmText}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

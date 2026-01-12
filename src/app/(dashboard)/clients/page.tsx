@@ -7,6 +7,7 @@
  * - Type filter pills
  * - Search input
  * - Clients table with avatar, contact info, status
+ * - Client form modal for adding new clients
  */
 
 "use client";
@@ -21,13 +22,21 @@ import {
   Search,
   Phone,
   Mail,
+  Building2,
+  User,
+  Briefcase,
+  Download,
 } from "lucide-react";
 import { FilterPill, FilterPills } from "@/components/ui/filter-pills";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
+import { ClientFormModal, type ClientFormData } from "@/components/features/clients/client-form-modal";
 
-// Mock data for clients
-const MOCK_CLIENTS = [
+/* =============================================================================
+   MOCK DATA
+   ============================================================================= */
+
+const INITIAL_CLIENTS = [
   {
     id: "C-001",
     name: "Ahmed Al-Rashid",
@@ -77,13 +86,53 @@ const MOCK_CLIENTS = [
 
 const TYPE_FILTERS = ["All", "Individual", "Corporate", "SME", "Group"];
 
+/* =============================================================================
+   TYPE HELPERS
+   ============================================================================= */
+
+const getTypeIcon = (type: string) => {
+  switch (type) {
+    case "Individual":
+      return User;
+    case "Corporate":
+      return Building2;
+    case "SME":
+      return Briefcase;
+    case "Group":
+      return Users;
+    default:
+      return User;
+  }
+};
+
+const getTypeColor = (type: string) => {
+  switch (type) {
+    case "Individual":
+      return "text-blue-600 bg-blue-50 border-blue-200";
+    case "Corporate":
+      return "text-purple-600 bg-purple-50 border-purple-200";
+    case "SME":
+      return "text-green-600 bg-green-50 border-green-200";
+    case "Group":
+      return "text-orange-600 bg-orange-50 border-orange-200";
+    default:
+      return "text-slate-600 bg-slate-50 border-slate-200";
+  }
+};
+
+/* =============================================================================
+   PAGE COMPONENT
+   ============================================================================= */
+
 export default function ClientsPage() {
   const router = useRouter();
   const [typeFilter, setTypeFilter] = React.useState("All");
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [clients, setClients] = React.useState(INITIAL_CLIENTS);
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   const filteredClients = React.useMemo(() => {
-    return MOCK_CLIENTS.filter((client) => {
+    return clients.filter((client) => {
       const matchesType = typeFilter === "All" || client.type === typeFilter;
       const matchesSearch =
         !searchTerm ||
@@ -92,12 +141,41 @@ export default function ClientsPage() {
         client.email.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesType && matchesSearch;
     });
-  }, [typeFilter, searchTerm]);
+  }, [clients, typeFilter, searchTerm]);
+
+  // Stats
+  const stats = React.useMemo(() => ({
+    total: clients.length,
+    active: clients.filter((c) => c.status === "Active").length,
+    inactive: clients.filter((c) => c.status === "Inactive").length,
+    totalCases: clients.reduce((sum, c) => sum + c.cases, 0),
+  }), [clients]);
+
+  const handleAddClient = (data: ClientFormData) => {
+    const newClient = {
+      id: `C-${String(clients.length + 1).padStart(3, "0")}`,
+      name: data.name,
+      type: data.type,
+      phone: data.phone,
+      email: data.email,
+      status: "Active" as const,
+      cases: 0,
+    };
+    setClients([newClient, ...clients]);
+  };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in duration-500">
+      {/* Client Form Modal */}
+      <ClientFormModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        onSubmit={handleAddClient}
+        mode="create"
+      />
+
       {/* Page Header */}
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <h1 className="text-3xl font-bold text-[#0F2942] font-serif">
             Client Directory
@@ -106,16 +184,56 @@ export default function ClientsPage() {
             Manage client relationships and contact information.
           </p>
         </div>
-        <Button className="bg-[#D97706] hover:bg-[#B45309] text-white px-6 py-3 h-auto rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 font-bold flex items-center gap-2">
-          <div className="bg-white/20 p-1 rounded-md">
-            <Plus className="h-4 w-4" />
-          </div>
-          New Client
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            className="px-4 py-2.5 rounded-xl font-bold flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Export
+          </Button>
+          <Button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-[#D97706] hover:bg-[#B45309] text-white px-6 py-2.5 h-auto rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 font-bold flex items-center gap-2 transition-all"
+          >
+            <div className="bg-white/20 p-1 rounded-md">
+              <Plus className="h-4 w-4" />
+            </div>
+            New Client
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100">
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+            Total Clients
+          </p>
+          <p className="text-2xl font-bold text-[#0F2942]">{stats.total}</p>
+        </div>
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+            Active
+          </p>
+          <p className="text-2xl font-bold text-green-600">{stats.active}</p>
+        </div>
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+            Inactive
+          </p>
+          <p className="text-2xl font-bold text-slate-400">{stats.inactive}</p>
+        </div>
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+            Total Cases
+          </p>
+          <p className="text-2xl font-bold text-[#D97706]">{stats.totalCases}</p>
+        </div>
       </div>
 
       {/* Clients Table Card */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-500 delay-200">
         {/* Filters & Search */}
         <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
           {/* Type Filters */}
@@ -133,28 +251,29 @@ export default function ClientsPage() {
 
           {/* Search & Filter */}
           <div className="flex items-center gap-2 w-full md:w-auto">
-            <div className="relative flex-1 md:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <div className="relative flex-1 md:w-72 group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#D97706] transition-colors" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search clients..."
+                placeholder="Search clients by name, ID, or email..."
                 className={cn(
-                  "w-full pl-10 pr-4 py-2 rounded-lg",
-                  "border border-slate-200 bg-white",
+                  "w-full pl-10 pr-4 py-2.5 rounded-xl",
+                  "border border-slate-200 bg-slate-50",
                   "text-sm text-[#0F2942]",
                   "placeholder:text-slate-400",
-                  "focus:outline-none focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706]"
+                  "focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/10 focus:bg-white",
+                  "transition-all duration-200"
                 )}
               />
             </div>
             <button
               className={cn(
-                "p-2 rounded-lg",
-                "border border-slate-200",
-                "hover:bg-slate-50 text-slate-600",
-                "transition-colors"
+                "p-2.5 rounded-xl",
+                "border border-slate-200 bg-white",
+                "hover:bg-slate-50 hover:border-slate-300 text-slate-600",
+                "transition-all duration-200"
               )}
             >
               <Filter className="h-[18px] w-[18px]" />
@@ -164,48 +283,55 @@ export default function ClientsPage() {
 
         {/* Table */}
         {filteredClients.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-              <Users className="text-slate-400 h-7 w-7" />
+          <div className="p-16 text-center">
+            <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+              <Users className="text-slate-400 h-8 w-8" />
             </div>
             <h3 className="font-bold text-lg text-[#0F2942] mb-2">
               No clients found
             </h3>
-            <p className="text-slate-500 text-sm">
-              Try adjusting your filters or search term.
+            <p className="text-slate-500 text-sm mb-6">
+              Try adjusting your filters or add a new client.
             </p>
+            <Button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-[#D97706] hover:bg-[#B45309] text-white px-6 py-2.5 rounded-xl font-bold"
+            >
+              Add Your First Client
+            </Button>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
-                  <th className="text-left p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Client Name
                   </th>
-                  <th className="text-left p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Type
                   </th>
-                  <th className="text-left p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Contact
                   </th>
-                  <th className="text-left p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="text-left p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Cases
                   </th>
-                  <th className="text-left p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="text-right px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Action
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredClients.map((client) => (
+                {filteredClients.map((client, index) => (
                   <ClientRow
                     key={client.id}
                     client={client}
                     onView={() => router.push(`/clients/${client.id}`)}
+                    index={index}
                   />
                 ))}
               </tbody>
@@ -232,80 +358,110 @@ interface ClientRowProps {
     cases: number;
   };
   onView: () => void;
+  index: number;
 }
 
-function ClientRow({ client, onView }: ClientRowProps) {
+function ClientRow({ client, onView, index }: ClientRowProps) {
   const { name, id, type, phone, email, status, cases } = client;
   const initial = name.charAt(0).toUpperCase();
+  const TypeIcon = getTypeIcon(type);
 
   return (
-    <tr className="hover:bg-slate-50 transition-colors group">
+    <tr
+      className={cn(
+        "hover:bg-slate-50 transition-all group cursor-pointer",
+        "animate-in fade-in slide-in-from-left-2 duration-300"
+      )}
+      style={{ animationDelay: `${index * 30}ms` }}
+      onClick={onView}
+    >
       {/* Client Name */}
-      <td className="p-4">
+      <td className="px-6 py-4">
         <div className="flex items-center gap-3">
           <div
             className={cn(
-              "w-10 h-10 rounded-full flex items-center justify-center",
-              "bg-[#0F2942] text-white font-bold text-sm",
-              "group-hover:bg-[#D97706] transition-colors"
+              "w-11 h-11 rounded-full flex items-center justify-center",
+              "bg-gradient-to-br from-[#0F2942] to-[#1E3A56] text-white font-bold text-sm",
+              "group-hover:from-[#D97706] group-hover:to-[#B45309] transition-all duration-300",
+              "shadow-md ring-2 ring-white"
             )}
           >
             {initial}
           </div>
           <div>
-            <h4 className="font-bold text-[#0F2942] text-sm">{name}</h4>
+            <h4 className="font-bold text-[#0F2942] text-sm group-hover:text-[#D97706] transition-colors">
+              {name}
+            </h4>
             <p className="text-xs text-slate-500">{id}</p>
           </div>
         </div>
       </td>
 
       {/* Type */}
-      <td className="p-4">
-        <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
+      <td className="px-6 py-4">
+        <span
+          className={cn(
+            "px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 w-fit border",
+            getTypeColor(type)
+          )}
+        >
+          <TypeIcon className="h-3.5 w-3.5" />
           {type}
         </span>
       </td>
 
       {/* Contact */}
-      <td className="p-4">
+      <td className="px-6 py-4">
         <div className="space-y-1">
-          <p className="text-sm text-slate-600 flex items-center gap-1">
-            <Phone className="h-3 w-3 text-slate-400" />
+          <p className="text-sm text-slate-600 flex items-center gap-2">
+            <Phone className="h-3.5 w-3.5 text-slate-400" />
             {phone}
           </p>
-          <p className="text-xs text-slate-400 flex items-center gap-1">
-            <Mail className="h-3 w-3" />
+          <p className="text-xs text-slate-400 flex items-center gap-2">
+            <Mail className="h-3.5 w-3.5" />
             {email}
           </p>
         </div>
       </td>
 
       {/* Status */}
-      <td className="p-4">
+      <td className="px-6 py-4">
         <span
           className={cn(
-            "px-3 py-1 rounded-full text-xs font-bold",
+            "px-3 py-1.5 rounded-full text-xs font-bold inline-flex items-center gap-1.5",
             status === "Active"
               ? "bg-green-100 text-green-700"
               : "bg-slate-200 text-slate-600"
           )}
         >
+          <span
+            className={cn(
+              "w-1.5 h-1.5 rounded-full",
+              status === "Active" ? "bg-green-500" : "bg-slate-400"
+            )}
+          />
           {status}
         </span>
       </td>
 
       {/* Cases */}
-      <td className="p-4 text-sm text-slate-600">
-        {cases} active {cases === 1 ? "case" : "cases"}
+      <td className="px-6 py-4">
+        <span className="text-sm text-slate-600 font-medium">
+          {cases} {cases === 1 ? "case" : "cases"}
+        </span>
       </td>
 
       {/* Action */}
-      <td className="p-4">
+      <td className="px-6 py-4 text-right">
         <button
-          onClick={onView}
-          className="text-[#D97706] text-sm font-bold hover:underline flex items-center gap-1"
+          onClick={(e) => {
+            e.stopPropagation();
+            onView();
+          }}
+          className="text-[#D97706] text-sm font-bold hover:underline inline-flex items-center gap-1 group/btn"
         >
-          View Details <ChevronRight className="h-3.5 w-3.5" />
+          View Details
+          <ChevronRight className="h-4 w-4 group-hover/btn:translate-x-0.5 transition-transform" />
         </button>
       </td>
     </tr>
