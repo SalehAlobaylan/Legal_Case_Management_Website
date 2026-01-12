@@ -1,33 +1,509 @@
+/*
+ * =============================================================================
+ * MADAR (مدار) - Legal Case Management System
+ * Design System Foundation - Tailwind CSS v4
+ * =============================================================================
+ * 
+ * This file contains the complete design system tokens including:
+ * - Brand Colors (Navy + Orange palette)
+ * - Typography (Inter + Playfair Display)
+ * - Shadows & Effects
+ * - Transitions
+ * - Dark mode support
+ * 
+ * Version: 1.0
+ * Last Updated: 2026-01-12
+ * =============================================================================
+ */
+
 @import "tailwindcss";
 
+/* =============================================================================
+   GOOGLE FONTS
+   Note: Fonts are loaded via Next.js font optimization in layout.tsx
+   The CSS variables --font-inter and --font-playfair are set there.
+   ============================================================================= */
+
+/* =============================================================================
+   CSS CUSTOM PROPERTIES - LIGHT MODE (DEFAULT)
+   ============================================================================= */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* -------------------------------------------------------------------------
+     BRAND COLORS - Primary Palette
+     ------------------------------------------------------------------------- */
+  
+  /* Navy - Primary brand color */
+  --color-brand-primary: #0F2942;
+  --color-brand-secondary: #1E3A56;
+  --color-brand-tertiary: #2A4D70;
+  
+  /* Orange - Accent color */
+  --color-brand-accent: #D97706;
+  --color-brand-accent-hover: #B45309;
+  --color-brand-accent-dark: #92400e;
+  
+  /* -------------------------------------------------------------------------
+     SURFACE COLORS
+     ------------------------------------------------------------------------- */
+  
+  --color-surface-bg: #f8fafc;
+  --color-surface-card: #ffffff;
+  --color-surface-muted: #f1f5f9;
+  --color-surface-hover: #f8fafc;
+  
+  /* -------------------------------------------------------------------------
+     TEXT COLORS
+     ------------------------------------------------------------------------- */
+  
+  --color-text-primary: #0F2942;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+  --color-text-light: #94a3b8;
+  --color-text-inverse: #ffffff;
+  
+  /* -------------------------------------------------------------------------
+     BORDER COLORS
+     ------------------------------------------------------------------------- */
+  
+  --color-border-default: #e2e8f0;
+  --color-border-light: #f1f5f9;
+  --color-border-dark: #cbd5e1;
+  --color-border-focus: #D97706;
+  
+  /* -------------------------------------------------------------------------
+     SEMANTIC COLORS
+     ------------------------------------------------------------------------- */
+  
+  /* Success */
+  --color-success-bg: #f0fdf4;
+  --color-success-bg-strong: #dcfce7;
+  --color-success-text: #16a34a;
+  --color-success-text-dark: #15803d;
+  --color-success-border: #bbf7d0;
+  
+  /* Warning */
+  --color-warning-bg: #fffbeb;
+  --color-warning-bg-strong: #fef3c7;
+  --color-warning-text: #D97706;
+  --color-warning-text-dark: #B45309;
+  --color-warning-border: #fde68a;
+  
+  /* Error / Destructive */
+  --color-error-bg: #fef2f2;
+  --color-error-bg-strong: #fee2e2;
+  --color-error-text: #dc2626;
+  --color-error-text-dark: #b91c1c;
+  --color-error-border: #fecaca;
+  
+  /* Info */
+  --color-info-bg: #eff6ff;
+  --color-info-bg-strong: #dbeafe;
+  --color-info-text: #2563eb;
+  --color-info-text-dark: #1d4ed8;
+  --color-info-border: #bfdbfe;
+  
+  /* -------------------------------------------------------------------------
+     TYPOGRAPHY
+     Note: --font-inter and --font-playfair are set by Next.js in layout.tsx
+     ------------------------------------------------------------------------- */
+  
+  --font-sans: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: var(--font-playfair), Georgia, 'Times New Roman', serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  
+  /* -------------------------------------------------------------------------
+     SHADOWS
+     ------------------------------------------------------------------------- */
+  
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+  
+  /* Special shadows */
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-card-hover: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-dock: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-accent: 0 4px 14px -3px rgb(217 119 6 / 0.3);
+  --shadow-accent-lg: 0 10px 25px -5px rgb(217 119 6 / 0.4);
+  
+  /* -------------------------------------------------------------------------
+     BORDER RADIUS
+     ------------------------------------------------------------------------- */
+  
+  --radius-none: 0;
+  --radius-sm: 0.375rem;   /* 6px */
+  --radius-md: 0.5rem;     /* 8px */
+  --radius-lg: 0.75rem;    /* 12px */
+  --radius-xl: 1rem;       /* 16px */
+  --radius-2xl: 1.5rem;    /* 24px */
+  --radius-full: 9999px;
+  
+  /* -------------------------------------------------------------------------
+     TRANSITIONS
+     ------------------------------------------------------------------------- */
+  
+  --transition-fast: 150ms;
+  --transition-base: 200ms;
+  --transition-slow: 300ms;
+  --transition-slower: 500ms;
+  
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* -------------------------------------------------------------------------
+     Z-INDEX SCALE
+     ------------------------------------------------------------------------- */
+  
+  --z-dropdown: 50;
+  --z-sticky: 100;
+  --z-fixed: 200;
+  --z-modal-backdrop: 400;
+  --z-modal: 500;
+  --z-popover: 600;
+  --z-tooltip: 700;
+  --z-toast: 800;
+  
+  /* -------------------------------------------------------------------------
+     LEGACY SUPPORT (for existing components)
+     ------------------------------------------------------------------------- */
+  
+  --background: var(--color-surface-card);
+  --foreground: var(--color-text-primary);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* =============================================================================
+   CSS CUSTOM PROPERTIES - DARK MODE
+   ============================================================================= */
+
+.dark {
+  /* Surface colors */
+  --color-surface-bg: #0f172a;
+  --color-surface-card: #1e293b;
+  --color-surface-muted: #334155;
+  --color-surface-hover: #334155;
+  
+  /* Text colors */
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+  --color-text-light: #64748b;
+  --color-text-inverse: #0F2942;
+  
+  /* Border colors */
+  --color-border-default: #334155;
+  --color-border-light: #1e293b;
+  --color-border-dark: #475569;
+  
+  /* Semantic - adjust for dark mode */
+  --color-success-bg: rgba(22, 163, 74, 0.1);
+  --color-success-bg-strong: rgba(22, 163, 74, 0.2);
+  --color-warning-bg: rgba(217, 119, 6, 0.1);
+  --color-warning-bg-strong: rgba(217, 119, 6, 0.2);
+  --color-error-bg: rgba(220, 38, 38, 0.1);
+  --color-error-bg-strong: rgba(220, 38, 38, 0.2);
+  --color-info-bg: rgba(37, 99, 235, 0.1);
+  --color-info-bg-strong: rgba(37, 99, 235, 0.2);
+  
+  /* Legacy support */
+  --background: var(--color-surface-bg);
+  --foreground: var(--color-text-primary);
 }
+
+/* =============================================================================
+   TAILWIND CSS v4 THEME CONFIGURATION
+   ============================================================================= */
 
 @theme inline {
-  /* App-level tokens */
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* -------------------------------------------------------------------------
+     FONT FAMILIES
+     ------------------------------------------------------------------------- */
+  
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+  --font-mono: var(--font-mono);
+  
+  /* -------------------------------------------------------------------------
+     COLORS - Brand
+     ------------------------------------------------------------------------- */
+  
+  /* Navy palette */
+  --color-navy: #0F2942;
+  --color-navy-50: #f0f5fa;
+  --color-navy-100: #e1ecf5;
+  --color-navy-200: #c3d9eb;
+  --color-navy-300: #95bdd8;
+  --color-navy-400: #6099c0;
+  --color-navy-500: #3d7aa8;
+  --color-navy-600: #2d5f8a;
+  --color-navy-700: #264d70;
+  --color-navy-800: #1E3A56;
+  --color-navy-900: #0F2942;
+  --color-navy-950: #091a2b;
+  
+  /* Orange/Amber accent palette */
+  --color-accent: #D97706;
+  --color-accent-50: #fffbeb;
+  --color-accent-100: #fef3c7;
+  --color-accent-200: #fde68a;
+  --color-accent-300: #fcd34d;
+  --color-accent-400: #fbbf24;
+  --color-accent-500: #f59e0b;
+  --color-accent-600: #D97706;
+  --color-accent-700: #B45309;
+  --color-accent-800: #92400e;
+  --color-accent-900: #78350f;
+  --color-accent-950: #451a03;
+  
+  /* -------------------------------------------------------------------------
+     COLORS - Semantic
+     ------------------------------------------------------------------------- */
+  
+  --color-background: var(--color-surface-bg);
+  --color-foreground: var(--color-text-primary);
+  --color-card: var(--color-surface-card);
+  --color-card-foreground: var(--color-text-primary);
+  --color-primary: var(--color-brand-primary);
+  --color-primary-foreground: var(--color-text-inverse);
+  --color-secondary: var(--color-surface-muted);
+  --color-secondary-foreground: var(--color-text-primary);
+  --color-muted: var(--color-surface-muted);
+  --color-muted-foreground: var(--color-text-muted);
+  --color-destructive: var(--color-error-text);
+  --color-destructive-foreground: var(--color-text-inverse);
+  --color-border: var(--color-border-default);
+  --color-input: var(--color-border-default);
+  --color-ring: var(--color-brand-accent);
+  
+  /* -------------------------------------------------------------------------
+     SHADOWS
+     ------------------------------------------------------------------------- */
+  
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+  
+  /* -------------------------------------------------------------------------
+     BORDER RADIUS
+     ------------------------------------------------------------------------- */
+  
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+}
 
-  /* Brand + UI tokens inspired by shadcn defaults */
-  --color-primary: #2563eb;
-  --color-primary-foreground: #ffffff;
-  --color-muted-foreground: #6b7280;
-  --color-border: #e5e7eb;
+/* =============================================================================
+   BASE STYLES
+   ============================================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  font-size: 0.875rem; /* 14px - base body text */
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-bg);
+}
+
+/* -------------------------------------------------------------------------
+   TYPOGRAPHY BASE
+   ------------------------------------------------------------------------- */
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-text-primary);
+}
+
+/* Serif headings for page titles */
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+/* -------------------------------------------------------------------------
+   FOCUS STYLES
+   ------------------------------------------------------------------------- */
+
+:focus-visible {
+  outline: 2px solid var(--color-brand-accent);
+  outline-offset: 2px;
+}
+
+/* -------------------------------------------------------------------------
+   SELECTION
+   ------------------------------------------------------------------------- */
+
+::selection {
+  background-color: var(--color-brand-accent);
+  color: white;
+}
+
+/* =============================================================================
+   UTILITY CLASSES
+   ============================================================================= */
+
+/* -------------------------------------------------------------------------
+   TRANSITIONS
+   ------------------------------------------------------------------------- */
+
+.transition-base {
+  transition-property: color, background-color, border-color, opacity, transform, box-shadow;
+  transition-timing-function: var(--ease-default);
+  transition-duration: var(--transition-base);
+}
+
+.transition-fast {
+  transition-property: color, background-color, border-color, opacity, transform, box-shadow;
+  transition-timing-function: var(--ease-default);
+  transition-duration: var(--transition-fast);
+}
+
+.transition-slow {
+  transition-property: color, background-color, border-color, opacity, transform, box-shadow;
+  transition-timing-function: var(--ease-default);
+  transition-duration: var(--transition-slow);
+}
+
+/* -------------------------------------------------------------------------
+   BRAND BACKGROUND UTILITIES
+   ------------------------------------------------------------------------- */
+
+.bg-brand-primary {
+  background-color: var(--color-brand-primary);
+}
+
+.bg-brand-secondary {
+  background-color: var(--color-brand-secondary);
+}
+
+.bg-brand-accent {
+  background-color: var(--color-brand-accent);
+}
+
+.bg-brand-accent-hover:hover {
+  background-color: var(--color-brand-accent-hover);
+}
+
+/* -------------------------------------------------------------------------
+   BRAND TEXT UTILITIES
+   ------------------------------------------------------------------------- */
+
+.text-brand-primary {
+  color: var(--color-brand-primary);
+}
+
+.text-brand-accent {
+  color: var(--color-brand-accent);
+}
+
+/* -------------------------------------------------------------------------
+   SHADOW UTILITIES
+   ------------------------------------------------------------------------- */
+
+.shadow-card {
+  box-shadow: var(--shadow-card);
+}
+
+.shadow-card-hover:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+.shadow-dock {
+  box-shadow: var(--shadow-dock);
+}
+
+.shadow-accent {
+  box-shadow: var(--shadow-accent);
+}
+
+.shadow-accent-lg {
+  box-shadow: var(--shadow-accent-lg);
+}
+
+/* -------------------------------------------------------------------------
+   SCROLLBAR STYLING
+   ------------------------------------------------------------------------- */
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-dark);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* =============================================================================
+   RTL SUPPORT
+   ============================================================================= */
+
+[dir="rtl"] {
+  /* Flip directional properties for RTL */
+  text-align: right;
+}
+
+/* RTL-aware icon flipping */
+[dir="rtl"] .rtl-flip {
+  transform: scaleX(-1);
+}
+
+/* =============================================================================
+   PRINT STYLES
+   ============================================================================= */
+
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
 }

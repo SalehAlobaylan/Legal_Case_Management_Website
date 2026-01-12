@@ -1,116 +1,335 @@
-/*
+/**
  * File: src/components/layout/header.tsx
- * Purpose: Top application header for dashboard routes.
- *  - Shows contextual page title based on the current path.
- *  - Provides a (non-blocking) search input for cases/regulations.
- *  - Displays the current authenticated user from the Zustand auth store.
+ * Purpose: Dark navy header with Madar branding for the dashboard.
  *
- * This keeps logic light but visually polished, and is fully compatible
- * with the Fastify backend + auth flow defined in the plans.
+ * Features:
+ * - Dark navy background (#0F2942)
+ * - Madar brand logo with orange accent
+ * - Centered search bar with glass effect
+ * - Notification bell with badge
+ * - User profile section
+ * - Sticky positioning
  */
 
 "use client";
 
-import { usePathname } from "next/navigation";
-import { Search, Bell } from "lucide-react";
+import * as React from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Scale, Search, Bell, Settings, ChevronDown, LogOut } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth-store";
-import { cn } from "@/lib/utils/cn";
+import { useLogout } from "@/lib/hooks/use-auth";
 import { useWebSocket } from "@/lib/hooks/use-websocket";
+import { cn } from "@/lib/utils/cn";
 
-function resolvePageMeta(pathname: string) {
-  if (pathname.startsWith("/cases")) {
-    return {
-      title: "Cases",
-      description: "Browse, filter, and manage your active legal cases.",
-    };
-  }
+/* =============================================================================
+   HEADER COMPONENT
+   ============================================================================= */
 
-  if (pathname.startsWith("/regulations")) {
-    return {
-      title: "Regulations",
-      description: "Explore linked regulations and legal references.",
-    };
-  }
-
-  if (pathname.startsWith("/settings")) {
-    return {
-      title: "Settings",
-      description: "Manage your account, organization, and preferences.",
-    };
-  }
-
-  return {
-    title: "Dashboard",
-    description: "Overview of your caseload and recent activity.",
-  };
+interface HeaderProps {
+  /** Number of unread notifications */
+  unreadCount?: number;
+  /** Search input change handler */
+  onSearch?: (query: string) => void;
+  /** Click handler for notifications */
+  onNotificationsClick?: () => void;
+  /** Click handler for settings */
+  onSettingsClick?: () => void;
 }
 
-export function Header() {
-  const pathname = usePathname();
+export function Header({
+  unreadCount = 0,
+  onSearch,
+  onNotificationsClick,
+  onSettingsClick,
+}: HeaderProps) {
+  const router = useRouter();
   const { user } = useAuthStore();
-  const meta = resolvePageMeta(pathname);
+  const logout = useLogout();
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [showUserMenu, setShowUserMenu] = React.useState(false);
 
-  // Establish a WebSocket connection for authenticated dashboard users.
-  // This keeps case/regulation data and AI links in sync with backend events
-  // (see `use-websocket.ts` for details about the real-time flow).
+  // Establish WebSocket connection for real-time updates
   useWebSocket();
 
+  // Get user initials for avatar
+  const userInitials = React.useMemo(() => {
+    if (!user?.fullName) return "U";
+    return user.fullName
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  }, [user?.fullName]);
+
+  const userName = user?.fullName || "User";
+  const userRole = user?.role || "Lawyer";
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    onSearch?.(value);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const handleNotifications = () => {
+    if (onNotificationsClick) {
+      onNotificationsClick();
+    } else {
+      router.push("/alerts");
+    }
+  };
+
+  const handleSettings = () => {
+    if (onSettingsClick) {
+      onSettingsClick();
+    } else {
+      router.push("/settings");
+    }
+  };
+
+  const handleLogout = () => {
+    setShowUserMenu(false);
+    logout();
+  };
+
   return (
-    <header className="border-b border-gray-200 bg-white/80 backdrop-blur dark:border-gray-800 dark:bg-gray-900/80">
-      <div className="flex items-center justify-between gap-4 px-6 py-3">
-        {/* Page title & subtitle */}
+    <header
+      className={cn(
+        "h-20 sticky top-0 z-40",
+        "bg-[#0F2942] border-b border-[#1E3A56]",
+        "flex items-center justify-between px-4 sm:px-6 lg:px-8",
+        "shadow-md"
+      )}
+    >
+      {/* Left: Brand Logo */}
+      <Link
+        href="/dashboard"
+        className="flex items-center gap-3 cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D97706] rounded-lg"
+      >
+        <div
+          className={cn(
+            "bg-[#D97706] p-2 rounded-lg",
+            "shadow-lg shadow-orange-900/20",
+            "group-hover:bg-white transition-all duration-300"
+          )}
+        >
+          <Scale
+            className={cn(
+              "h-5 w-5 text-white",
+              "group-hover:text-[#D97706] transition-colors duration-300"
+            )}
+          />
+        </div>
         <div>
-          <h1 className="text-lg font-semibold leading-tight tracking-tight text-gray-900 dark:text-gray-50 md:text-xl">
-            {meta.title}
+          <h1 className="font-bold text-xl tracking-wide text-white">
+            Madar
           </h1>
-          <p className="mt-1 text-xs text-muted-foreground md:text-sm">
-            {meta.description}
+          <p className="text-[10px] text-blue-200/80 font-medium tracking-widest uppercase">
+            Case Management
           </p>
         </div>
+      </Link>
 
-        {/* Search + user summary */}
-        <div className="flex items-center gap-4">
-          {/* Search (non-blocking placeholder) */}
-          <div className="relative hidden md:block">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <input
-              type="search"
-              placeholder="Search cases or regulations"
-              className="h-9 w-56 rounded-full border border-gray-200 bg-white pl-9 pr-3 text-xs text-gray-900 shadow-sm outline-none ring-0 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder:text-gray-500"
-            />
-          </div>
+      {/* Center: Search Bar */}
+      <form
+        onSubmit={handleSearchSubmit}
+        className={cn(
+          "hidden md:flex items-center",
+          "bg-[#1E3A56] rounded-full px-4 py-2.5 w-96",
+          "border border-[#2A4D70]",
+          "focus-within:border-[#D97706] focus-within:bg-[#152e46]",
+          "transition-all duration-200 group"
+        )}
+      >
+        <Search
+          className={cn(
+            "h-4 w-4 text-blue-300 mr-2 flex-shrink-0",
+            "group-focus-within:text-[#D97706] transition-colors"
+          )}
+        />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={handleSearchChange}
+          placeholder="Search cases, regulations, or documents..."
+          className={cn(
+            "bg-transparent border-none outline-none",
+            "text-sm w-full text-white",
+            "placeholder:text-blue-300/50"
+          )}
+        />
+      </form>
 
-          {/* Notifications placeholder */}
+      {/* Right: Actions */}
+      <div className="flex items-center gap-2 sm:gap-4 lg:gap-6">
+        {/* Action Buttons */}
+        <div className="flex items-center gap-1 sm:gap-2">
+          {/* Notifications */}
           <button
             type="button"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
-            aria-label="Notifications"
+            onClick={handleNotifications}
+            className={cn(
+              "relative p-2 rounded-full",
+              "text-blue-200 hover:text-white",
+              "hover:bg-[#1E3A56]",
+              "transition-colors duration-200",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D97706]"
+            )}
+            aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
           >
-            <Bell className="h-4 w-4" />
+            <Bell className="h-5 w-5" />
+            {unreadCount > 0 && (
+              <span
+                className={cn(
+                  "absolute top-1.5 right-1.5",
+                  "w-2.5 h-2.5 bg-[#D97706] rounded-full",
+                  "border-2 border-[#0F2942]"
+                )}
+                aria-hidden="true"
+              />
+            )}
           </button>
 
-          {/* User avatar/summary */}
-          <div className="flex items-center gap-3 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-left text-xs shadow-sm dark:border-gray-700 dark:bg-gray-900">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-[0.7rem] font-semibold uppercase text-white">
-              {user?.fullName
-                ?.split(" ")
-                .map((part) => part[0])
-                .join("")
-                .slice(0, 2) || "LC"}
+          {/* Settings */}
+          <button
+            type="button"
+            onClick={handleSettings}
+            className={cn(
+              "p-2 rounded-full",
+              "text-blue-200 hover:text-white",
+              "hover:bg-[#1E3A56]",
+              "transition-colors duration-200",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D97706]"
+            )}
+            aria-label="Settings"
+          >
+            <Settings className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Divider */}
+        <div className="hidden sm:block h-8 w-px bg-[#1E3A56]" />
+
+        {/* User Profile */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className={cn(
+              "flex items-center gap-2 sm:gap-3 cursor-pointer",
+              "p-1.5 pr-2 sm:pr-3 rounded-full",
+              "border border-transparent",
+              "hover:bg-[#1E3A56] hover:border-[#2A4D70]",
+              "transition-all duration-200",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D97706]"
+            )}
+            aria-expanded={showUserMenu}
+            aria-haspopup="true"
+          >
+            {/* Avatar */}
+            <div
+              className={cn(
+                "w-9 h-9 rounded-full",
+                "bg-white text-[#0F2942]",
+                "flex items-center justify-center",
+                "font-bold text-sm",
+                "shadow-md ring-2 ring-[#D97706]/20"
+              )}
+            >
+              {userInitials}
             </div>
-            <div className="leading-tight">
-              <div className="font-medium text-gray-900 dark:text-gray-50">
-                {user?.fullName || "Logged-in user"}
-              </div>
-              <div className={cn("text-[0.65rem] text-muted-foreground")}>
-                {user?.role || "Lawyer"}
-              </div>
+
+            {/* User Info - Hidden on small screens */}
+            <div className="hidden lg:block text-left">
+              <p className="text-sm font-bold text-white leading-none">
+                {userName}
+              </p>
+              <p className="text-[10px] text-blue-200 font-medium mt-1">
+                {userRole}
+              </p>
             </div>
-          </div>
+
+            {/* Dropdown Arrow */}
+            <ChevronDown
+              className={cn(
+                "hidden sm:block h-4 w-4 text-blue-200",
+                "transition-transform duration-200",
+                showUserMenu && "rotate-180"
+              )}
+            />
+          </button>
+
+          {/* User Dropdown Menu */}
+          {showUserMenu && (
+            <>
+              {/* Backdrop */}
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setShowUserMenu(false)}
+              />
+
+              {/* Menu */}
+              <div
+                className={cn(
+                  "absolute right-0 top-full mt-2 z-50",
+                  "w-56 py-2",
+                  "bg-white rounded-xl shadow-2xl",
+                  "border border-slate-200",
+                  "animate-in fade-in slide-in-from-top-2 duration-200"
+                )}
+              >
+                {/* User Info Header */}
+                <div className="px-4 py-3 border-b border-slate-100">
+                  <p className="text-sm font-bold text-[#0F2942]">{userName}</p>
+                  <p className="text-xs text-slate-500">{user?.email || "user@example.com"}</p>
+                </div>
+
+                {/* Menu Items */}
+                <div className="py-1">
+                  <Link
+                    href="/settings"
+                    onClick={() => setShowUserMenu(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-2",
+                      "text-sm text-slate-700",
+                      "hover:bg-slate-50 hover:text-[#0F2942]",
+                      "transition-colors"
+                    )}
+                  >
+                    <Settings className="h-4 w-4" />
+                    Settings
+                  </Link>
+                </div>
+
+                {/* Logout */}
+                <div className="border-t border-slate-100 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-2 w-full",
+                      "text-sm text-red-600",
+                      "hover:bg-red-50",
+                      "transition-colors"
+                    )}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign out
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </header>
   );
 }
-
-
