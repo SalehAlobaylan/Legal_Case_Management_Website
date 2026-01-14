@@ -4,6 +4,7 @@ import "./globals.css";
 import { QueryProvider } from "@/providers/query-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
+import { I18nProvider } from "@/components/providers/i18n-provider";
 
 /**
  * Inter - Primary sans-serif font
@@ -59,8 +60,10 @@ export default function RootLayout({
           disableTransitionOnChange={false}
         >
           <QueryProvider>
-            {children}
-            <Toaster />
+            <I18nProvider>
+              {children}
+              <Toaster />
+            </I18nProvider>
           </QueryProvider>
         </ThemeProvider>
       </body>

@@ -25,6 +25,7 @@ import {
   Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { useI18n } from "@/lib/hooks/use-i18n";
 
 /* =============================================================================
    NAVIGATION ITEMS CONFIGURATION
@@ -32,8 +33,7 @@ import { cn } from "@/lib/utils/cn";
 
 interface NavItem {
   icon: React.ElementType;
-  label: string;
-  labelAr?: string;
+  translationKey: string; // Key for i18n
   path?: string;
   isCenter?: boolean;
   showBadge?: boolean;
@@ -42,38 +42,32 @@ interface NavItem {
 const navItems: NavItem[] = [
   {
     icon: LayoutDashboard,
-    label: "Dashboard",
-    labelAr: "لوحة التحكم",
+    translationKey: "nav.dashboard",
     path: "/dashboard",
   },
   {
     icon: FileText,
-    label: "Cases",
-    labelAr: "القضايا",
+    translationKey: "nav.cases",
     path: "/cases",
   },
   {
     icon: Scale,
-    label: "New Case",
-    labelAr: "قضية جديدة",
+    translationKey: "cases.createCase",
     isCenter: true,
   },
   {
     icon: BookOpen,
-    label: "Regulations",
-    labelAr: "الأنظمة",
+    translationKey: "nav.regulations",
     path: "/regulations",
   },
   {
     icon: Users,
-    label: "Clients",
-    labelAr: "العملاء",
+    translationKey: "nav.clients",
     path: "/clients",
   },
   {
     icon: Bell,
-    label: "Alerts",
-    labelAr: "التنبيهات",
+    translationKey: "nav.alerts",
     path: "/alerts",
     showBadge: true,
   },
@@ -255,6 +249,7 @@ export function NavigationDock({
 }: NavigationDockProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useI18n();
 
   const handleNewCase = () => {
     if (onNewCase) {
@@ -279,12 +274,14 @@ export function NavigationDock({
       aria-label="Main navigation"
     >
       {navItems.map((item, index) => {
+        const label = t(item.translationKey);
+
         // Center action button
         if (item.isCenter) {
           return (
             <CenterButton
-              key={item.label}
-              label={item.label}
+              key={item.translationKey}
+              label={label}
               onClick={handleNewCase}
             />
           );
@@ -298,9 +295,9 @@ export function NavigationDock({
 
         return (
           <DockItem
-            key={item.label}
+            key={item.translationKey}
             icon={item.icon}
-            label={item.label}
+            label={label}
             path={item.path}
             isActive={isActive}
             showBadge={item.showBadge}

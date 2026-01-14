@@ -1,0 +1,202 @@
+{
+    "common": {
+        "loading": "Loading...",
+        "error": "An error occurred",
+        "retry": "Retry",
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "edit": "Edit",
+        "create": "Create",
+        "search": "Search",
+        "filter": "Filter",
+        "all": "All",
+        "viewDetails": "View Details",
+        "noResults": "No results found",
+        "confirm": "Confirm",
+        "close": "Close",
+        "back": "Back",
+        "next": "Next",
+        "submit": "Submit",
+        "refresh": "Refresh",
+        "export": "Export"
+    },
+    "auth": {
+        "login": "Login",
+        "logout": "Logout",
+        "register": "Register",
+        "email": "Email",
+        "password": "Password",
+        "confirmPassword": "Confirm Password",
+        "fullName": "Full Name",
+        "forgotPassword": "Forgot Password?",
+        "noAccount": "Don't have an account?",
+        "hasAccount": "Already have an account?",
+        "signIn": "Sign In",
+        "signUp": "Sign Up",
+        "loginTitle": "Welcome back",
+        "loginSubtitle": "Sign in to your account to continue"
+    },
+    "nav": {
+        "dashboard": "Dashboard",
+        "cases": "Cases",
+        "regulations": "Regulations",
+        "clients": "Clients",
+        "alerts": "Alerts",
+        "settings": "Settings",
+        "profile": "Profile"
+    },
+    "dashboard": {
+        "welcome": "Welcome back, {{name}}",
+        "aiAnalysis": "Your AI assistant analyzed {{count}} new cases while you were away.",
+        "newCase": "New Case",
+        "activeCases": "Active Cases",
+        "updatedToday": "{{count}} updated today",
+        "pendingRegulations": "Pending Regulations",
+        "requiresReview": "Requires review",
+        "aiDiscoveries": "AI Discoveries",
+        "regulationsMatched": "Regulations matched",
+        "pendingHearings": "Pending Hearings",
+        "thisMonth": "This month",
+        "recentCases": "Recent Cases",
+        "viewAll": "View All",
+        "regulationUpdates": "Regulation Updates"
+    },
+    "cases": {
+        "title": "Case Management",
+        "subtitle": "Manage and track your organization's legal cases.",
+        "newCase": "New Case",
+        "caseNumber": "Case Number",
+        "caseType": "Case Type",
+        "status": "Status",
+        "lastUpdated": "Last Updated",
+        "action": "Action",
+        "caseDetails": "Case Details",
+        "noCases": "No cases yet",
+        "noCasesDesc": "Create your first case to get started.",
+        "createCase": "Create Case",
+        "searchCases": "Search cases...",
+        "statuses": {
+            "open": "Active",
+            "in_progress": "In Progress",
+            "pending_hearing": "Pending",
+            "closed": "Closed",
+            "archived": "Archived"
+        },
+        "types": {
+            "criminal": "Criminal",
+            "civil": "Civil",
+            "commercial": "Commercial",
+            "labor": "Labor",
+            "family": "Family",
+            "administrative": "Administrative"
+        }
+    },
+    "regulations": {
+        "title": "Regulation Library",
+        "subtitle": "Browse active laws and track legislative history.",
+        "discoverNew": "Discover New",
+        "searchRegulations": "Search regulations...",
+        "noRegulations": "No regulations found",
+        "noRegulationsDesc": "Try adjusting your filters or search term.",
+        "versions": "Versions",
+        "viewDetails": "View Details",
+        "statuses": {
+            "active": "Active",
+            "amended": "Amended",
+            "repealed": "Repealed",
+            "draft": "Draft"
+        },
+        "categories": {
+            "labor": "Labor",
+            "commercial": "Commercial",
+            "civil": "Civil",
+            "criminal": "Criminal",
+            "administrative": "Administrative",
+            "family": "Family",
+            "digital": "Digital"
+        }
+    },
+    "clients": {
+        "title": "Client Directory",
+        "subtitle": "Manage client relationships and contact information.",
+        "newClient": "New Client",
+        "totalClients": "Total Clients",
+        "active": "Active",
+        "inactive": "Inactive",
+        "totalCases": "Total Cases",
+        "clientName": "Client Name",
+        "type": "Type",
+        "contact": "Contact",
+        "cases": "Cases",
+        "noClients": "No clients found",
+        "noClientsDesc": "Try adjusting your filters or add a new client.",
+        "addFirstClient": "Add Your First Client",
+        "searchClients": "Search clients by name, ID, or email...",
+        "types": {
+            "individual": "Individual",
+            "company": "Corporate"
+        }
+    },
+    "alerts": {
+        "title": "Notification Center",
+        "subtitle": "Stay updated on case activities and regulation changes.",
+        "markAllRead": "Mark all as read",
+        "total": "Total",
+        "unread": "Unread",
+        "clearAll": "Clear All",
+        "allNotifications": "All Notifications",
+        "noAlerts": "No notifications",
+        "noAlertsDesc": "You don't have any notifications yet. They'll appear here when there's activity.",
+        "allCaughtUp": "All caught up!",
+        "allCaughtUpDesc": "You've read all your notifications. Great job staying on top of things!",
+        "markAsRead": "Mark as read",
+        "types": {
+            "case_update": "Case Update",
+            "ai_suggestion": "AI Suggestion",
+            "regulation_update": "Regulation Update",
+            "document_upload": "Document Upload",
+            "system": "System"
+        }
+    },
+    "settings": {
+        "title": "Settings",
+        "profile": "Profile",
+        "organization": "Organization",
+        "notifications": "Notifications",
+        "security": "Security",
+        "integrations": "Integrations",
+        "billing": "Billing",
+        "language": "Language",
+        "theme": "Theme",
+        "themes": {
+            "light": "Light",
+            "dark": "Dark",
+            "system": "System"
+        }
+    },
+    "documents": {
+        "title": "Documents",
+        "upload": "Upload",
+        "download": "Download",
+        "delete": "Delete",
+        "noDocuments": "No documents uploaded yet",
+        "dragDrop": "Drag and drop a file here, or click to browse",
+        "allowedTypes": "Allowed: {{types}} • Max size: {{size}}",
+        "chooseFile": "Choose File",
+        "uploading": "Uploading..."
+    },
+    "ai": {
+        "suggestions": "AI Suggestions",
+        "noSuggestions": "No AI suggestions yet",
+        "noSuggestionsDesc": "Generate AI-powered regulation suggestions for this case.",
+        "generateSuggestions": "Generate Suggestions",
+        "generating": "Generating AI suggestions...",
+        "suggestedRegulations": "{{count}} AI-suggested regulations",
+        "verify": "Verify",
+        "dismiss": "Dismiss",
+        "verified": "Verified",
+        "aiGenerated": "AI Generated",
+        "manual": "Manual"
+    }
+}

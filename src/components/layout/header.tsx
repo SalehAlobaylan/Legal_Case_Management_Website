@@ -21,6 +21,8 @@ import { useAuthStore } from "@/lib/store/auth-store";
 import { useLogout } from "@/lib/hooks/use-auth";
 import { useWebSocket } from "@/lib/hooks/use-websocket";
 import { cn } from "@/lib/utils/cn";
+import { LanguageToggle } from "@/components/layout/language-toggle";
+import { ConnectionStatusIndicator } from "@/components/layout/connection-status";
 
 /* =============================================================================
    HEADER COMPONENT
@@ -172,6 +174,14 @@ export function Header({
       <div className="flex items-center gap-2 sm:gap-4 lg:gap-6">
         {/* Action Buttons */}
         <div className="flex items-center gap-1 sm:gap-2">
+          {/* Connection Status */}
+          <div className="hidden md:flex mr-2">
+            <ConnectionStatusIndicator />
+          </div>
+
+          {/* Language Toggle */}
+          <LanguageToggle variant="icon" />
+
           {/* Notifications */}
           <button
             type="button"
@@ -184,6 +194,7 @@ export function Header({
               "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D97706]"
             )}
             aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
+            title="Notifications"
           >
             <Bell className="h-5 w-5" />
             {unreadCount > 0 && (
@@ -210,6 +221,7 @@ export function Header({
               "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D97706]"
             )}
             aria-label="Settings"
+            title="Settings"
           >
             <Settings className="h-5 w-5" />
           </button>

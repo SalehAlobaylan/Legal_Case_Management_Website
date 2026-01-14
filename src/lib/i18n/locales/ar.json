@@ -1,0 +1,202 @@
+{
+    "common": {
+        "loading": "جاري التحميل...",
+        "error": "حدث خطأ",
+        "retry": "إعادة المحاولة",
+        "save": "حفظ",
+        "cancel": "إلغاء",
+        "delete": "حذف",
+        "edit": "تعديل",
+        "create": "إنشاء",
+        "search": "بحث",
+        "filter": "تصفية",
+        "all": "الكل",
+        "viewDetails": "عرض التفاصيل",
+        "noResults": "لا توجد نتائج",
+        "confirm": "تأكيد",
+        "close": "إغلاق",
+        "back": "رجوع",
+        "next": "التالي",
+        "submit": "إرسال",
+        "refresh": "تحديث",
+        "export": "تصدير"
+    },
+    "auth": {
+        "login": "تسجيل الدخول",
+        "logout": "تسجيل الخروج",
+        "register": "التسجيل",
+        "email": "البريد الإلكتروني",
+        "password": "كلمة المرور",
+        "confirmPassword": "تأكيد كلمة المرور",
+        "fullName": "الاسم الكامل",
+        "forgotPassword": "نسيت كلمة المرور؟",
+        "noAccount": "ليس لديك حساب؟",
+        "hasAccount": "لديك حساب بالفعل؟",
+        "signIn": "تسجيل الدخول",
+        "signUp": "إنشاء حساب",
+        "loginTitle": "مرحباً بعودتك",
+        "loginSubtitle": "سجّل دخولك للمتابعة"
+    },
+    "nav": {
+        "dashboard": "لوحة التحكم",
+        "cases": "القضايا",
+        "regulations": "الأنظمة",
+        "clients": "العملاء",
+        "alerts": "التنبيهات",
+        "settings": "الإعدادات",
+        "profile": "الملف الشخصي"
+    },
+    "dashboard": {
+        "welcome": "مرحباً بعودتك، {{name}}",
+        "aiAnalysis": "قام مساعد الذكاء الاصطناعي بتحليل {{count}} قضايا جديدة أثناء غيابك.",
+        "newCase": "قضية جديدة",
+        "activeCases": "القضايا النشطة",
+        "updatedToday": "{{count}} تم تحديثها اليوم",
+        "pendingRegulations": "الأنظمة المعلقة",
+        "requiresReview": "تتطلب المراجعة",
+        "aiDiscoveries": "اكتشافات الذكاء الاصطناعي",
+        "regulationsMatched": "الأنظمة المطابقة",
+        "pendingHearings": "الجلسات المعلقة",
+        "thisMonth": "هذا الشهر",
+        "recentCases": "القضايا الأخيرة",
+        "viewAll": "عرض الكل",
+        "regulationUpdates": "تحديثات الأنظمة"
+    },
+    "cases": {
+        "title": "إدارة القضايا",
+        "subtitle": "إدارة ومتابعة القضايا القانونية لمؤسستك.",
+        "newCase": "قضية جديدة",
+        "caseNumber": "رقم القضية",
+        "caseType": "نوع القضية",
+        "status": "الحالة",
+        "lastUpdated": "آخر تحديث",
+        "action": "الإجراء",
+        "caseDetails": "تفاصيل القضية",
+        "noCases": "لا توجد قضايا بعد",
+        "noCasesDesc": "أنشئ أول قضية للبدء.",
+        "createCase": "إنشاء قضية",
+        "searchCases": "البحث في القضايا...",
+        "statuses": {
+            "open": "نشطة",
+            "in_progress": "قيد التنفيذ",
+            "pending_hearing": "معلقة",
+            "closed": "مغلقة",
+            "archived": "مؤرشفة"
+        },
+        "types": {
+            "criminal": "جنائية",
+            "civil": "مدنية",
+            "commercial": "تجارية",
+            "labor": "عمالية",
+            "family": "أسرية",
+            "administrative": "إدارية"
+        }
+    },
+    "regulations": {
+        "title": "مكتبة الأنظمة",
+        "subtitle": "تصفح القوانين النافذة وتتبع التاريخ التشريعي.",
+        "discoverNew": "اكتشف الجديد",
+        "searchRegulations": "البحث في الأنظمة...",
+        "noRegulations": "لم يتم العثور على أنظمة",
+        "noRegulationsDesc": "جرب تعديل الفلاتر أو مصطلح البحث.",
+        "versions": "الإصدارات",
+        "viewDetails": "عرض التفاصيل",
+        "statuses": {
+            "active": "نافذ",
+            "amended": "معدّل",
+            "repealed": "ملغى",
+            "draft": "مسودة"
+        },
+        "categories": {
+            "labor": "عمالي",
+            "commercial": "تجاري",
+            "civil": "مدني",
+            "criminal": "جنائي",
+            "administrative": "إداري",
+            "family": "أسري",
+            "digital": "رقمي"
+        }
+    },
+    "clients": {
+        "title": "دليل العملاء",
+        "subtitle": "إدارة علاقات العملاء ومعلومات الاتصال.",
+        "newClient": "عميل جديد",
+        "totalClients": "إجمالي العملاء",
+        "active": "نشط",
+        "inactive": "غير نشط",
+        "totalCases": "إجمالي القضايا",
+        "clientName": "اسم العميل",
+        "type": "النوع",
+        "contact": "الاتصال",
+        "cases": "القضايا",
+        "noClients": "لم يتم العثور على عملاء",
+        "noClientsDesc": "جرب تعديل الفلاتر أو أضف عميلاً جديداً.",
+        "addFirstClient": "أضف أول عميل",
+        "searchClients": "البحث بالاسم أو المعرف أو البريد الإلكتروني...",
+        "types": {
+            "individual": "فرد",
+            "company": "شركة"
+        }
+    },
+    "alerts": {
+        "title": "مركز التنبيهات",
+        "subtitle": "ابقَ على اطلاع بأنشطة القضايا وتغييرات الأنظمة.",
+        "markAllRead": "تحديد الكل كمقروء",
+        "total": "الإجمالي",
+        "unread": "غير مقروء",
+        "clearAll": "مسح الكل",
+        "allNotifications": "جميع التنبيهات",
+        "noAlerts": "لا توجد تنبيهات",
+        "noAlertsDesc": "ليس لديك أي تنبيهات بعد. ستظهر هنا عند وجود نشاط.",
+        "allCaughtUp": "لا يوجد جديد!",
+        "allCaughtUpDesc": "لقد قرأت جميع تنبيهاتك. أحسنت!",
+        "markAsRead": "تحديد كمقروء",
+        "types": {
+            "case_update": "تحديث قضية",
+            "ai_suggestion": "اقتراح ذكي",
+            "regulation_update": "تحديث نظام",
+            "document_upload": "رفع مستند",
+            "system": "نظام"
+        }
+    },
+    "settings": {
+        "title": "الإعدادات",
+        "profile": "الملف الشخصي",
+        "organization": "المؤسسة",
+        "notifications": "التنبيهات",
+        "security": "الأمان",
+        "integrations": "التكاملات",
+        "billing": "الفوترة",
+        "language": "اللغة",
+        "theme": "المظهر",
+        "themes": {
+            "light": "فاتح",
+            "dark": "داكن",
+            "system": "النظام"
+        }
+    },
+    "documents": {
+        "title": "المستندات",
+        "upload": "رفع",
+        "download": "تحميل",
+        "delete": "حذف",
+        "noDocuments": "لم يتم رفع مستندات بعد",
+        "dragDrop": "اسحب وأفلت ملفاً هنا، أو انقر للتصفح",
+        "allowedTypes": "الأنواع المسموحة: {{types}} • الحد الأقصى: {{size}}",
+        "chooseFile": "اختر ملف",
+        "uploading": "جاري الرفع..."
+    },
+    "ai": {
+        "suggestions": "اقتراحات الذكاء الاصطناعي",
+        "noSuggestions": "لا توجد اقتراحات بعد",
+        "noSuggestionsDesc": "أنشئ اقتراحات الأنظمة المدعومة بالذكاء الاصطناعي لهذه القضية.",
+        "generateSuggestions": "إنشاء الاقتراحات",
+        "generating": "جاري إنشاء اقتراحات الذكاء الاصطناعي...",
+        "suggestedRegulations": "{{count}} أنظمة مقترحة بالذكاء الاصطناعي",
+        "verify": "تحقق",
+        "dismiss": "تجاهل",
+        "verified": "تم التحقق",
+        "aiGenerated": "مولّد بالذكاء الاصطناعي",
+        "manual": "يدوي"
+    }
+}
