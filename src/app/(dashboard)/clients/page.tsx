@@ -26,65 +26,22 @@ import {
   User,
   Briefcase,
   Download,
+  Loader2,
 } from "lucide-react";
 import { FilterPill, FilterPills } from "@/components/ui/filter-pills";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 import { ClientFormModal, type ClientFormData } from "@/components/features/clients/client-form-modal";
+import { useClients, useCreateClient } from "@/lib/hooks/use-clients";
+import type { Client } from "@/lib/types/client";
 
-/* =============================================================================
-   MOCK DATA
-   ============================================================================= */
+const TYPE_FILTERS = ["All", "individual", "company"];
 
-const INITIAL_CLIENTS = [
-  {
-    id: "C-001",
-    name: "Ahmed Al-Rashid",
-    type: "Individual",
-    phone: "+966 50 123 4567",
-    email: "ahmed.rashid@email.com",
-    status: "Active",
-    cases: 3,
-  },
-  {
-    id: "C-002",
-    name: "Saudi Tech Corp",
-    type: "Corporate",
-    phone: "+966 11 456 7890",
-    email: "legal@sauditech.com",
-    status: "Active",
-    cases: 7,
-  },
-  {
-    id: "C-003",
-    name: "Al-Faisal Trading",
-    type: "SME",
-    phone: "+966 13 234 5678",
-    email: "info@alfaisal.com",
-    status: "Active",
-    cases: 2,
-  },
-  {
-    id: "C-004",
-    name: "Mohammed Enterprises Group",
-    type: "Group",
-    phone: "+966 12 345 6789",
-    email: "legal@meg.com",
-    status: "Inactive",
-    cases: 0,
-  },
-  {
-    id: "C-005",
-    name: "Fatima Al-Hassan",
-    type: "Individual",
-    phone: "+966 55 987 6543",
-    email: "fatima.hassan@email.com",
-    status: "Active",
-    cases: 1,
-  },
-];
-
-const TYPE_FILTERS = ["All", "Individual", "Corporate", "SME", "Group"];
+const TYPE_LABELS: Record<string, string> = {
+  All: "All",
+  individual: "Individual",
+  company: "Corporate",
+};
 
 /* =============================================================================
    TYPE HELPERS
@@ -92,14 +49,10 @@ const TYPE_FILTERS = ["All", "Individual", "Corporate", "SME", "Group"];
 
 const getTypeIcon = (type: string) => {
   switch (type) {
-    case "Individual":
+    case "individual":
       return User;
-    case "Corporate":
+    case "company":
       return Building2;
-    case "SME":
-      return Briefcase;
-    case "Group":
-      return Users;
     default:
       return User;
   }
@@ -107,14 +60,10 @@ const getTypeIcon = (type: string) => {
 
 const getTypeColor = (type: string) => {
   switch (type) {
-    case "Individual":
+    case "individual":
       return "text-blue-600 bg-blue-50 border-blue-200";
-    case "Corporate":
+    case "company":
       return "text-purple-600 bg-purple-50 border-purple-200";
-    case "SME":
-      return "text-green-600 bg-green-50 border-green-200";
-    case "Group":
-      return "text-orange-600 bg-orange-50 border-orange-200";
     default:
       return "text-slate-600 bg-slate-50 border-slate-200";
   }
@@ -128,41 +77,73 @@ export default function ClientsPage() {
   const router = useRouter();
   const [typeFilter, setTypeFilter] = React.useState("All");
   const [searchTerm, setSearchTerm] = React.useState("");
-  const [clients, setClients] = React.useState(INITIAL_CLIENTS);
+  const [debouncedSearch, setDebouncedSearch] = React.useState("");
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
-  const filteredClients = React.useMemo(() => {
-    return clients.filter((client) => {
-      const matchesType = typeFilter === "All" || client.type === typeFilter;
-      const matchesSearch =
-        !searchTerm ||
-        client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.email.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesType && matchesSearch;
-    });
-  }, [clients, typeFilter, searchTerm]);
+  // Debounce search
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
-  // Stats
+  const { data: clientsData, isLoading, error } = useClients({
+    type: typeFilter !== "All" ? (typeFilter as "individual" | "company") : undefined,
+    search: debouncedSearch || undefined,
+  });
+
+  const { mutate: createClient, isPending: isCreating } = useCreateClient();
+
+  const clients = clientsData?.clients || [];
+
+  // Stats from real data
   const stats = React.useMemo(() => ({
-    total: clients.length,
-    active: clients.filter((c) => c.status === "Active").length,
-    inactive: clients.filter((c) => c.status === "Inactive").length,
-    totalCases: clients.reduce((sum, c) => sum + c.cases, 0),
-  }), [clients]);
+    total: clientsData?.total || 0,
+    active: clients.length, // All fetched clients are active
+    inactive: 0,
+    totalCases: clients.reduce((sum, c) => sum + (c.casesCount || 0), 0),
+  }), [clients, clientsData?.total]);
 
   const handleAddClient = (data: ClientFormData) => {
-    const newClient = {
-      id: `C-${String(clients.length + 1).padStart(3, "0")}`,
-      name: data.name,
-      type: data.type,
-      phone: data.phone,
-      email: data.email,
-      status: "Active" as const,
-      cases: 0,
+    // Map UI types to API types
+    const typeMapping: Record<string, "individual" | "company"> = {
+      "Individual": "individual",
+      "Corporate": "company",
+      "SME": "company",
+      "Group": "company",
     };
-    setClients([newClient, ...clients]);
+
+    createClient({
+      name: data.name,
+      type: typeMapping[data.type] || "individual",
+      contactEmail: data.email,
+      contactPhone: data.phone,
+      notes: data.notes,
+    }, {
+      onSuccess: () => {
+        setIsModalOpen(false);
+      },
+    });
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[#D97706]" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="py-16 text-center">
+        <p className="text-sm text-red-500">
+          Unable to load clients. Please try again.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -194,12 +175,13 @@ export default function ClientsPage() {
           </Button>
           <Button
             onClick={() => setIsModalOpen(true)}
+            disabled={isCreating}
             className="bg-[#D97706] hover:bg-[#B45309] text-white px-6 py-2.5 h-auto rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 font-bold flex items-center gap-2 transition-all"
           >
             <div className="bg-white/20 p-1 rounded-md">
               <Plus className="h-4 w-4" />
             </div>
-            New Client
+            {isCreating ? "Creating..." : "New Client"}
           </Button>
         </div>
       </div>
@@ -244,7 +226,7 @@ export default function ClientsPage() {
                 active={typeFilter === type}
                 onClick={() => setTypeFilter(type)}
               >
-                {type}
+                {TYPE_LABELS[type] || type}
               </FilterPill>
             ))}
           </FilterPills>
@@ -282,7 +264,7 @@ export default function ClientsPage() {
         </div>
 
         {/* Table */}
-        {filteredClients.length === 0 ? (
+        {clients.length === 0 ? (
           <div className="p-16 text-center">
             <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
               <Users className="text-slate-400 h-8 w-8" />
@@ -315,9 +297,6 @@ export default function ClientsPage() {
                     Contact
                   </th>
                   <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Cases
                   </th>
                   <th className="text-right px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
@@ -326,7 +305,7 @@ export default function ClientsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredClients.map((client, index) => (
+                {clients.map((client, index) => (
                   <ClientRow
                     key={client.id}
                     client={client}
@@ -348,21 +327,13 @@ export default function ClientsPage() {
    ============================================================================= */
 
 interface ClientRowProps {
-  client: {
-    id: string;
-    name: string;
-    type: string;
-    phone: string;
-    email: string;
-    status: string;
-    cases: number;
-  };
+  client: Client;
   onView: () => void;
   index: number;
 }
 
 function ClientRow({ client, onView, index }: ClientRowProps) {
-  const { name, id, type, phone, email, status, cases } = client;
+  const { name, id, type, contactPhone, contactEmail, casesCount } = client;
   const initial = name.charAt(0).toUpperCase();
   const TypeIcon = getTypeIcon(type);
 
@@ -392,7 +363,7 @@ function ClientRow({ client, onView, index }: ClientRowProps) {
             <h4 className="font-bold text-[#0F2942] text-sm group-hover:text-[#D97706] transition-colors">
               {name}
             </h4>
-            <p className="text-xs text-slate-500">{id}</p>
+            <p className="text-xs text-slate-500">#{id}</p>
           </div>
         </div>
       </td>
@@ -406,48 +377,32 @@ function ClientRow({ client, onView, index }: ClientRowProps) {
           )}
         >
           <TypeIcon className="h-3.5 w-3.5" />
-          {type}
+          {type === "company" ? "Corporate" : "Individual"}
         </span>
       </td>
 
       {/* Contact */}
       <td className="px-6 py-4">
         <div className="space-y-1">
-          <p className="text-sm text-slate-600 flex items-center gap-2">
-            <Phone className="h-3.5 w-3.5 text-slate-400" />
-            {phone}
-          </p>
-          <p className="text-xs text-slate-400 flex items-center gap-2">
-            <Mail className="h-3.5 w-3.5" />
-            {email}
-          </p>
-        </div>
-      </td>
-
-      {/* Status */}
-      <td className="px-6 py-4">
-        <span
-          className={cn(
-            "px-3 py-1.5 rounded-full text-xs font-bold inline-flex items-center gap-1.5",
-            status === "Active"
-              ? "bg-green-100 text-green-700"
-              : "bg-slate-200 text-slate-600"
+          {contactPhone && (
+            <p className="text-sm text-slate-600 flex items-center gap-2">
+              <Phone className="h-3.5 w-3.5 text-slate-400" />
+              {contactPhone}
+            </p>
           )}
-        >
-          <span
-            className={cn(
-              "w-1.5 h-1.5 rounded-full",
-              status === "Active" ? "bg-green-500" : "bg-slate-400"
-            )}
-          />
-          {status}
-        </span>
+          {contactEmail && (
+            <p className="text-xs text-slate-400 flex items-center gap-2">
+              <Mail className="h-3.5 w-3.5" />
+              {contactEmail}
+            </p>
+          )}
+        </div>
       </td>
 
       {/* Cases */}
       <td className="px-6 py-4">
         <span className="text-sm text-slate-600 font-medium">
-          {cases} {cases === 1 ? "case" : "cases"}
+          {casesCount || 0} {(casesCount || 0) === 1 ? "case" : "cases"}
         </span>
       </td>
 
