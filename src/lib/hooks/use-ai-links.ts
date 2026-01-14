@@ -51,3 +51,16 @@ export function useVerifyLink() {
     },
   });
 }
+
+export function useDismissLink() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (linkId: number) => {
+      await apiClient.delete(`/api/ai-links/${linkId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ai-links"] });
+    },
+  });
+}

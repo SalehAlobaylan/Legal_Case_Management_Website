@@ -4,7 +4,7 @@
  * File: src/components/features/cases/ai-suggestions.tsx
  * Purpose: Rich AI suggestions panel for case detail view.
  *  - Shows AI-suggested regulations with similarity scores and verification.
- *  - Allows the user to trigger generation and verify individual links.
+ *  - Allows the user to trigger generation, verify, and dismiss individual links.
  * Optimized to rely on React Query for data and avoid unnecessary effects.
  */
 
@@ -16,9 +16,9 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useVerifyLink } from "@/lib/hooks/use-ai-links";
+import { useVerifyLink, useDismissLink } from "@/lib/hooks/use-ai-links";
 import type { CaseRegulationLink } from "@/lib/types/case";
-import { Sparkles, Check, Loader2, ThumbsUp } from "lucide-react";
+import { Sparkles, Check, Loader2, ThumbsUp, X } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 interface AISuggestionsPanelProps {
@@ -36,6 +36,7 @@ export function AISuggestionsPanel({
   onGenerate,
 }: AISuggestionsPanelProps) {
   const { mutate: verifyLink, isPending: isVerifying } = useVerifyLink();
+  const { mutate: dismissLink, isPending: isDismissing } = useDismissLink();
 
   if (isLoading || isGenerating) {
     return (
@@ -125,18 +126,30 @@ export function AISuggestionsPanel({
                     </div>
                   </div>
 
-                  {!link.verified && (
+                  <div className="flex shrink-0 gap-1">
+                    {!link.verified && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={isVerifying}
+                        onClick={() => verifyLink(link.id)}
+                        className="text-xs"
+                      >
+                        <ThumbsUp className="mr-1 h-4 w-4" />
+                        Verify
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       variant="ghost"
-                      disabled={isVerifying}
-                      onClick={() => verifyLink(link.id)}
-                      className="shrink-0 text-xs"
+                      disabled={isDismissing}
+                      onClick={() => dismissLink(link.id)}
+                      className="text-xs text-muted-foreground hover:text-destructive"
                     >
-                      <ThumbsUp className="mr-1 h-4 w-4" />
-                      Verify
+                      <X className="mr-1 h-4 w-4" />
+                      Dismiss
                     </Button>
-                  )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
