@@ -48,7 +48,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "common.noResults": "No results found",
     "common.viewAll": "View All",
     "common.viewDetails": "View Details",
-    
+
     // Navigation
     "nav.dashboard": "Dashboard",
     "nav.cases": "Cases",
@@ -57,7 +57,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "nav.alerts": "Alerts",
     "nav.settings": "Settings",
     "nav.newCase": "New Case",
-    
+
     // Dashboard
     "dashboard.welcome": "Welcome back",
     "dashboard.aiAnalyzed": "Your AI assistant analyzed",
@@ -69,7 +69,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "dashboard.pendingHearings": "Pending Hearings",
     "dashboard.recentCases": "Recent Cases",
     "dashboard.regulationUpdates": "Regulation Updates",
-    
+
     // Cases
     "cases.title": "Case Management",
     "cases.subtitle": "Manage and track your organization's legal cases",
@@ -79,7 +79,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "cases.caseDetails": "Case Details",
     "cases.documents": "Documents",
     "cases.uploadDocuments": "Upload Documents",
-    
+
     // Clients
     "clients.title": "Client Directory",
     "clients.subtitle": "Manage client relationships and contact information",
@@ -87,7 +87,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "clients.noClients": "No clients found",
     "clients.associatedCases": "Associated Cases",
     "clients.sendMessage": "Send Message to Client",
-    
+
     // Alerts
     "alerts.title": "Notification Center",
     "alerts.subtitle": "Stay updated on case activities and regulation changes",
@@ -100,7 +100,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "alerts.reviewMatches": "Review Matches",
     "alerts.viewAmendment": "View Amendment",
     "alerts.viewCase": "View Case",
-    
+
     // Regulations
     "regulations.title": "Regulation Library",
     "regulations.subtitle": "Browse active laws and track legislative history",
@@ -109,7 +109,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "regulations.versions": "Versions",
     "regulations.versionHistory": "Version History",
     "regulations.compareVersions": "Compare Versions",
-    
+
     // Settings
     "settings.title": "Settings",
     "settings.subtitle": "Manage your account and preferences",
@@ -120,7 +120,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "settings.integrations": "Integrations",
     "settings.billing": "Billing",
     "settings.saveChanges": "Save Changes",
-    
+
     // Forms
     "form.name": "Name",
     "form.email": "Email",
@@ -148,7 +148,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "common.noResults": "لا توجد نتائج",
     "common.viewAll": "عرض الكل",
     "common.viewDetails": "عرض التفاصيل",
-    
+
     // Navigation
     "nav.dashboard": "لوحة التحكم",
     "nav.cases": "القضايا",
@@ -157,7 +157,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "nav.alerts": "التنبيهات",
     "nav.settings": "الإعدادات",
     "nav.newCase": "قضية جديدة",
-    
+
     // Dashboard
     "dashboard.welcome": "مرحباً بعودتك",
     "dashboard.aiAnalyzed": "قام مساعد الذكاء الاصطناعي بتحليل",
@@ -169,7 +169,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "dashboard.pendingHearings": "جلسات الاستماع المعلقة",
     "dashboard.recentCases": "القضايا الأخيرة",
     "dashboard.regulationUpdates": "تحديثات الأنظمة",
-    
+
     // Cases
     "cases.title": "إدارة القضايا",
     "cases.subtitle": "إدارة وتتبع القضايا القانونية لمؤسستك",
@@ -179,7 +179,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "cases.caseDetails": "تفاصيل القضية",
     "cases.documents": "المستندات",
     "cases.uploadDocuments": "رفع المستندات",
-    
+
     // Clients
     "clients.title": "دليل العملاء",
     "clients.subtitle": "إدارة علاقات العملاء ومعلومات الاتصال",
@@ -187,7 +187,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "clients.noClients": "لا يوجد عملاء",
     "clients.associatedCases": "القضايا المرتبطة",
     "clients.sendMessage": "إرسال رسالة للعميل",
-    
+
     // Alerts
     "alerts.title": "مركز الإشعارات",
     "alerts.subtitle": "ابق على اطلاع بأنشطة القضايا وتغييرات الأنظمة",
@@ -200,7 +200,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "alerts.reviewMatches": "مراجعة التطابقات",
     "alerts.viewAmendment": "عرض التعديل",
     "alerts.viewCase": "عرض القضية",
-    
+
     // Regulations
     "regulations.title": "مكتبة الأنظمة",
     "regulations.subtitle": "تصفح القوانين النشطة وتتبع التاريخ التشريعي",
@@ -209,7 +209,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "regulations.versions": "الإصدارات",
     "regulations.versionHistory": "سجل الإصدارات",
     "regulations.compareVersions": "مقارنة الإصدارات",
-    
+
     // Settings
     "settings.title": "الإعدادات",
     "settings.subtitle": "إدارة حسابك وتفضيلاتك",
@@ -220,7 +220,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "settings.integrations": "التكاملات",
     "settings.billing": "الفواتير",
     "settings.saveChanges": "حفظ التغييرات",
-    
+
     // Forms
     "form.name": "الاسم",
     "form.email": "البريد الإلكتروني",
@@ -264,7 +264,7 @@ export function LocaleProvider({ children, defaultLocale = "en" }: LocaleProvide
   React.useEffect(() => {
     document.documentElement.dir = isRTL ? "rtl" : "ltr";
     document.documentElement.lang = locale;
-    
+
     // Update font family for Arabic
     if (isRTL) {
       document.body.style.fontFamily = "'Noto Sans Arabic', var(--font-sans)";
@@ -277,14 +277,14 @@ export function LocaleProvider({ children, defaultLocale = "en" }: LocaleProvide
     setLocaleState(newLocale);
     // Persist to localStorage
     if (typeof window !== "undefined") {
-      localStorage.setItem("madar-locale", newLocale);
+      localStorage.setItem("silah-locale", newLocale);
     }
   }, []);
 
   // Load locale from localStorage on mount
   React.useEffect(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("madar-locale") as Locale | null;
+      const saved = localStorage.getItem("silah-locale") as Locale | null;
       if (saved && (saved === "en" || saved === "ar")) {
         setLocaleState(saved);
       }

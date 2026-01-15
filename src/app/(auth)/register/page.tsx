@@ -57,7 +57,7 @@ export default function RegisterPage() {
                             <span className="text-2xl font-bold">م</span>
                         </div>
                         <span className="font-serif text-3xl font-bold text-[#0F2942] dark:text-white">
-                            مدار
+                            صلة
                         </span>
                     </div>
 
@@ -66,7 +66,7 @@ export default function RegisterPage() {
                             إنشاء حساب جديد
                         </h1>
                         <p className="text-slate-500 text-lg dark:text-slate-400">
-                            ابدأ تجربتك مع مدار لإدارة القضايا بذكاء
+                            ابدأ تجربتك مع صلة لإدارة القضايا بذكاء
                         </p>
                     </div>
 
@@ -245,7 +245,7 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="relative z-10 text-center text-sm font-medium text-blue-200/60">
-                    <p>© 2026 مدار. جميع الحقوق محفوظة.</p>
+                    <p>© 2026 صلة. جميع الحقوق محفوظة.</p>
                 </div>
             </div>
         </div>

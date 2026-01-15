@@ -1,6 +1,6 @@
 /**
  * File: src/components/ui/select.tsx
- * Purpose: Select dropdown component with Madar design system styling.
+ * Purpose: Select dropdown component with Silah design system styling.
  *
  * Features:
  * - Orange accent focus ring

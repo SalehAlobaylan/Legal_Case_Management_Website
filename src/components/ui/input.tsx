@@ -1,6 +1,6 @@
 /**
  * File: src/components/ui/input.tsx
- * Purpose: Text input component with Madar design system styling.
+ * Purpose: Text input component with Silah design system styling.
  *
  * Features:
  * - Orange accent focus ring

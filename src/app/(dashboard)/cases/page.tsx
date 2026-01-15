@@ -1,6 +1,6 @@
 /**
  * File: src/app/(dashboard)/cases/page.tsx
- * Purpose: Cases list page with Madar design system.
+ * Purpose: Cases list page with Silah design system.
  *
  * Layout:
  * - Page header with title and New Case button

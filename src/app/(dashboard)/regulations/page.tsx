@@ -1,6 +1,6 @@
 /**
  * File: src/app/(dashboard)/regulations/page.tsx
- * Purpose: Regulations library page with Madar design system.
+ * Purpose: Regulations library page with Silah design system.
  *
  * Layout:
  * - Page header with search and Discover New button

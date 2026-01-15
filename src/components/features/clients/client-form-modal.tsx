@@ -7,7 +7,7 @@
  * - Client types: Individual, Corporate, SME, Group
  * - Contact information fields
  * - Address and notes
- * - Madar design system styling
+ * - Silah design system styling
  */
 
 "use client";

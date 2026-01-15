@@ -1,6 +1,6 @@
 /**
  * File: src/components/features/dashboard/stat-card.tsx
- * Purpose: Statistics card component for dashboard with Madar design system.
+ * Purpose: Statistics card component for dashboard with Silah design system.
  *
  * Features:
  * - Active/inactive states with navy background

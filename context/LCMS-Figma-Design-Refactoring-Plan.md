@@ -12,7 +12,7 @@
 
 | Decision           | Choice                | Notes                     |
 | ------------------ | --------------------- | ------------------------- |
-| **Brand Name**     | Madar / مدار          | May change later          |
+| **Brand Name**     | Silah / صلة          | May change later          |
 | **Navigation**     | Bottom dock only      | Replace sidebar entirely  |
 | **Clients Module** | Full implementation   | Complete CRUD             |
 | **Settings**       | All tabs functional   | 6 tabs with full features |
@@ -29,7 +29,7 @@ This plan outlines the systematic refactoring of the current Next.js 14 website 
 
 | Aspect         | Current Design               | New Figma Design               |
 | -------------- | ---------------------------- | ------------------------------ |
-| **Brand Name** | Legal CMS                    | **Madar** / **مدار**           |
+| **Brand Name** | Legal CMS                    | **Silah** / **صلة**           |
 | Navigation     | Left sidebar (fixed)         | Bottom floating dock           |
 | Header         | Light with contextual titles | Dark navy with brand logo      |
 | Color Primary  | Blue (#3b82f6)               | Navy (#0F2942)                 |
@@ -261,9 +261,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <Scale className="h-5 w-5 text-white group-hover:text-[#D97706]" />
     </div>
     <div>
-      {/* Brand: "Madar" (EN) / "مدار" (AR) */}
+      {/* Brand: "Silah" (EN) / "صلة" (AR) */}
       <h1 className="font-bold text-xl tracking-wide text-white">
-        {locale === "ar" ? "مدار" : "Madar"}
+        {locale === "ar" ? "صلة" : "Silah"}
       </h1>
       <p className="text-[10px] text-blue-200/80 font-medium tracking-widest uppercase">
         {locale === "ar" ? "إدارة القضايا" : "Case Management"}
@@ -985,7 +985,7 @@ export const translations = {
       backToDashboard: "Back to Dashboard",
     },
     header: {
-      brandName: "Madar",
+      brandName: "Silah",
       brandSubtitle: "Case Management",
       searchPlaceholder: "Search cases, regulations, or documents...",
     },
@@ -1016,7 +1016,7 @@ export const translations = {
       // ...
     },
     header: {
-      brandName: "مدار",
+      brandName: "صلة",
       brandSubtitle: "إدارة القضايا",
       searchPlaceholder: "البحث في القضايا أو الأنظمة أو المستندات...",
       // ...
@@ -1126,10 +1126,10 @@ The following decisions have been confirmed for implementation:
 
 ### Decision 5: Brand Name ✅
 
-**Selected: C) Custom branding — "Madar" / "مدار"**
+**Selected: C) Custom branding — "Silah" / "صلة"**
 
-- English: **Madar**
-- Arabic: **مدار**
+- English: **Silah**
+- Arabic: **صلة**
 - Note: Brand name may be updated in the future
 - Update all header, footer, and metadata references
 

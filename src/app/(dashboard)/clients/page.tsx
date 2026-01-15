@@ -1,6 +1,6 @@
 /**
  * File: src/app/(dashboard)/clients/page.tsx
- * Purpose: Clients directory page with Madar design system.
+ * Purpose: Clients directory page with Silah design system.
  *
  * Layout:
  * - Page header with title and New Client button

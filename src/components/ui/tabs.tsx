@@ -1,6 +1,6 @@
 /**
  * File: src/components/ui/tabs.tsx
- * Purpose: Tab components with Madar design system styling.
+ * Purpose: Tab components with Silah design system styling.
  *
  * Components:
  * - Tabs: Root container with context

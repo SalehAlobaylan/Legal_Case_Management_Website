@@ -1,6 +1,6 @@
 /**
  * File: src/components/ui/filter-pills.tsx
- * Purpose: Filter pill/button components with Madar design system styling.
+ * Purpose: Filter pill/button components with Silah design system styling.
  *
  * Features:
  * - Horizontal scrollable container

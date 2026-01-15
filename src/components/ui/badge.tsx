@@ -1,6 +1,6 @@
 /**
  * File: src/components/ui/badge.tsx
- * Purpose: Badge/pill component with Madar design system styling.
+ * Purpose: Badge/pill component with Silah design system styling.
  *
  * Variants:
  * - default: Neutral gray badge

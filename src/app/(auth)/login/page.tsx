@@ -43,7 +43,7 @@ export default function LoginPage() {
               <span className="text-2xl font-bold">م</span>
             </div>
             <span className="font-serif text-3xl font-bold text-[#0F2942] dark:text-white">
-              مدار
+              صلة
             </span>
           </div>
 
@@ -174,13 +174,13 @@ export default function LoginPage() {
             <span className="text-[#D97706]">مدعومة بالذكاء.</span>
           </h2>
           <p className="text-xl text-blue-100/90 leading-relaxed font-light">
-            "منصة مدار غيرت طريقة عملنا بالكامل. أصبح البحث في الأنظمة وإدارة القضايا أسرع وأكثر دقة من أي وقت مضى."
+            "منصة صلة غيرت طريقة عملنا بالكامل. أصبح البحث في الأنظمة وإدارة القضايا أسرع وأكثر دقة من أي وقت مضى."
           </p>
         </div>
 
         {/* Bottom Footer */}
         <div className="relative z-10 flex justify-between text-sm font-medium text-blue-200/60">
-          <p>© 2026 مدار. جميع الحقوق محفوظة.</p>
+          <p>© 2026 صلة. جميع الحقوق محفوظة.</p>
           <div className="flex gap-6">
             <Link href="#" className="hover:text-white transition-colors">سياسة الخصوصية</Link>
             <Link href="#" className="hover:text-white transition-colors">الشروط والأحكام</Link>

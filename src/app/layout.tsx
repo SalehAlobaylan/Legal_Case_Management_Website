@@ -29,7 +29,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Madar | مدار - Legal Case Management System",
+  title: "Silah | صلة - Legal Case Management System",
   description:
     "AI-powered legal case management system for Saudi practitioners. Manage cases, track regulations, and streamline your legal practice.",
   keywords: [
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     "Saudi Arabia",
     "law firm",
     "AI legal",
-    "مدار",
+    "صلة",
     "إدارة القضايا",
   ],
 };

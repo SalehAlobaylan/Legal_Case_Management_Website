@@ -1,6 +1,6 @@
 /**
  * File: src/components/ui/dialog.tsx
- * Purpose: Polished dialog/modal primitives styled for the Madar design system.
+ * Purpose: Polished dialog/modal primitives styled for the Silah design system.
  *
  * Features:
  * - Smooth animations with spring-like effects

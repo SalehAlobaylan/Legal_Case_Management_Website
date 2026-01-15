@@ -2,10 +2,10 @@
  * File: src/app/(dashboard)/layout.tsx
  * Purpose: Shared layout for all authenticated dashboard routes.
  *
- * Layout Structure (Madar Design):
+ * Layout Structure (Silah Design):
  * ┌─────────────────────────────────────────────────────────┐
  * │                    DARK HEADER (h-20)                   │
- * │  [🔶 Madar]     [    Search Bar    ]    [🔔][⚙️][👤]    │
+ * │  [🔶 Silah]     [    Search Bar    ]    [🔔][⚙️][👤]    │
  * ├─────────────────────────────────────────────────────────┤
  * │                                                         │
  * │                    MAIN CONTENT                         │
@@ -42,7 +42,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <WebSocketProvider>
       <div className="flex min-h-screen flex-col bg-[#f8fafc] text-slate-900 dark:bg-slate-950 dark:text-slate-50">
-        {/* Header - Dark navy with Madar branding */}
+        {/* Header - Dark navy with Silah branding */}
         <Header />
 
         {/* Main Content Area */}

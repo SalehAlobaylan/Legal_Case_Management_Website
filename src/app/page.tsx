@@ -13,7 +13,7 @@ export default function LandingPage() {
               <span className="text-xl font-bold">م</span>
             </div>
             <span className="font-serif text-2xl font-bold text-white tracking-wide">
-              مدار
+              صلة
             </span>
           </div>
           <div className="flex items-center gap-4">
@@ -41,7 +41,7 @@ export default function LandingPage() {
               <span className="text-[#D97706]">بذكاء ودقة</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-              منصة مدار تمكنك من إدارة ملفات القضايا والبحث في الأنظمة السعودية باستخدام الذكاء الاصطناعي، لتوفير الوقت وزيادة الإنتاجية.
+              منصة صلة تمكنك من إدارة ملفات القضايا والبحث في الأنظمة السعودية باستخدام الذكاء الاصطناعي، لتوفير الوقت وزيادة الإنتاجية.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Link href="/register">
@@ -63,7 +63,7 @@ export default function LandingPage() {
           <div className="container mx-auto px-4 sm:px-8">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl font-bold tracking-tight text-[#0F2942] dark:text-white sm:text-4xl">
-                لماذا تختار مدار؟
+                لماذا تختار صلة؟
               </h2>
               <p className="mt-6 text-lg leading-8 text-slate-600 dark:text-slate-400">
                 أدوات مصممة خصيصاً للمحامين والمستشارين القانونيين في المملكة العربية السعودية.
@@ -112,7 +112,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="bg-[#0F2942] py-12 text-center text-slate-400 border-t border-slate-800">
-        <p>&copy; {new Date().getFullYear()} مدار. جميع الحقوق محفوظة.</p>
+        <p>&copy; {new Date().getFullYear()} صلة. جميع الحقوق محفوظة.</p>
       </footer>
     </div>
   );

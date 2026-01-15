@@ -1,6 +1,6 @@
 /**
  * File: src/app/(dashboard)/alerts/page.tsx
- * Purpose: Notifications/Alerts page with Madar design system.
+ * Purpose: Notifications/Alerts page with Silah design system.
  *
  * Features:
  * - Page header with mark all read button

@@ -1,6 +1,6 @@
 /**
  * File: src/app/(dashboard)/dashboard/page.tsx
- * Purpose: Dashboard page with Madar design system.
+ * Purpose: Dashboard page with Silah design system.
  *
  * Layout:
  * - Welcome section with AI analysis summary

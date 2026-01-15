@@ -1,10 +1,10 @@
 /**
  * File: src/components/layout/header.tsx
- * Purpose: Dark navy header with Madar branding for the dashboard.
+ * Purpose: Dark navy header with Silah branding for the dashboard.
  *
  * Features:
  * - Dark navy background (#0F2942)
- * - Madar brand logo with orange accent
+ * - Silah brand logo with orange accent
  * - Centered search bar with glass effect
  * - Notification bell with badge
  * - User profile section
@@ -132,7 +132,7 @@ export function Header({
         </div>
         <div>
           <h1 className="font-bold text-xl tracking-wide text-white">
-            Madar
+            Silah
           </h1>
           <p className="text-[10px] text-blue-200/80 font-medium tracking-widest uppercase">
             Case Management

@@ -1,6 +1,6 @@
 /**
  * File: src/components/layout/navigation-dock.tsx
- * Purpose: Floating bottom navigation dock with Madar design system.
+ * Purpose: Floating bottom navigation dock with Silah design system.
  *
  * Features:
  * - Fixed position at bottom center of screen

@@ -1,6 +1,6 @@
 /**
  * File: src/components/ui/textarea.tsx
- * Purpose: Textarea component with Madar design system styling.
+ * Purpose: Textarea component with Silah design system styling.
  *
  * Features:
  * - Orange accent focus ring

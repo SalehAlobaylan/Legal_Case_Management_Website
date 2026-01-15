@@ -1,6 +1,6 @@
 /**
  * File: src/app/(dashboard)/settings/page.tsx
- * Purpose: Settings page with Madar design system.
+ * Purpose: Settings page with Silah design system.
  *
  * Layout:
  * - Left sidebar with tab navigation

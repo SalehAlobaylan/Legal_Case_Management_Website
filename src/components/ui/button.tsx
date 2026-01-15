@@ -1,6 +1,6 @@
 /**
  * File: src/components/ui/button.tsx
- * Purpose: Reusable button component with Madar design system styling.
+ * Purpose: Reusable button component with Silah design system styling.
  * 
  * Variants:
  * - primary: Orange accent button for primary actions

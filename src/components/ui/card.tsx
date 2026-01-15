@@ -1,6 +1,6 @@
 /**
  * File: src/components/ui/card.tsx
- * Purpose: Card layout primitives with Madar design system styling.
+ * Purpose: Card layout primitives with Silah design system styling.
  *
  * Features:
  * - Consistent rounded corners (rounded-2xl by default)

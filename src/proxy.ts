@@ -14,7 +14,7 @@ import type { NextRequest } from "next/server";
 
 const publicPaths = ["/login", "/register", "/"];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
     const tokenCookie = request.cookies.get("auth-storage")?.value;
     const { pathname } = request.nextUrl;
 

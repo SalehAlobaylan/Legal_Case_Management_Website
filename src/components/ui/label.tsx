@@ -1,6 +1,6 @@
 /**
  * File: src/components/ui/label.tsx
- * Purpose: Form label component with Madar design system styling.
+ * Purpose: Form label component with Silah design system styling.
  */
 
 import * as React from "react";
