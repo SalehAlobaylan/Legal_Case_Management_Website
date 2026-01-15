@@ -41,18 +41,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <WebSocketProvider>
-      <div className="flex min-h-screen flex-col bg-[#f8fafc] text-slate-900 dark:bg-slate-950 dark:text-slate-50">
+      <div className="flex min-h-screen flex-col bg-[#f8fafc] font-sans text-slate-900 selection:bg-[#D97706] selection:text-white">
         {/* Header - Dark navy with Silah branding */}
         <Header />
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto pb-32">
-          <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <main className="flex-1 overflow-auto scroll-smooth">
+          <div className="p-8 pb-32 space-y-12 animate-in fade-in duration-500 max-w-7xl mx-auto">
             {children}
           </div>
         </main>
 
-        {/* Floating Navigation Dock */}
+        {/* Floating Navigation Dock - Fixed position, outside main flow */}
         <NavigationDock unreadAlerts={unreadAlerts} />
       </div>
     </WebSocketProvider>

@@ -39,9 +39,9 @@ interface UIState {
 export const useUIStore = create<UIState>()(
   persist(
     (set, get) => ({
-      // Defaults - Arabic is the default locale
+      // Defaults - English is the default locale i should change it to arabic after the ui be stable
       theme: "system",
-      locale: "ar",
+      locale: "en", // should be changed to "ar" after the ui be stable
       sidebarCollapsed: false,
       notifications: {
         caseUpdates: true,

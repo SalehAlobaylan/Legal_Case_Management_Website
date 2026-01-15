@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 import { useRegulations } from "@/lib/hooks/use-regulations";
 import { formatDate } from "@/lib/utils/format";
+import { Filter } from "lucide-react";
 
 const CATEGORIES = ["All", "labor", "commercial", "civil", "digital", "criminal"];
 
@@ -37,6 +38,54 @@ const CATEGORY_LABELS: Record<string, string> = {
   digital: "Digital",
   criminal: "Criminal",
 };
+
+// Mock regulations matching target mockup
+const MOCK_REGULATIONS = [
+  {
+    id: 1,
+    title: "Labor Law",
+    category: "labor",
+    status: "active",
+    updatedAt: "2024-11-15",
+    regulationNumber: "LL-2024",
+    description: "Governs the relationship between employers and employees in the Kingdom.",
+    versions: 4,
+    subscribed: true,
+  },
+  {
+    id: 2,
+    title: "Civil Transactions Law",
+    category: "civil",
+    status: "active",
+    updatedAt: "2023-12-16",
+    regulationNumber: "CTL-2023",
+    description: "Codifies the general rules of contract, tort, and property rights.",
+    versions: 1,
+    subscribed: false,
+  },
+  {
+    id: 3,
+    title: "Commercial Courts Law",
+    category: "commercial",
+    status: "amended",
+    updatedAt: "2024-01-20",
+    regulationNumber: "CCL-2024",
+    description: "Procedures and regulations for commercial disputes and court proceedings.",
+    versions: 2,
+    subscribed: true,
+  },
+  {
+    id: 4,
+    title: "Personal Data Protection Law",
+    category: "digital",
+    status: "in_progress",
+    updatedAt: "2024-09-01",
+    regulationNumber: "PDPL-2024",
+    description: "Regulates the collection, processing, and storage of personal data.",
+    versions: 2,
+    subscribed: false,
+  },
+];
 
 export default function RegulationsPage() {
   const router = useRouter();
@@ -57,22 +106,26 @@ export default function RegulationsPage() {
     search: debouncedSearch || undefined,
   });
 
-  const regulations = regulationsData?.regulations || [];
+  // Use mock data if API fails or returns nothing
+  const regulations = (regulationsData?.regulations && regulationsData.regulations.length > 0)
+    ? regulationsData.regulations
+    : MOCK_REGULATIONS;
+
+  // Apply local filtering to mock data
+  const filteredRegulations = regulations.filter((reg) => {
+    if (activeFilter !== "All" && reg.category?.toLowerCase() !== activeFilter.toLowerCase()) {
+      return false;
+    }
+    if (debouncedSearch) {
+      return reg.title.toLowerCase().includes(debouncedSearch.toLowerCase());
+    }
+    return true;
+  });
 
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-[#D97706]" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="py-16 text-center">
-        <p className="text-sm text-red-500">
-          Unable to load regulations. Please try again.
-        </p>
       </div>
     );
   }
@@ -113,6 +166,12 @@ export default function RegulationsPage() {
             <Globe className="h-4 w-4" />
             Discover New
           </Button>
+
+          {/* Filter Button */}
+          <Button variant="secondary" className="bg-[#0F2942] hover:bg-[#1E3A56] text-white px-4 py-2.5 h-auto rounded-xl text-sm font-bold flex items-center gap-2">
+            <Filter className="h-4 w-4" />
+            Filter
+          </Button>
         </div>
       </div>
 
@@ -131,7 +190,7 @@ export default function RegulationsPage() {
 
       {/* Regulations Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {regulations.map((reg) => (
+        {filteredRegulations.map((reg) => (
           <RegulationCard
             key={reg.id}
             regulation={reg}
@@ -140,7 +199,7 @@ export default function RegulationsPage() {
         ))}
       </div>
 
-      {regulations.length === 0 && (
+      {filteredRegulations.length === 0 && (
         <div className="py-16 text-center">
           <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
             <BookOpen className="h-7 w-7 text-slate-400" />
@@ -169,18 +228,30 @@ interface RegulationCardProps {
     status: string;
     updatedAt: string;
     regulationNumber?: string;
+    description?: string;
+    versions?: number;
+    subscribed?: boolean;
   };
   onClick: () => void;
 }
 
 function RegulationCard({ regulation, onClick }: RegulationCardProps) {
-  const { title, status, updatedAt, category, regulationNumber } = regulation;
+  const { title, status, updatedAt, description, versions, subscribed } = regulation;
 
   const statusColors: Record<string, string> = {
     active: "bg-green-50 text-green-700",
     amended: "bg-orange-50 text-[#D97706]",
+    in_progress: "bg-orange-50 text-[#D97706]",
     repealed: "bg-red-50 text-red-700",
     draft: "bg-slate-100 text-slate-600",
+  };
+
+  const statusLabels: Record<string, string> = {
+    active: "ACTIVE",
+    amended: "AMENDED",
+    in_progress: "REVIEW",
+    repealed: "REPEALED",
+    draft: "DRAFT",
   };
 
   return (
@@ -206,28 +277,31 @@ function RegulationCard({ regulation, onClick }: RegulationCardProps) {
           <BookOpen className="h-5 w-5" />
         </div>
         <div className="flex items-center gap-2">
+          {/* Subscription Bell */}
+          {subscribed && (
+            <div className="p-1.5 rounded-md bg-[#D97706]/10 text-[#D97706]">
+              <Bell className="h-4 w-4" />
+            </div>
+          )}
           <span
             className={cn(
               "px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider",
               statusColors[status.toLowerCase()] || "bg-slate-100 text-slate-600"
             )}
           >
-            {status}
+            {statusLabels[status.toLowerCase()] || status.toUpperCase()}
           </span>
         </div>
       </div>
 
       {/* Content */}
-      <h3 className="text-xl font-bold text-[#0F2942] mb-2 group-hover:text-[#D97706] transition-colors">
+      <h3 className="text-lg font-bold text-[#0F2942] mb-2 group-hover:text-[#D97706] transition-colors">
         {title}
       </h3>
-      {regulationNumber && (
-        <p className="text-sm text-slate-500 mb-2">#{regulationNumber}</p>
-      )}
-      {category && (
-        <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-md w-fit mb-4">
-          {category}
-        </span>
+      {description && (
+        <p className="text-sm text-slate-500 mb-4 line-clamp-2 leading-relaxed">
+          {description}
+        </p>
       )}
 
       {/* Footer */}
@@ -236,10 +310,12 @@ function RegulationCard({ regulation, onClick }: RegulationCardProps) {
           <Calendar className="h-3.5 w-3.5" />
           {formatDate(updatedAt)}
         </div>
-        <div className="flex items-center gap-1 text-xs font-bold text-[#0F2942]">
-          View Details
-          <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
-        </div>
+        {versions && (
+          <div className="flex items-center gap-1 text-xs font-bold text-[#D97706] hover:underline">
+            {versions} Versions
+            <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+          </div>
+        )}
       </div>
     </div>
   );
