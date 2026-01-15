@@ -12,14 +12,14 @@ import type { NextRequest } from "next/server";
  * to set/clear the `auth-storage` cookie on login/logout.
  */
 
-const publicPaths = ["/login", "/register"];
+const publicPaths = ["/login", "/register", "/"];
 
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
     const tokenCookie = request.cookies.get("auth-storage")?.value;
     const { pathname } = request.nextUrl;
 
     const isPublicPath = publicPaths.some((path) =>
-        pathname.startsWith(path)
+        pathname === path || pathname.startsWith(path + "/")
     );
 
     // Redirect to login if not authenticated
@@ -28,8 +28,8 @@ export function proxy(request: NextRequest) {
         return NextResponse.redirect(loginUrl);
     }
 
-    // Redirect to dashboard if authenticated and on auth pages
-    if (tokenCookie && isPublicPath) {
+    // Redirect to dashboard if authenticated and on auth pages (but NOT on landing page)
+    if (tokenCookie && (pathname === "/login" || pathname === "/register")) {
         const dashboardUrl = new URL("/dashboard", request.url);
         return NextResponse.redirect(dashboardUrl);
     }
