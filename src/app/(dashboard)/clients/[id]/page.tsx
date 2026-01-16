@@ -25,144 +25,26 @@ import {
   User,
   Users,
   Briefcase,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
-
-/* =============================================================================
-   MOCK DATA - Replace with API calls
-   ============================================================================= */
-
-const MOCK_CLIENTS = [
-  {
-    id: "C-001",
-    name: "Ahmed Al-Rashid",
-    type: "Individual",
-    phone: "+966 50 123 4567",
-    email: "ahmed.rashid@email.com",
-    address: "Riyadh, King Fahd District, Building 45",
-    status: "Active",
-    cases: 3,
-    notes: "Long-standing client since 2020. Prefers communication via email.",
-  },
-  {
-    id: "C-002",
-    name: "Saudi Tech Corp",
-    type: "Corporate",
-    phone: "+966 11 456 7890",
-    email: "legal@sauditech.com",
-    address: "Riyadh, KAFD Tower 3, Floor 15",
-    status: "Active",
-    cases: 7,
-    notes: "Technology company with multiple ongoing commercial disputes.",
-  },
-  {
-    id: "C-003",
-    name: "Al-Faisal Trading",
-    type: "SME",
-    phone: "+966 13 234 5678",
-    email: "info@alfaisal.com",
-    address: "Dammam, Industrial Area, Zone B",
-    status: "Active",
-    cases: 2,
-    notes: "Import/export business. Focuses on labor and commercial law.",
-  },
-  {
-    id: "C-004",
-    name: "Mohammed Enterprises Group",
-    type: "Group",
-    phone: "+966 12 345 6789",
-    email: "legal@meg.com",
-    address: "Jeddah, Corniche Commercial Center",
-    status: "Inactive",
-    cases: 0,
-    notes: "Holding company with diverse subsidiaries.",
-  },
-  {
-    id: "C-005",
-    name: "Fatima Al-Hassan",
-    type: "Individual",
-    phone: "+966 55 987 6543",
-    email: "fatima.hassan@email.com",
-    address: "Riyadh, Al-Olaya District",
-    status: "Active",
-    cases: 1,
-    notes: "Employment dispute case in progress.",
-  },
-];
-
-const MOCK_CASES = [
-  {
-    id: "C-2024-089",
-    clientId: "C-001",
-    title: "Employment Dispute - Al-Rashid",
-    type: "Labor Law",
-    status: "Active",
-    lastUpdated: "2024-12-15",
-  },
-  {
-    id: "C-2024-085",
-    clientId: "C-001",
-    title: "Contract Review - Al-Rashid Properties",
-    type: "Commercial",
-    status: "Review",
-    lastUpdated: "2024-12-10",
-  },
-  {
-    id: "C-2024-078",
-    clientId: "C-001",
-    title: "Insurance Claim - Al-Rashid",
-    type: "Civil",
-    status: "Closed",
-    lastUpdated: "2024-11-28",
-  },
-  {
-    id: "C-2024-090",
-    clientId: "C-002",
-    title: "IP Infringement - Saudi Tech",
-    type: "Commercial",
-    status: "Active",
-    lastUpdated: "2024-12-18",
-  },
-  {
-    id: "C-2024-082",
-    clientId: "C-002",
-    title: "Partnership Dispute - Saudi Tech",
-    type: "Commercial",
-    status: "Review",
-    lastUpdated: "2024-12-05",
-  },
-  {
-    id: "C-2024-075",
-    clientId: "C-003",
-    title: "Import License Dispute",
-    type: "Commercial",
-    status: "Active",
-    lastUpdated: "2024-12-01",
-  },
-  {
-    id: "C-2024-070",
-    clientId: "C-005",
-    title: "Wrongful Termination Case",
-    type: "Labor Law",
-    status: "Active",
-    lastUpdated: "2024-11-20",
-  },
-];
+import { useClient, useClientCases } from "@/lib/hooks/use-clients";
 
 /* =============================================================================
    CLIENT TYPE ICON MAPPING
    ============================================================================= */
 
 const getTypeIcon = (type: string) => {
-  switch (type) {
-    case "Individual":
+  switch (type?.toLowerCase()) {
+    case "individual":
       return User;
-    case "Corporate":
+    case "company":
+    case "corporate":
       return Building2;
-    case "SME":
+    case "sme":
       return Briefcase;
-    case "Group":
+    case "group":
       return Users;
     default:
       return User;
@@ -170,18 +52,24 @@ const getTypeIcon = (type: string) => {
 };
 
 const getTypeColor = (type: string) => {
-  switch (type) {
-    case "Individual":
+  switch (type?.toLowerCase()) {
+    case "individual":
       return "text-blue-600 bg-blue-100";
-    case "Corporate":
+    case "company":
+    case "corporate":
       return "text-purple-600 bg-purple-100";
-    case "SME":
+    case "sme":
       return "text-green-600 bg-green-100";
-    case "Group":
+    case "group":
       return "text-orange-600 bg-orange-100";
     default:
       return "text-slate-600 bg-slate-100";
   }
+};
+
+const getStatusColor = (clientType: string) => {
+  // Active clients have associated cases
+  return "bg-green-100 text-green-700";
 };
 
 /* =============================================================================
@@ -191,13 +79,26 @@ const getTypeColor = (type: string) => {
 export default function ClientDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const clientId = params.id as string;
+  const clientId = Number(params.id as string);
 
-  // Find client from mock data
-  const client = MOCK_CLIENTS.find((c) => c.id === clientId);
-  const clientCases = MOCK_CASES.filter((c) => c.clientId === clientId);
+  // Fetch client and their cases from API
+  const { data: client, isLoading: isLoadingClient, error: clientError } = useClient(clientId);
+  const { data: clientCases, isLoading: isLoadingCases } = useClientCases(clientId);
 
-  if (!client) {
+  // Loading state
+  if (isLoadingClient) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[400px] animate-in fade-in duration-300">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-[#D97706]" />
+          <p className="text-slate-500 text-sm">Loading client details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error or not found state
+  if (clientError || !client) {
     return (
       <div className="p-8 text-center animate-in fade-in duration-500">
         <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
@@ -215,6 +116,7 @@ export default function ClientDetailPage() {
   }
 
   const TypeIcon = getTypeIcon(client.type);
+  const displayType = client.type === "company" ? "Corporate" : client.type?.charAt(0).toUpperCase() + client.type?.slice(1) || "Individual";
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -242,7 +144,7 @@ export default function ClientDetailPage() {
                 {client.name}
               </h1>
               <div className="flex items-center gap-3 mt-2">
-                <span className="text-slate-500 text-sm font-medium">{client.id}</span>
+                <span className="text-slate-500 text-sm font-medium">ID: {client.id}</span>
                 <span className="text-slate-300">•</span>
                 <span
                   className={cn(
@@ -251,7 +153,7 @@ export default function ClientDetailPage() {
                   )}
                 >
                   <TypeIcon className="h-3.5 w-3.5" />
-                  {client.type}
+                  {displayType}
                 </span>
               </div>
             </div>
@@ -260,12 +162,10 @@ export default function ClientDetailPage() {
             <span
               className={cn(
                 "px-4 py-2 rounded-full text-sm font-bold",
-                client.status === "Active"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-slate-200 text-slate-600"
+                getStatusColor(client.type)
               )}
             >
-              {client.status}
+              Active
             </span>
             <Button
               variant="outline"
@@ -288,7 +188,7 @@ export default function ClientDetailPage() {
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">
                 Phone
               </p>
-              <p className="text-sm text-slate-700 font-semibold">{client.phone}</p>
+              <p className="text-sm text-slate-700 font-semibold">{client.contactPhone || "Not provided"}</p>
             </div>
           </div>
 
@@ -302,7 +202,7 @@ export default function ClientDetailPage() {
                 Email
               </p>
               <p className="text-sm text-slate-700 font-semibold break-all">
-                {client.email}
+                {client.contactEmail || "Not provided"}
               </p>
             </div>
           </div>
@@ -316,7 +216,7 @@ export default function ClientDetailPage() {
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">
                 Address
               </p>
-              <p className="text-sm text-slate-700 font-semibold">{client.address}</p>
+              <p className="text-sm text-slate-700 font-semibold">{client.address || "Not provided"}</p>
             </div>
           </div>
         </div>
@@ -344,9 +244,9 @@ export default function ClientDetailPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-500 delay-200">
         <div className="p-6 border-b border-slate-100 flex items-center justify-between">
           <h3 className="font-bold text-lg text-[#0F2942]">
-            Associated Cases ({clientCases.length})
+            Associated Cases ({isLoadingCases ? "..." : clientCases?.length || 0})
           </h3>
-          {clientCases.length > 0 && (
+          {clientCases && clientCases.length > 0 && (
             <Button
               variant="link"
               className="text-[#D97706] text-sm font-bold hover:underline p-0 h-auto"
@@ -357,7 +257,12 @@ export default function ClientDetailPage() {
           )}
         </div>
 
-        {clientCases.length === 0 ? (
+        {isLoadingCases ? (
+          <div className="p-12 text-center">
+            <Loader2 className="h-6 w-6 animate-spin text-[#D97706] mx-auto" />
+            <p className="text-slate-500 text-sm mt-2">Loading cases...</p>
+          </div>
+        ) : !clientCases || clientCases.length === 0 ? (
           <div className="p-12 text-center">
             <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
               <FileText className="text-slate-400 h-7 w-7" />
@@ -395,7 +300,7 @@ export default function ClientDetailPage() {
                         {caseItem.title}
                       </h4>
                       <p className="text-xs text-slate-500 mt-1">
-                        {caseItem.id} • {caseItem.type}
+                        {caseItem.case_number} • {caseItem.case_type?.replace(/_/g, " ")}
                       </p>
                     </div>
                   </div>
@@ -403,17 +308,17 @@ export default function ClientDetailPage() {
                     <span
                       className={cn(
                         "px-3 py-1.5 rounded-full text-xs font-bold",
-                        caseItem.status === "Active"
+                        caseItem.status === "open" || caseItem.status === "in_progress"
                           ? "bg-[#0F2942]/10 text-[#0F2942]"
-                          : caseItem.status === "Review"
+                          : caseItem.status === "pending_hearing"
                             ? "bg-[#D97706]/10 text-[#D97706]"
                             : "bg-slate-200 text-slate-600"
                       )}
                     >
-                      {caseItem.status}
+                      {caseItem.status?.replace(/_/g, " ")}
                     </span>
                     <span className="text-xs text-slate-400">
-                      {new Date(caseItem.lastUpdated).toLocaleDateString()}
+                      {caseItem.updated_at ? new Date(caseItem.updated_at).toLocaleDateString() : ""}
                     </span>
                     <ChevronRight className="h-5 w-5 text-slate-300 group-hover:text-[#D97706] group-hover:translate-x-1 transition-all" />
                   </div>

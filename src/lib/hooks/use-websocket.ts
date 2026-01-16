@@ -35,10 +35,10 @@ const MAX_RECONNECT_DELAY = 30000; // 30 seconds
 export function useWebSocket() {
   const socketRef = useRef<Socket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   const token = useAuthStore((state) => state.token);
   const queryClient = useQueryClient();
-  
+
   const {
     setStatus,
     setError,
@@ -59,10 +59,15 @@ export function useWebSocket() {
 
   // Handle server events
   const setupEventHandlers = useCallback((socket: Socket) => {
+    // Connection confirmed
+    socket.on("connected", (data?: { orgId?: number }) => {
+      console.log("[useWebSocket] Server confirmed connection", data);
+    });
+
     // Regulation updated
     socket.on("regulation-updated", (data?: { regulationId?: number }) => {
       setLastEventAt(new Date());
-      
+
       toast({
         title: "Regulation Updated",
         description: "A regulation has been updated. Refreshing data...",
@@ -70,21 +75,21 @@ export function useWebSocket() {
 
       queryClient.invalidateQueries({ queryKey: ["regulations"] });
       queryClient.invalidateQueries({ queryKey: ["ai-links"] });
-      
+
       if (data?.regulationId) {
         queryClient.invalidateQueries({ queryKey: ["regulation", data.regulationId] });
       }
     });
 
-    // AI links refreshed for a case
-    socket.on("case-links-refreshed", (data: { case_id?: number }) => {
+    // AI links generated/refreshed for a case
+    socket.on("ai-links.generated", (data?: { caseId?: number }) => {
       setLastEventAt(new Date());
-      
-      if (typeof data?.case_id === "number") {
+
+      if (typeof data?.caseId === "number") {
         queryClient.invalidateQueries({
-          queryKey: ["ai-links", data.case_id],
+          queryKey: ["ai-links", data.caseId],
         });
-        
+
         toast({
           title: "AI Suggestions Updated",
           description: "New AI suggestions are available for your case.",
@@ -94,12 +99,40 @@ export function useWebSocket() {
       }
     });
 
+    socket.on("case-links-refreshed", (data: { case_id?: number }) => {
+      setLastEventAt(new Date());
+
+      if (typeof data?.case_id === "number") {
+        queryClient.invalidateQueries({
+          queryKey: ["ai-links", data.case_id],
+        });
+
+        toast({
+          title: "AI Suggestions Updated",
+          description: "New AI suggestions are available for your case.",
+        });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["ai-links"] });
+      }
+    });
+
+    // AI link verified
+    socket.on("ai-links.verified", (data?: { linkId?: number; caseId?: number }) => {
+      setLastEventAt(new Date());
+
+      if (data?.caseId) {
+        queryClient.invalidateQueries({ queryKey: ["ai-links", data.caseId] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["ai-links"] });
+      }
+    });
+
     // Case updated
     socket.on("case-updated", (data?: { caseId?: number }) => {
       setLastEventAt(new Date());
-      
+
       queryClient.invalidateQueries({ queryKey: ["cases"] });
-      
+
       if (data?.caseId) {
         queryClient.invalidateQueries({ queryKey: ["case", data.caseId] });
       }
@@ -108,9 +141,9 @@ export function useWebSocket() {
     // Client updated
     socket.on("client-updated", (data?: { clientId?: number }) => {
       setLastEventAt(new Date());
-      
+
       queryClient.invalidateQueries({ queryKey: ["clients"] });
-      
+
       if (data?.clientId) {
         queryClient.invalidateQueries({ queryKey: ["client", data.clientId] });
       }
@@ -119,9 +152,9 @@ export function useWebSocket() {
     // New notification
     socket.on("notification", (data?: { title?: string; message?: string }) => {
       setLastEventAt(new Date());
-      
+
       queryClient.invalidateQueries({ queryKey: ["alerts"] });
-      
+
       if (data?.title) {
         toast({
           title: data.title,
@@ -133,13 +166,13 @@ export function useWebSocket() {
     // Document uploaded
     socket.on("document-uploaded", (data?: { caseId?: number; fileName?: string }) => {
       setLastEventAt(new Date());
-      
+
       if (data?.caseId) {
         queryClient.invalidateQueries({ queryKey: ["documents", data.caseId] });
-        
+
         toast({
           title: "Document Uploaded",
-          description: data.fileName 
+          description: data.fileName
             ? `"${data.fileName}" has been uploaded.`
             : "A new document has been uploaded.",
         });
@@ -149,7 +182,7 @@ export function useWebSocket() {
     // Document deleted
     socket.on("document-deleted", (data?: { caseId?: number }) => {
       setLastEventAt(new Date());
-      
+
       if (data?.caseId) {
         queryClient.invalidateQueries({ queryKey: ["documents", data.caseId] });
       } else {
@@ -160,7 +193,7 @@ export function useWebSocket() {
     // Link verified/dismissed
     socket.on("link-updated", (data?: { caseId?: number }) => {
       setLastEventAt(new Date());
-      
+
       if (data?.caseId) {
         queryClient.invalidateQueries({ queryKey: ["ai-links", data.caseId] });
       } else {
@@ -204,7 +237,7 @@ export function useWebSocket() {
     socket.on("disconnect", (reason) => {
       console.log("[useWebSocket] Disconnected:", reason);
       setStatus("disconnected");
-      
+
       // Auto-reconnect for non-intentional disconnects
       if (reason !== "io client disconnect" && reason !== "io server disconnect") {
         scheduleReconnect();
@@ -234,9 +267,9 @@ export function useWebSocket() {
 
     const delay = getReconnectDelay();
     console.log(`[useWebSocket] Reconnecting in ${delay}ms (attempt ${reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS})`);
-    
+
     incrementReconnectAttempts();
-    
+
     reconnectTimeoutRef.current = setTimeout(() => {
       connect();
     }, delay);
@@ -248,12 +281,12 @@ export function useWebSocket() {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;
     }
-    
+
     if (socketRef.current) {
       socketRef.current.disconnect();
       socketRef.current = null;
     }
-    
+
     setStatus("disconnected");
     resetReconnectAttempts();
   }, [setStatus, resetReconnectAttempts]);
