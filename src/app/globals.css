@@ -225,89 +225,7 @@
    TAILWIND CSS v4 THEME CONFIGURATION
    ============================================================================= */
 
-@theme inline {
-  /* -------------------------------------------------------------------------
-     FONT FAMILIES
-     ------------------------------------------------------------------------- */
-
-  --font-sans: var(--font-sans);
-  --font-serif: var(--font-serif);
-  --font-mono: var(--font-mono);
-
-  /* -------------------------------------------------------------------------
-     COLORS - Brand
-     ------------------------------------------------------------------------- */
-
-  /* Navy palette */
-  --color-navy: #0F2942;
-  --color-navy-50: #f0f5fa;
-  --color-navy-100: #e1ecf5;
-  --color-navy-200: #c3d9eb;
-  --color-navy-300: #95bdd8;
-  --color-navy-400: #6099c0;
-  --color-navy-500: #3d7aa8;
-  --color-navy-600: #2d5f8a;
-  --color-navy-700: #264d70;
-  --color-navy-800: #1E3A56;
-  --color-navy-900: #0F2942;
-  --color-navy-950: #091a2b;
-
-  /* Orange/Amber accent palette */
-  --color-accent: #D97706;
-  --color-accent-50: #fffbeb;
-  --color-accent-100: #fef3c7;
-  --color-accent-200: #fde68a;
-  --color-accent-300: #fcd34d;
-  --color-accent-400: #fbbf24;
-  --color-accent-500: #f59e0b;
-  --color-accent-600: #D97706;
-  --color-accent-700: #B45309;
-  --color-accent-800: #92400e;
-  --color-accent-900: #78350f;
-  --color-accent-950: #451a03;
-
-  /* -------------------------------------------------------------------------
-     COLORS - Semantic
-     ------------------------------------------------------------------------- */
-
-  --color-background: var(--color-surface-bg);
-  --color-foreground: var(--color-text-primary);
-  --color-card: var(--color-surface-card);
-  --color-card-foreground: var(--color-text-primary);
-  --color-primary: var(--color-brand-primary);
-  --color-primary-foreground: var(--color-text-inverse);
-  --color-secondary: var(--color-surface-muted);
-  --color-secondary-foreground: var(--color-text-primary);
-  --color-muted: var(--color-surface-muted);
-  --color-muted-foreground: var(--color-text-muted);
-  --color-destructive: var(--color-error-text);
-  --color-destructive-foreground: var(--color-text-inverse);
-  --color-border: var(--color-border-default);
-  --color-input: var(--color-border-default);
-  --color-ring: var(--color-brand-accent);
-
-  /* -------------------------------------------------------------------------
-     SHADOWS
-     ------------------------------------------------------------------------- */
-
-  --shadow-xs: var(--shadow-xs);
-  --shadow-sm: var(--shadow-sm);
-  --shadow-md: var(--shadow-md);
-  --shadow-lg: var(--shadow-lg);
-  --shadow-xl: var(--shadow-xl);
-  --shadow-2xl: var(--shadow-2xl);
-
-  /* -------------------------------------------------------------------------
-     BORDER RADIUS
-     ------------------------------------------------------------------------- */
-
-  --radius-sm: var(--radius-sm);
-  --radius-md: var(--radius-md);
-  --radius-lg: var(--radius-lg);
-  --radius-xl: var(--radius-xl);
-  --radius-2xl: var(--radius-2xl);
-}
-
+/* Tailwind theme configuration removed (not needed for v4) */
 /* =============================================================================
    BASE STYLES
    ============================================================================= */
@@ -316,8 +234,6 @@
 *::before,
 *::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
 html {

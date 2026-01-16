@@ -155,10 +155,10 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats Cards - 3 columns */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-[30px] mb-[64px]">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Active Cases - Highlighted */}
         {/* Active Cases - Highlighted */}
-        <div className="p-[40px] rounded-2xl shadow-sm border bg-[#0F2942] border-[#0F2942] text-white">
+        <div className="p-6 rounded-2xl shadow-sm border bg-[#0F2942] border-[#0F2942] text-white">
           <div className="flex justify-between items-start mb-4">
             <div className="p-3 rounded-xl bg-white/10">
               <FileText className="h-6 w-6 text-[#D97706]" />
@@ -167,15 +167,15 @@ export default function DashboardPage() {
               +12%
             </span>
           </div>
-          <div className="h-8" />
-          <h3 className="text-4xl font-bold mb-2 font-serif text-white">24</h3>
+          <div className="h-4" />
+          <h3 className="text-3xl font-bold mb-1 font-serif text-white">24</h3>
           <p className="text-sm font-bold text-blue-200">Active Cases</p>
           <p className="text-xs mt-1 text-blue-300">3 updated today</p>
         </div>
 
         {/* Pending Regulations */}
         {/* Pending Regulations */}
-        <div className="p-[40px] rounded-2xl shadow-sm border bg-white border-slate-200 hover:border-[#D97706]/50 transition-shadow">
+        <div className="p-6 rounded-2xl shadow-sm border bg-white border-slate-200 hover:border-[#D97706]/50 transition-shadow">
           <div className="flex justify-between items-start mb-4">
             <div className="p-3 rounded-xl bg-slate-50">
               <BookOpen className="h-6 w-6 text-[#0F2942]" />
@@ -184,15 +184,15 @@ export default function DashboardPage() {
               +12%
             </span>
           </div>
-          <div className="h-8" />
-          <h3 className="text-4xl font-bold mb-2 font-serif text-[#0F2942]">12</h3>
+          <div className="h-4" />
+          <h3 className="text-3xl font-bold mb-1 font-serif text-[#0F2942]">12</h3>
           <p className="text-sm font-bold text-slate-700">Pending Regulations</p>
           <p className="text-xs mt-1 text-slate-400">Requires review</p>
         </div>
 
         {/* AI Discoveries */}
         {/* AI Discoveries */}
-        <div className="p-[40px] rounded-2xl shadow-sm border bg-white border-slate-200 hover:border-[#D97706]/50 transition-shadow">
+        <div className="p-6 rounded-2xl shadow-sm border bg-white border-slate-200 hover:border-[#D97706]/50 transition-shadow">
           <div className="flex justify-between items-start mb-4">
             <div className="p-3 rounded-xl bg-slate-50">
               <Sparkles className="h-6 w-6 text-purple-600" />
@@ -201,18 +201,18 @@ export default function DashboardPage() {
               +12%
             </span>
           </div>
-          <div className="h-8" />
-          <h3 className="text-4xl font-bold mb-2 font-serif text-[#0F2942]">89</h3>
+          <div className="h-4" />
+          <h3 className="text-3xl font-bold mb-1 font-serif text-[#0F2942]">89</h3>
           <p className="text-sm font-bold text-slate-700">AI Discoveries</p>
           <p className="text-xs mt-1 text-slate-400">Regulations matched</p>
         </div>
       </div>
 
       {/* Two Column Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-[48px]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Cases - Card Style */}
         {/* Recent Cases - Card Style */}
-        <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-[40px]">
+        <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-bold text-lg text-[#0F2942]">Recent Cases</h3>
             <Link
@@ -223,7 +223,7 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          <div className="space-y-[24px]">
+          <div className="space-y-4">
             {displayCases.slice(0, 3).map((case_) => {
               const statusStyle = STATUS_STYLES[case_.status] || STATUS_STYLES.open;
               const typeLabel = TYPE_LABELS[case_.case_type] || case_.case_type;
@@ -232,10 +232,10 @@ export default function DashboardPage() {
                 <div
                   key={case_.id}
                   onClick={() => router.push(`/cases/${case_.id}`)}
-                  className="flex items-center justify-between p-[32px] hover:bg-slate-50 rounded-xl border border-transparent hover:border-[#D97706]/30 transition-all cursor-pointer group"
+                  className="flex items-center justify-between p-4 hover:bg-slate-50 rounded-xl border border-transparent hover:border-[#D97706]/30 transition-all cursor-pointer group"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-[#0F2942] flex items-center justify-center text-white group-hover:bg-[#D97706] transition-colors shadow-md">
+                    <div className="w-10 h-10 rounded-xl bg-[#0F2942] flex items-center justify-center text-white group-hover:bg-[#D97706] transition-colors shadow-md">
                       <FileText className="h-5 w-5" />
                     </div>
                     <div>
@@ -264,7 +264,7 @@ export default function DashboardPage() {
 
         {/* Regulation Updates */}
         {/* Regulation Updates */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-[40px] h-fit">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 h-fit">
           <h3 className="font-bold text-lg text-[#0F2942] mb-6">
             Regulation Updates
           </h3>
