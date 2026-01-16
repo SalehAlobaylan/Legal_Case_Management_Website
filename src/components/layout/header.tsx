@@ -16,7 +16,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Scale, Search, Bell, Settings, ChevronDown, LogOut } from "lucide-react";
+import { Search, Bell, Settings, ChevronDown, LogOut } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useLogout } from "@/lib/hooks/use-auth";
 import { useWebSocket } from "@/lib/hooks/use-websocket";
@@ -116,26 +116,20 @@ export function Header({
         href="/dashboard"
         className="flex items-center gap-3 cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D97706] rounded-lg"
       >
-        <div
-          className={cn(
-            "bg-[#D97706] p-2 rounded-lg",
-            "shadow-lg shadow-orange-900/20",
-            "group-hover:bg-white transition-all duration-300"
-          )}
-        >
-          <Scale
-            className={cn(
-              "h-5 w-5 text-white",
-              "group-hover:text-[#D97706] transition-colors duration-300"
-            )}
-          />
-        </div>
-        <div>
-          <h1 className="font-bold text-xl tracking-wide text-white">
-            Silah
+        <img
+          src="/circle-logo-silah.png"
+          alt="صلة - Silah"
+          className="h-12 w-auto"
+        />
+        <div className="hidden sm:block">
+          <h1
+            className="text-xl font-bold text-[#D97706]"
+            style={{ fontFamily: 'var(--font-arabic), serif' }}
+          >
+            صلة القانوني
           </h1>
-          <p className="text-[10px] text-blue-200/80 font-medium tracking-widest uppercase">
-            Case Management
+          <p className="text-[10px] text-[#D97706] font-medium tracking-wider">
+            Silah Legal
           </p>
         </div>
       </Link>

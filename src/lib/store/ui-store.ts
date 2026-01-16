@@ -39,9 +39,9 @@ interface UIState {
 export const useUIStore = create<UIState>()(
   persist(
     (set, get) => ({
-      // Defaults - English is the default locale i should change it to arabic after the ui be stable
+      // Defaults - Arabic is the default locale for Saudi Arabian legal practice
       theme: "system",
-      locale: "en", // should be changed to "ar" after the ui be stable
+      locale: "ar", // Arabic default for RTL support
       sidebarCollapsed: false,
       notifications: {
         caseUpdates: true,
@@ -103,12 +103,12 @@ export const useUIStore = create<UIState>()(
 // Initialize theme and locale on app load (call this in root layout)
 export function initializeUI() {
   if (typeof document === "undefined") return;
-  
+
   const state = useUIStore.getState();
-  
+
   // Apply theme
   state.setTheme(state.theme);
-  
+
   // Apply locale
   state.setLocale(state.locale);
 }

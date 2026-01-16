@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Inter, Playfair_Display, Noto_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/providers/query-provider";
 import { Toaster } from "@/components/ui/toaster";
@@ -7,13 +7,24 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { I18nProvider } from "@/components/providers/i18n-provider";
 
 /**
- * Inter - Primary sans-serif font
+ * Inter - Primary sans-serif font for English
  * Used for: body text, UI elements, navigation, buttons
  */
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-inter",
+  weight: ["400", "500", "600", "700"],
+});
+
+/**
+ * Noto Sans Arabic - Primary font for Arabic text
+ * Used for: all Arabic content with RTL support
+ */
+const notoArabic = Noto_Sans_Arabic({
+  subsets: ["arabic"],
+  display: "swap",
+  variable: "--font-arabic",
   weight: ["400", "500", "600", "700"],
 });
 
@@ -49,9 +60,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="ar" dir="rtl" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${playfair.variable} font-sans antialiased`}
+        className={`${inter.variable} ${notoArabic.variable} ${playfair.variable} font-sans antialiased`}
       >
         <ThemeProvider
           attribute="class"
