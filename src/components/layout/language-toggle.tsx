@@ -75,9 +75,10 @@ export function LanguageToggle({ variant = "icon", className }: LanguageTogglePr
                 "transition-colors text-sm font-medium",
                 className
             )}
+            title={`Switch to ${nextLabel.full}`}
         >
             <Languages className="h-4 w-4 text-slate-500" />
-            <span className="text-slate-700 dark:text-slate-300">{currentLabel.full}</span>
+            <span className="text-slate-700 dark:text-slate-300">{nextLabel.full}</span>
         </button>
     );
 }

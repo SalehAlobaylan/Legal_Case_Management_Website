@@ -20,6 +20,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import { useI18n } from "@/lib/hooks/use-i18n";
+import { LanguageToggle } from "@/components/layout/language-toggle";
 
 // --- Helper Components ---
 
@@ -88,8 +89,8 @@ const PricingCard = ({
   t: (key: string) => string;
 }) => (
   <div className={`relative p-8 rounded-3xl border transition-all duration-300 hover:-translate-y-1 ${highlighted
-      ? 'bg-[#0F2942] text-white border-[#0F2942] shadow-2xl scale-105'
-      : 'bg-white border-slate-200 shadow-lg hover:shadow-xl'
+    ? 'bg-[#0F2942] text-white border-[#0F2942] shadow-2xl scale-105'
+    : 'bg-white border-slate-200 shadow-lg hover:shadow-xl'
     }`}>
     {highlighted && (
       <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#D97706] text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
@@ -112,8 +113,8 @@ const PricingCard = ({
     </ul>
     <Link href="/register">
       <Button className={`w-full py-3 h-auto rounded-xl font-bold transition-all ${highlighted
-          ? 'bg-[#D97706] hover:bg-[#B45309] text-white'
-          : 'bg-[#0F2942] hover:bg-[#1E3A56] text-white'
+        ? 'bg-[#D97706] hover:bg-[#B45309] text-white'
+        : 'bg-[#0F2942] hover:bg-[#1E3A56] text-white'
         }`}>
         {ctaText}
       </Button>
@@ -154,13 +155,13 @@ export default function LandingPage() {
 
       {/* Navbar */}
       <nav className="relative z-20 flex justify-between items-center px-6 md:px-8 py-6 max-w-7xl mx-auto w-full">
-        <Link href="/" className="flex items-center gap-3 cursor-pointer">
-          <div className="bg-[#D97706] p-2 rounded-lg shadow-lg shadow-orange-900/20">
-            <Scale size={24} className="text-white" />
+        <Link href="/" className="flex items-center gap-3 cursor-pointer group">
+          <div className="bg-white rounded-xl p-1.5 shadow-lg shadow-orange-900/20 group-hover:scale-105 transition-transform">
+            <img src="/silah-logo.png" alt="Silah" className="h-8 w-auto" />
           </div>
           <h1 className="font-bold text-2xl tracking-wide font-serif text-white">SILAH</h1>
         </Link>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 md:gap-6">
           <button
             onClick={() => scrollToSection('features')}
             className="hidden md:block text-sm font-medium text-white/80 hover:text-white transition-colors"
@@ -179,6 +180,7 @@ export default function LandingPage() {
           >
             {t("landing.pricing")}
           </button>
+          <LanguageToggle variant="icon" className="text-white/80 hover:text-white hover:bg-white/10" />
           <Link href="/login" className="text-white/80 hover:text-white text-sm font-bold transition-colors">
             {t("auth.signIn")}
           </Link>
