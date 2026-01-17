@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import { useRegister } from "@/lib/hooks/use-auth";
+import { useI18n } from "@/lib/hooks/use-i18n";
 import { Check } from "lucide-react";
 
 // Schema matching the form layout (organization as text, role as select)
@@ -24,6 +25,7 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
     const { mutate: registerUser, isPending, error } = useRegister();
+    const { t, isRTL } = useI18n();
 
     const {
         register,
@@ -49,34 +51,34 @@ export default function RegisterPage() {
     return (
         <div className="min-h-screen flex bg-slate-50">
             {/* Left Side - Visual */}
-            <div className="hidden lg:flex w-1/2 bg-[#D97706] relative overflow-hidden items-center justify-center p-12">
+            <div className={`hidden lg:flex w-1/2 bg-[#D97706] relative overflow-hidden items-center justify-center p-12 ${isRTL ? 'order-2' : ''}`}>
                 <div className="absolute top-0 left-0 w-full h-full z-0">
                     <div className="absolute top-[-20%] left-[-20%] w-[80%] h-[80%] bg-[#0F2942]/20 rounded-full blur-[120px]"></div>
                     <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#0F2942]/20 rounded-full blur-[100px]"></div>
                 </div>
 
                 <div className="relative z-10 text-white max-w-lg">
-                    <h2 className="text-5xl font-bold font-serif mb-6 leading-tight">Start your journey with intelligent legal tech.</h2>
+                    <h2 className="text-5xl font-bold font-serif mb-6 leading-tight">{t("auth.startJourney")}</h2>
                     <ul className="space-y-6 text-white/90 text-lg">
                         <li className="flex items-start gap-4">
                             <div className="bg-white/20 p-2 rounded-lg mt-1"><Check size={20} /></div>
                             <div>
-                                <span className="font-bold block">14-Day Free Trial</span>
-                                <span className="text-sm opacity-80">Full access to all features. No credit card needed.</span>
+                                <span className="font-bold block">{t("auth.freeTrial")}</span>
+                                <span className="text-sm opacity-80">{t("auth.freeTrialDesc")}</span>
                             </div>
                         </li>
                         <li className="flex items-start gap-4">
                             <div className="bg-white/20 p-2 rounded-lg mt-1"><Check size={20} /></div>
                             <div>
-                                <span className="font-bold block">Instant AI Setup</span>
-                                <span className="text-sm opacity-80">Upload your first case and get insights in seconds.</span>
+                                <span className="font-bold block">{t("auth.instantAI")}</span>
+                                <span className="text-sm opacity-80">{t("auth.instantAIDesc")}</span>
                             </div>
                         </li>
                         <li className="flex items-start gap-4">
                             <div className="bg-white/20 p-2 rounded-lg mt-1"><Check size={20} /></div>
                             <div>
-                                <span className="font-bold block">Dedicated Support</span>
-                                <span className="text-sm opacity-80">Our team helps you onboard your entire firm.</span>
+                                <span className="font-bold block">{t("auth.dedicatedSupport")}</span>
+                                <span className="text-sm opacity-80">{t("auth.dedicatedSupportDesc")}</span>
                             </div>
                         </li>
                     </ul>
@@ -84,11 +86,11 @@ export default function RegisterPage() {
             </div>
 
             {/* Right Side - Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+            <div className={`w-full lg:w-1/2 flex items-center justify-center p-8 ${isRTL ? 'order-1' : ''}`}>
                 <div className="max-w-md w-full">
                     <div className="text-center mb-8">
-                        <h2 className="text-3xl font-bold text-[#0F2942] font-serif">Create an Account</h2>
-                        <p className="text-slate-500 mt-2">Join thousands of lawyers in Saudi Arabia.</p>
+                        <h2 className="text-3xl font-bold text-[#0F2942] font-serif">{t("auth.createAccount")}</h2>
+                        <p className="text-slate-500 mt-2">{t("auth.joinThousands")}</p>
                     </div>
 
                     <div className="space-y-6">
@@ -98,18 +100,18 @@ export default function RegisterPage() {
                         >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
-                            Sign up with Google
+                            {t("auth.signUpWithGoogle")}
                         </button>
 
                         <div className="relative flex items-center py-2">
                             <div className="flex-grow border-t border-slate-200"></div>
-                            <span className="flex-shrink-0 mx-4 text-slate-400 text-xs uppercase font-bold">Or with email</span>
+                            <span className="flex-shrink-0 mx-4 text-slate-400 text-xs uppercase font-bold">{t("auth.orWithEmail")}</span>
                             <div className="flex-grow border-t border-slate-200"></div>
                         </div>
 
                         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-1">Full Name</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-1">{t("auth.fullName")}</label>
                                 <input
                                     type="text"
                                     placeholder="e.g. Ahmed Al-Faisal"
@@ -123,10 +125,10 @@ export default function RegisterPage() {
                                 )}
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-1">Email Address</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-1">{t("auth.emailAddress")}</label>
                                 <input
                                     type="email"
-                                    placeholder="name@firm.com"
+                                    placeholder={t("auth.emailPlaceholder")}
                                     className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706] transition-all"
                                     {...register("email")}
                                 />
@@ -137,10 +139,10 @@ export default function RegisterPage() {
                                 )}
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-1">Password</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-1">{t("auth.password")}</label>
                                 <input
                                     type="password"
-                                    placeholder="Create a password"
+                                    placeholder={t("auth.createPassword")}
                                     className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706] transition-all"
                                     {...register("password")}
                                 />
@@ -153,10 +155,10 @@ export default function RegisterPage() {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">Organization</label>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1">{t("auth.organization")}</label>
                                     <input
                                         type="text"
-                                        placeholder="Law Firm Name"
+                                        placeholder={t("auth.organizationPlaceholder")}
                                         className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706] transition-all"
                                         {...register("organization")}
                                     />
@@ -167,14 +169,14 @@ export default function RegisterPage() {
                                     )}
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">Role</label>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1">{t("auth.role")}</label>
                                     <select
                                         className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706] bg-white transition-all"
                                         {...register("role")}
                                     >
-                                        <option>Lawyer</option>
-                                        <option>Paralegal</option>
-                                        <option>Admin</option>
+                                        <option>{t("auth.lawyer")}</option>
+                                        <option>{t("auth.paralegal")}</option>
+                                        <option>{t("auth.admin")}</option>
                                     </select>
                                 </div>
                             </div>
@@ -186,17 +188,17 @@ export default function RegisterPage() {
                                     className="mt-1 rounded border-slate-300 text-[#D97706] focus:ring-[#D97706]"
                                 />
                                 <label htmlFor="terms" className="text-xs text-slate-500">
-                                    I agree to the{" "}
-                                    <Link href="#" className="text-[#0F2942] font-bold underline">Terms of Service</Link>
-                                    {" "}and{" "}
-                                    <Link href="#" className="text-[#0F2942] font-bold underline">Privacy Policy</Link>.
+                                    {t("auth.agreeToTerms")}{" "}
+                                    <Link href="#" className="text-[#0F2942] font-bold underline">{t("auth.termsOfService")}</Link>
+                                    {" "}{t("common.and")}{" "}
+                                    <Link href="#" className="text-[#0F2942] font-bold underline">{t("auth.privacyPolicy")}</Link>.
                                 </label>
                             </div>
 
                             {error && (
                                 <div className="rounded-xl bg-red-50 p-4 text-sm font-medium text-red-600 border border-red-100 text-center shadow-sm">
                                     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                                    {(error as any).response?.data?.error || "An error occurred during registration"}
+                                    {(error as any).response?.data?.error || t("auth.errorOccurred")}
                                 </div>
                             )}
 
@@ -205,14 +207,14 @@ export default function RegisterPage() {
                                 className="w-full bg-[#0F2942] hover:bg-[#1E3A56] text-white p-3.5 rounded-xl font-bold text-lg shadow-lg transition-all hover:scale-[1.02]"
                                 disabled={isPending}
                             >
-                                {isPending ? "Creating account..." : "Create Account"}
+                                {isPending ? t("auth.creatingAccount") : t("auth.createAccount")}
                             </button>
                         </form>
 
                         <p className="text-center text-sm text-slate-500">
-                            Already have an account?{" "}
+                            {t("auth.hasAccount")}{" "}
                             <Link href="/login" className="text-[#D97706] font-bold hover:underline">
-                                Sign in
+                                {t("auth.signIn")}
                             </Link>
                         </p>
                     </div>

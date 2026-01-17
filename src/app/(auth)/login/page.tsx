@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import { useLogin } from "@/lib/hooks/use-auth";
+import { useI18n } from "@/lib/hooks/use-i18n";
 import { Scale, Award, Star } from "lucide-react";
 
 const loginSchema = z.object({
@@ -16,6 +17,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function SignInPage() {
   const { mutate: login, isPending, error } = useLogin();
+  const { t, isRTL } = useI18n();
 
   const {
     register,
@@ -32,7 +34,7 @@ export default function SignInPage() {
   return (
     <div className="min-h-screen flex bg-slate-50">
       {/* Left Side - Visual */}
-      <div className="hidden lg:flex w-1/2 bg-[#0F2942] relative overflow-hidden items-center justify-center p-12">
+      <div className={`hidden lg:flex w-1/2 bg-[#0F2942] relative overflow-hidden items-center justify-center p-12 ${isRTL ? 'order-2' : ''}`}>
         <div className="absolute top-0 left-0 w-full h-full z-0">
           <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#D97706]/10 rounded-full blur-[100px]"></div>
           <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-[#1E3A56] rounded-full blur-[100px]"></div>
@@ -41,10 +43,10 @@ export default function SignInPage() {
         <div className="relative z-10 text-white max-w-lg">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10 mb-6 backdrop-blur-md">
             <Award size={14} className="text-[#D97706]" />
-            <span className="text-xs font-bold tracking-wide uppercase">Award Winning Platform</span>
+            <span className="text-xs font-bold tracking-wide uppercase">{t("auth.awardWinning")}</span>
           </div>
-          <h2 className="text-5xl font-bold font-serif mb-6 leading-tight">Welcome back to your workspace.</h2>
-          <p className="text-blue-200 text-lg leading-relaxed">&quot;Silah allows us to focus on strategy rather than endless research. It&apos;s an indispensable tool for our firm.&quot;</p>
+          <h2 className="text-5xl font-bold font-serif mb-6 leading-tight">{t("auth.welcomeBack")}</h2>
+          <p className="text-blue-200 text-lg leading-relaxed">&quot;{t("auth.silahQuote")}&quot;</p>
           <div className="mt-8 flex items-center gap-4">
             <div className="flex -space-x-2">
               <div className="w-10 h-10 rounded-full border-2 border-[#0F2942] bg-slate-200"></div>
@@ -52,7 +54,7 @@ export default function SignInPage() {
               <div className="w-10 h-10 rounded-full border-2 border-[#0F2942] bg-slate-400"></div>
             </div>
             <div className="text-sm">
-              <p className="font-bold">Trusted by 500+ Lawyers</p>
+              <p className="font-bold">{t("auth.trustedByLawyers")}</p>
               <div className="flex text-[#D97706]">
                 <Star size={12} fill="currentColor" />
                 <Star size={12} fill="currentColor" />
@@ -66,14 +68,14 @@ export default function SignInPage() {
       </div>
 
       {/* Right Side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+      <div className={`w-full lg:w-1/2 flex items-center justify-center p-8 ${isRTL ? 'order-1' : ''}`}>
         <div className="max-w-md w-full">
           <div className="text-center mb-10">
             <div className="inline-flex bg-[#0F2942] p-3 rounded-xl shadow-lg mb-4">
               <Scale size={32} className="text-white" />
             </div>
-            <h2 className="text-3xl font-bold text-[#0F2942] font-serif">Sign in to Silah</h2>
-            <p className="text-slate-500 mt-2">Enter your credentials to access your dashboard.</p>
+            <h2 className="text-3xl font-bold text-[#0F2942] font-serif">{t("auth.signInToSilah")}</h2>
+            <p className="text-slate-500 mt-2">{t("auth.enterCredentials")}</p>
           </div>
 
           <div className="space-y-6">
@@ -83,21 +85,21 @@ export default function SignInPage() {
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
-              Sign in with Google
+              {t("auth.signInWithGoogle")}
             </button>
 
             <div className="relative flex items-center py-2">
               <div className="flex-grow border-t border-slate-200"></div>
-              <span className="flex-shrink-0 mx-4 text-slate-400 text-xs uppercase font-bold">Or with email</span>
+              <span className="flex-shrink-0 mx-4 text-slate-400 text-xs uppercase font-bold">{t("auth.orWithEmail")}</span>
               <div className="flex-grow border-t border-slate-200"></div>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Email Address</label>
+                <label className="block text-sm font-bold text-slate-700 mb-1">{t("auth.emailAddress")}</label>
                 <input
                   type="email"
-                  placeholder="name@firm.com"
+                  placeholder={t("auth.emailPlaceholder")}
                   className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706] transition-all"
                   {...register("email")}
                 />
@@ -109,12 +111,12 @@ export default function SignInPage() {
               </div>
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <label className="block text-sm font-bold text-slate-700">Password</label>
-                  <Link href="#" className="text-xs font-bold text-[#D97706] hover:underline">Forgot password?</Link>
+                  <label className="block text-sm font-bold text-slate-700">{t("auth.password")}</label>
+                  <Link href="#" className="text-xs font-bold text-[#D97706] hover:underline">{t("auth.forgotPassword")}</Link>
                 </div>
                 <input
                   type="password"
-                  placeholder="••••••••"
+                  placeholder={t("auth.passwordPlaceholder")}
                   className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706] transition-all"
                   {...register("password")}
                 />
@@ -131,13 +133,13 @@ export default function SignInPage() {
                   id="remember"
                   className="rounded border-slate-300 text-[#D97706] focus:ring-[#D97706]"
                 />
-                <label htmlFor="remember" className="text-sm text-slate-600 font-medium">Remember me for 30 days</label>
+                <label htmlFor="remember" className="text-sm text-slate-600 font-medium">{t("auth.rememberMe")}</label>
               </div>
 
               {error && (
                 <div className="rounded-xl bg-red-50 p-4 text-sm font-medium text-red-600 border border-red-100 text-center shadow-sm">
                   {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                  {(error as any).response?.data?.error || "An error occurred during sign in"}
+                  {(error as any).response?.data?.error || t("auth.errorOccurred")}
                 </div>
               )}
 
@@ -146,14 +148,14 @@ export default function SignInPage() {
                 className="w-full bg-[#0F2942] hover:bg-[#1E3A56] text-white p-3.5 rounded-xl font-bold text-lg shadow-lg transition-all hover:scale-[1.02]"
                 disabled={isPending}
               >
-                {isPending ? "Signing in..." : "Sign In"}
+                {isPending ? t("auth.signingIn") : t("auth.signIn")}
               </button>
             </form>
 
             <p className="text-center text-sm text-slate-500">
-              Don&apos;t have an account?{" "}
+              {t("auth.noAccount")}{" "}
               <Link href="/register" className="text-[#D97706] font-bold hover:underline">
-                Create free account
+                {t("auth.createFreeAccount")}
               </Link>
             </p>
           </div>

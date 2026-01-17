@@ -24,7 +24,6 @@ import {
   Check,
   Bell,
   ChevronRight,
-  Trash2,
   Settings,
   BellOff,
   Loader2,
@@ -34,6 +33,7 @@ import { FilterPill, FilterPills } from "@/components/ui/filter-pills";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 import { useAlerts, useMarkAlertAsRead, useMarkAllAlertsAsRead } from "@/lib/hooks/use-alerts";
+import { useI18n } from "@/lib/hooks/use-i18n";
 import { formatRelativeTime } from "@/lib/utils/format";
 import type { Alert, AlertType } from "@/lib/types/alert";
 
@@ -63,6 +63,7 @@ const getIcon = (type: AlertType) => {
 
 export default function AlertsPage() {
   const router = useRouter();
+  const { t, isRTL } = useI18n();
   const [filter, setFilter] = React.useState<"all" | "unread">("all");
 
   const { data: alertsData, isLoading, error } = useAlerts();
@@ -93,7 +94,7 @@ export default function AlertsPage() {
     return (
       <div className="py-16 text-center">
         <p className="text-sm text-red-500">
-          Unable to load notifications. Please try again.
+          {t("alerts.unableToLoad")}
         </p>
       </div>
     );
@@ -109,11 +110,11 @@ export default function AlertsPage() {
               <Bell className="h-6 w-6" />
             </div>
             <h1 className="text-3xl font-bold text-[#0F2942] font-serif">
-              Notification Center
+              {t("alerts.title")}
             </h1>
           </div>
           <p className="text-slate-500">
-            Stay updated on case activities and regulation changes.
+            {t("alerts.subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -129,7 +130,7 @@ export default function AlertsPage() {
               ) : (
                 <Check className="h-4 w-4" />
               )}
-              Mark all as read
+              {t("alerts.markAllRead")}
             </Button>
           )}
           <Button
@@ -146,12 +147,12 @@ export default function AlertsPage() {
       <div className="flex items-center gap-6 p-4 bg-white rounded-xl border border-slate-200 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100">
         <div className="flex items-center gap-2">
           <span className="text-2xl font-bold text-[#0F2942]">{alerts.length}</span>
-          <span className="text-sm text-slate-500">Total</span>
+          <span className="text-sm text-slate-500">{t("alerts.total")}</span>
         </div>
         <div className="h-8 w-px bg-slate-200" />
         <div className="flex items-center gap-2">
           <span className="text-2xl font-bold text-[#D97706]">{unreadCount}</span>
-          <span className="text-sm text-slate-500">Unread</span>
+          <span className="text-sm text-slate-500">{t("alerts.unread")}</span>
         </div>
       </div>
 
@@ -164,14 +165,14 @@ export default function AlertsPage() {
               active={filter === "all"}
               onClick={() => setFilter("all")}
             >
-              All Notifications
+              {t("alerts.allNotifications")}
             </FilterPill>
             <FilterPill
               active={filter === "unread"}
               onClick={() => setFilter("unread")}
               count={unreadCount}
             >
-              Unread
+              {t("alerts.unread")}
             </FilterPill>
           </FilterPills>
         </div>
@@ -187,12 +188,12 @@ export default function AlertsPage() {
               )}
             </div>
             <h3 className="font-bold text-xl text-[#0F2942] mb-2">
-              {filter === "unread" ? "All caught up!" : "No notifications"}
+              {filter === "unread" ? t("alerts.allCaughtUp") : t("alerts.noAlerts")}
             </h3>
             <p className="text-slate-500 text-sm max-w-sm mx-auto">
               {filter === "unread"
-                ? "You've read all your notifications. Great job staying on top of things!"
-                : "You don't have any notifications yet. They'll appear here when there's activity."}
+                ? t("alerts.allCaughtUpDesc")
+                : t("alerts.noAlertsDesc")}
             </p>
           </div>
         ) : (
@@ -204,6 +205,8 @@ export default function AlertsPage() {
                 onMarkRead={() => handleMarkRead(alert.id)}
                 isMarkingRead={isMarkingRead}
                 index={index}
+                t={t}
+                isRTL={isRTL}
               />
             ))}
           </div>
@@ -222,24 +225,26 @@ interface AlertItemProps {
   onMarkRead: () => void;
   isMarkingRead: boolean;
   index: number;
+  t: (key: string) => string;
+  isRTL: boolean;
 }
 
-function AlertItem({ alert, onMarkRead, isMarkingRead, index }: AlertItemProps) {
+function AlertItem({ alert, onMarkRead, isMarkingRead, index, t, isRTL }: AlertItemProps) {
   const { type, title, message, createdAt, isRead, metadata } = alert;
   const { Icon, color, bg } = getIcon(type);
 
   const getActionLink = () => {
     switch (type) {
       case "ai_suggestion":
-        return metadata?.caseId ? { href: `/cases/${metadata.caseId}`, label: "Review Matches" } : null;
+        return metadata?.caseId ? { href: `/cases/${metadata.caseId}`, label: t("alerts.reviewMatches") } : null;
       case "regulation_update":
         return metadata?.regulationId
-          ? { href: `/regulations/${metadata.regulationId}`, label: "View Amendment" }
-          : { href: "/regulations", label: "View Regulations" };
+          ? { href: `/regulations/${metadata.regulationId}`, label: t("alerts.viewAmendment") }
+          : { href: "/regulations", label: t("alerts.viewRegulations") };
       case "case_update":
-        return metadata?.caseId ? { href: `/cases/${metadata.caseId}`, label: "View Case" } : null;
+        return metadata?.caseId ? { href: `/cases/${metadata.caseId}`, label: t("alerts.viewCase") } : null;
       case "document_upload":
-        return metadata?.caseId ? { href: `/cases/${metadata.caseId}`, label: "View Document" } : null;
+        return metadata?.caseId ? { href: `/cases/${metadata.caseId}`, label: t("alerts.viewDocument") } : null;
       default:
         return null;
     }
@@ -258,7 +263,7 @@ function AlertItem({ alert, onMarkRead, isMarkingRead, index }: AlertItemProps) 
     >
       {/* Unread indicator */}
       {!isRead && (
-        <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-[#D97706] to-[#B45309] animate-pulse" />
+        <div className={`absolute ${isRTL ? 'right-0' : 'left-0'} top-0 w-1 h-full bg-gradient-to-b from-[#D97706] to-[#B45309] animate-pulse`} />
       )}
 
       <div className="flex gap-4">
@@ -300,7 +305,7 @@ function AlertItem({ alert, onMarkRead, isMarkingRead, index }: AlertItemProps) 
                 className="text-xs text-[#D97706] font-bold hover:underline inline-flex items-center gap-1 transition-colors disabled:opacity-50"
               >
                 <Check className="h-3 w-3" />
-                Mark as read
+                {t("alerts.markAsRead")}
               </button>
             )}
 
@@ -310,7 +315,7 @@ function AlertItem({ alert, onMarkRead, isMarkingRead, index }: AlertItemProps) 
                 className="text-xs text-[#0F2942] font-bold hover:underline inline-flex items-center gap-1 hover:text-[#D97706] transition-colors"
               >
                 {actionLink.label}
-                <ChevronRight className="h-3 w-3" />
+                <ChevronRight className={`h-3 w-3 ${isRTL ? 'rotate-180' : ''}`} />
               </Link>
             )}
           </div>
@@ -319,7 +324,7 @@ function AlertItem({ alert, onMarkRead, isMarkingRead, index }: AlertItemProps) 
 
       {/* Type indicator pill for AI notifications */}
       {type === "ai_suggestion" && !isRead && (
-        <div className="absolute top-4 right-4">
+        <div className={`absolute top-4 ${isRTL ? 'left-4' : 'right-4'}`}>
           <span className="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-600 animate-pulse">
             AI
           </span>

@@ -24,7 +24,6 @@ import {
   Mail,
   Building2,
   User,
-  Briefcase,
   Download,
   Loader2,
 } from "lucide-react";
@@ -33,15 +32,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 import { ClientFormModal, type ClientFormData } from "@/components/features/clients/client-form-modal";
 import { useClients, useCreateClient } from "@/lib/hooks/use-clients";
+import { useI18n } from "@/lib/hooks/use-i18n";
 import type { Client } from "@/lib/types/client";
-
-const TYPE_FILTERS = ["All", "individual", "company"];
-
-const TYPE_LABELS: Record<string, string> = {
-  All: "All",
-  individual: "Individual",
-  company: "Corporate",
-};
 
 /* =============================================================================
    TYPE HELPERS
@@ -75,10 +67,18 @@ const getTypeColor = (type: string) => {
 
 export default function ClientsPage() {
   const router = useRouter();
+  const { t, isRTL } = useI18n();
   const [typeFilter, setTypeFilter] = React.useState("All");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+
+  const TYPE_FILTERS = ["All", "individual", "company"];
+  const TYPE_LABELS: Record<string, string> = {
+    All: t("common.all"),
+    individual: t("clients.types.individual"),
+    company: t("clients.types.company"),
+  };
 
   // Debounce search
   React.useEffect(() => {
@@ -139,7 +139,7 @@ export default function ClientsPage() {
     return (
       <div className="py-16 text-center">
         <p className="text-sm text-red-500">
-          Unable to load clients. Please try again.
+          {t("clients.unableToLoad")}
         </p>
       </div>
     );
@@ -159,10 +159,10 @@ export default function ClientsPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <h1 className="text-3xl font-bold text-[#0F2942] font-serif">
-            Client Directory
+            {t("clients.title")}
           </h1>
           <p className="text-slate-500 mt-2">
-            Manage client relationships and contact information.
+            {t("clients.subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -171,7 +171,7 @@ export default function ClientsPage() {
             className="px-4 py-2.5 rounded-xl font-bold flex items-center gap-2"
           >
             <Download className="h-4 w-4" />
-            Export
+            {t("common.export")}
           </Button>
           <Button
             onClick={() => setIsModalOpen(true)}
@@ -181,7 +181,7 @@ export default function ClientsPage() {
             <div className="bg-white/20 p-1 rounded-md">
               <Plus className="h-4 w-4" />
             </div>
-            {isCreating ? "Creating..." : "New Client"}
+            {isCreating ? t("clients.creating") : t("clients.newClient")}
           </Button>
         </div>
       </div>
@@ -190,25 +190,25 @@ export default function ClientsPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100">
         <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-            Total Clients
+            {t("clients.totalClients")}
           </p>
           <p className="text-2xl font-bold text-[#0F2942]">{stats.total}</p>
         </div>
         <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-            Active
+            {t("clients.active")}
           </p>
           <p className="text-2xl font-bold text-green-600">{stats.active}</p>
         </div>
         <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-            Inactive
+            {t("clients.inactive")}
           </p>
           <p className="text-2xl font-bold text-slate-400">{stats.inactive}</p>
         </div>
         <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-            Total Cases
+            {t("clients.totalCases")}
           </p>
           <p className="text-2xl font-bold text-[#D97706]">{stats.totalCases}</p>
         </div>
@@ -234,14 +234,15 @@ export default function ClientsPage() {
           {/* Search & Filter */}
           <div className="flex items-center gap-2 w-full md:w-auto">
             <div className="relative flex-1 md:w-72 group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#D97706] transition-colors" />
+              <Search className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#D97706] transition-colors`} />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search clients by name, ID, or email..."
+                placeholder={t("clients.searchClients")}
                 className={cn(
-                  "w-full pl-10 pr-4 py-2.5 rounded-xl",
+                  "w-full py-2.5 rounded-xl",
+                  isRTL ? "pr-10 pl-4" : "pl-10 pr-4",
                   "border border-slate-200 bg-slate-50",
                   "text-sm text-[#0F2942]",
                   "placeholder:text-slate-400",
@@ -270,16 +271,16 @@ export default function ClientsPage() {
               <Users className="text-slate-400 h-8 w-8" />
             </div>
             <h3 className="font-bold text-lg text-[#0F2942] mb-2">
-              No clients found
+              {t("clients.noClients")}
             </h3>
             <p className="text-slate-500 text-sm mb-6">
-              Try adjusting your filters or add a new client.
+              {t("clients.noClientsDesc")}
             </p>
             <Button
               onClick={() => setIsModalOpen(true)}
               className="bg-[#D97706] hover:bg-[#B45309] text-white px-6 py-2.5 rounded-xl font-bold"
             >
-              Add Your First Client
+              {t("clients.addFirstClient")}
             </Button>
           </div>
         ) : (
@@ -288,19 +289,19 @@ export default function ClientsPage() {
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
                   <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Client Name
+                    {t("clients.clientName")}
                   </th>
                   <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Type
+                    {t("clients.type")}
                   </th>
                   <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Contact
+                    {t("clients.contact")}
                   </th>
                   <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Cases
+                    {t("clients.cases")}
                   </th>
-                  <th className="text-right px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Action
+                  <th className={`px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider ${isRTL ? 'text-left' : 'text-right'}`}>
+                    {t("common.actions")}
                   </th>
                 </tr>
               </thead>
@@ -311,6 +312,8 @@ export default function ClientsPage() {
                     client={client}
                     onView={() => router.push(`/clients/${client.id}`)}
                     index={index}
+                    t={t}
+                    isRTL={isRTL}
                   />
                 ))}
               </tbody>
@@ -330,9 +333,11 @@ interface ClientRowProps {
   client: Client;
   onView: () => void;
   index: number;
+  t: (key: string) => string;
+  isRTL: boolean;
 }
 
-function ClientRow({ client, onView, index }: ClientRowProps) {
+function ClientRow({ client, onView, index, t, isRTL }: ClientRowProps) {
   const { name, id, type, contactPhone, contactEmail, casesCount } = client;
   const initial = name.charAt(0).toUpperCase();
   const TypeIcon = getTypeIcon(type);
@@ -377,7 +382,7 @@ function ClientRow({ client, onView, index }: ClientRowProps) {
           )}
         >
           <TypeIcon className="h-3.5 w-3.5" />
-          {type === "company" ? "Corporate" : "Individual"}
+          {type === "company" ? t("clients.types.company") : t("clients.types.individual")}
         </span>
       </td>
 
@@ -402,12 +407,12 @@ function ClientRow({ client, onView, index }: ClientRowProps) {
       {/* Cases */}
       <td className="px-6 py-4">
         <span className="text-sm text-slate-600 font-medium">
-          {casesCount || 0} {(casesCount || 0) === 1 ? "case" : "cases"}
+          {casesCount || 0} {(casesCount || 0) === 1 ? t("clients.case") : t("clients.casesPlural")}
         </span>
       </td>
 
       {/* Action */}
-      <td className="px-6 py-4 text-right">
+      <td className={`px-6 py-4 ${isRTL ? 'text-left' : 'text-right'}`}>
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -415,8 +420,8 @@ function ClientRow({ client, onView, index }: ClientRowProps) {
           }}
           className="text-[#D97706] text-sm font-bold hover:underline inline-flex items-center gap-1 group/btn"
         >
-          View Details
-          <ChevronRight className="h-4 w-4 group-hover/btn:translate-x-0.5 transition-transform" />
+          {t("common.viewDetails")}
+          <ChevronRight className={`h-4 w-4 group-hover/btn:translate-x-0.5 transition-transform ${isRTL ? 'rotate-180' : ''}`} />
         </button>
       </td>
     </tr>

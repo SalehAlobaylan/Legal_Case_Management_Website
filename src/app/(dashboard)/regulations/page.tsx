@@ -25,19 +25,9 @@ import { FilterPill, FilterPills } from "@/components/ui/filter-pills";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 import { useRegulations } from "@/lib/hooks/use-regulations";
+import { useI18n } from "@/lib/hooks/use-i18n";
 import { formatDate } from "@/lib/utils/format";
 import { Filter } from "lucide-react";
-
-const CATEGORIES = ["All", "labor", "commercial", "civil", "digital", "criminal"];
-
-const CATEGORY_LABELS: Record<string, string> = {
-  All: "All",
-  labor: "Labor",
-  commercial: "Commercial",
-  civil: "Civil",
-  digital: "Digital",
-  criminal: "Criminal",
-};
 
 // Mock regulations matching target mockup
 const MOCK_REGULATIONS = [
@@ -89,9 +79,21 @@ const MOCK_REGULATIONS = [
 
 export default function RegulationsPage() {
   const router = useRouter();
+  const { t, isRTL } = useI18n();
   const [activeFilter, setActiveFilter] = React.useState("All");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
+
+  const CATEGORIES = ["All", "labor", "commercial", "civil", "digital", "criminal"];
+
+  const CATEGORY_LABELS: Record<string, string> = {
+    All: t("common.all"),
+    labor: t("regulations.categories.labor"),
+    commercial: t("regulations.categories.commercial"),
+    civil: t("regulations.categories.civil"),
+    digital: t("regulations.categories.digital"),
+    criminal: t("regulations.categories.criminal"),
+  };
 
   // Debounce search
   React.useEffect(() => {
@@ -122,6 +124,17 @@ export default function RegulationsPage() {
     return true;
   });
 
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      active: t("regulations.statuses.active"),
+      amended: t("regulations.statuses.amended"),
+      repealed: t("regulations.statuses.repealed"),
+      draft: t("regulations.statuses.draft"),
+      in_progress: t("regulations.statuses.review"),
+    };
+    return labels[status.toLowerCase()] || status.toUpperCase();
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -136,24 +149,25 @@ export default function RegulationsPage() {
       <div className="flex flex-col md:flex-row justify-between items-end gap-4">
         <div>
           <h1 className="text-3xl font-bold text-[#0F2942] font-serif">
-            Regulation Library
+            {t("regulations.title")}
           </h1>
           <p className="text-slate-500 mt-2">
-            Browse active laws and track legislative history.
+            {t("regulations.subtitle")}
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           {/* Search */}
           <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#D97706]" />
+            <Search className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#D97706]`} />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search regulations..."
+              placeholder={t("regulations.searchRegulations")}
               className={cn(
-                "pl-10 pr-4 py-2.5 rounded-xl",
+                "py-2.5 rounded-xl",
+                isRTL ? "pr-10 pl-4" : "pl-10 pr-4",
                 "border border-slate-200 bg-white",
                 "text-sm w-64",
                 "focus:outline-none focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706]"
@@ -164,13 +178,13 @@ export default function RegulationsPage() {
           {/* Discover New Button */}
           <Button className="bg-[#D97706] hover:bg-[#B45309] text-white px-4 py-2.5 h-auto rounded-xl text-sm font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center gap-2">
             <Globe className="h-4 w-4" />
-            Discover New
+            {t("regulations.discoverNew")}
           </Button>
 
           {/* Filter Button */}
           <Button variant="secondary" className="bg-[#0F2942] hover:bg-[#1E3A56] text-white px-4 py-2.5 h-auto rounded-xl text-sm font-bold flex items-center gap-2">
             <Filter className="h-4 w-4" />
-            Filter
+            {t("common.filter")}
           </Button>
         </div>
       </div>
@@ -195,6 +209,9 @@ export default function RegulationsPage() {
             key={reg.id}
             regulation={reg}
             onClick={() => router.push(`/regulations/${reg.id}`)}
+            t={t}
+            isRTL={isRTL}
+            getStatusLabel={getStatusLabel}
           />
         ))}
       </div>
@@ -205,10 +222,10 @@ export default function RegulationsPage() {
             <BookOpen className="h-7 w-7 text-slate-400" />
           </div>
           <h3 className="font-bold text-lg text-[#0F2942] mb-2">
-            No regulations found
+            {t("regulations.noRegulations")}
           </h3>
           <p className="text-slate-500 text-sm">
-            Try adjusting your filters or search term.
+            {t("regulations.noRegulationsDesc")}
           </p>
         </div>
       )}
@@ -233,9 +250,12 @@ interface RegulationCardProps {
     subscribed?: boolean;
   };
   onClick: () => void;
+  t: (key: string) => string;
+  isRTL: boolean;
+  getStatusLabel: (status: string) => string;
 }
 
-function RegulationCard({ regulation, onClick }: RegulationCardProps) {
+function RegulationCard({ regulation, onClick, t, isRTL, getStatusLabel }: RegulationCardProps) {
   const { title, status, updatedAt, description, versions, subscribed } = regulation;
 
   const statusColors: Record<string, string> = {
@@ -244,14 +264,6 @@ function RegulationCard({ regulation, onClick }: RegulationCardProps) {
     in_progress: "bg-orange-50 text-[#D97706]",
     repealed: "bg-red-50 text-red-700",
     draft: "bg-slate-100 text-slate-600",
-  };
-
-  const statusLabels: Record<string, string> = {
-    active: "ACTIVE",
-    amended: "AMENDED",
-    in_progress: "REVIEW",
-    repealed: "REPEALED",
-    draft: "DRAFT",
   };
 
   return (
@@ -289,7 +301,7 @@ function RegulationCard({ regulation, onClick }: RegulationCardProps) {
               statusColors[status.toLowerCase()] || "bg-slate-100 text-slate-600"
             )}
           >
-            {statusLabels[status.toLowerCase()] || status.toUpperCase()}
+            {getStatusLabel(status)}
           </span>
         </div>
       </div>
@@ -312,8 +324,8 @@ function RegulationCard({ regulation, onClick }: RegulationCardProps) {
         </div>
         {versions && (
           <div className="flex items-center gap-1 text-xs font-bold text-[#D97706] hover:underline">
-            {versions} Versions
-            <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+            {versions} {t("regulations.versions")}
+            <ChevronRight className={`h-3.5 w-3.5 group-hover:translate-x-1 transition-transform ${isRTL ? 'rotate-180' : ''}`} />
           </div>
         )}
       </div>

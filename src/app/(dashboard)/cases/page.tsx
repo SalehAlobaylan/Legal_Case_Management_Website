@@ -24,18 +24,11 @@ import {
   Loader2,
 } from "lucide-react";
 import { useCases } from "@/lib/hooks/use-cases";
+import { useI18n } from "@/lib/hooks/use-i18n";
 import { FilterPill, FilterPills } from "@/components/ui/filter-pills";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 import { type Case, CaseType, CaseStatus } from "@/lib/types/case";
-
-const STATUS_FILTERS = [
-  { id: "all", label: "All" },
-  { id: "open", label: "Active" },
-  { id: "in_progress", label: "Review" },
-  { id: "pending_hearing", label: "Draft" },
-  { id: "closed", label: "Closed" },
-];
 
 // Mock cases matching target mockup
 const MOCK_CASES: Case[] = [
@@ -104,8 +97,17 @@ const MOCK_CASES: Case[] = [
 export default function CasesPage() {
   const router = useRouter();
   const { data: cases, isLoading, error } = useCases();
+  const { t, isRTL } = useI18n();
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [searchTerm, setSearchTerm] = React.useState("");
+
+  const STATUS_FILTERS = [
+    { id: "all", label: t("cases.filters.all") },
+    { id: "open", label: t("cases.filters.active") },
+    { id: "in_progress", label: t("cases.filters.review") },
+    { id: "pending_hearing", label: t("cases.filters.draft") },
+    { id: "closed", label: t("cases.filters.closed") },
+  ];
 
   // Use mock data if API returns nothing
   const displayCases = (cases && cases.length > 0) ? cases : MOCK_CASES;
@@ -137,6 +139,17 @@ export default function CasesPage() {
     router.push("/cases/new");
   };
 
+  const formatStatus = (status: string) => {
+    const statusMap: Record<string, string> = {
+      open: t("cases.statuses.open"),
+      in_progress: t("cases.statuses.in_progress"),
+      pending_hearing: t("cases.statuses.pending_hearing"),
+      closed: t("cases.statuses.closed"),
+      archived: t("cases.statuses.archived"),
+    };
+    return statusMap[status] || status.replace(/_/g, " ");
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -149,7 +162,7 @@ export default function CasesPage() {
     return (
       <div className="py-16 text-center">
         <p className="text-sm text-red-500">
-          Unable to load cases. Please try again.
+          {t("cases.unableToLoad")}
         </p>
       </div>
     );
@@ -161,10 +174,10 @@ export default function CasesPage() {
       <div className="flex justify-between items-end">
         <div>
           <h1 className="text-3xl font-bold text-[#0F2942] font-serif">
-            Case Management
+            {t("cases.title")}
           </h1>
           <p className="text-slate-500 mt-2">
-            Manage and track your organization&apos;s legal cases.
+            {t("cases.subtitle")}
           </p>
         </div>
         <Button
@@ -174,7 +187,7 @@ export default function CasesPage() {
           <div className="bg-white/20 p-1 rounded-md">
             <Scale className="h-4 w-4" />
           </div>
-          New Case
+          {t("cases.newCase")}
         </Button>
       </div>
 
@@ -198,14 +211,15 @@ export default function CasesPage() {
           {/* Search & Filter */}
           <div className="flex items-center gap-2 w-full md:w-auto">
             <div className="relative flex-1 md:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400`} />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search cases..."
+                placeholder={t("cases.searchCases")}
                 className={cn(
-                  "w-full pl-10 pr-4 py-2 rounded-lg",
+                  "w-full py-2 rounded-lg",
+                  isRTL ? "pr-10 pl-4" : "pl-10 pr-4",
                   "border border-slate-200 bg-white",
                   "text-sm text-[#0F2942]",
                   "placeholder:text-slate-400",
@@ -228,26 +242,42 @@ export default function CasesPage() {
 
         {/* Table or Empty State */}
         {filteredCases.length === 0 ? (
-          <EmptyState searchTerm={searchTerm} onNewCase={handleNewCase} />
+          <div className="p-12 text-center">
+            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+              <FileText className="text-slate-400 h-7 w-7" />
+            </div>
+            <h3 className="font-bold text-lg text-[#0F2942] mb-2">
+              {searchTerm ? t("cases.noResultsFound") : t("cases.noCases")}
+            </h3>
+            <p className="text-slate-500 text-sm mb-4">
+              {searchTerm ? t("cases.adjustFilters") : t("cases.noCasesDesc")}
+            </p>
+            {!searchTerm && (
+              <Button onClick={handleNewCase}>
+                <Plus className="mr-2 h-4 w-4" />
+                {t("cases.createCase")}
+              </Button>
+            )}
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Case Details
+                    {t("cases.caseDetails")}
                   </th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Type
+                    {t("cases.type")}
                   </th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Status
+                    {t("cases.status")}
                   </th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Last Updated
+                    {t("cases.lastUpdated")}
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">
-                    Action
+                  <th className={`px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider ${isRTL ? 'text-left' : 'text-right'}`}>
+                    {t("cases.action")}
                   </th>
                 </tr>
               </thead>
@@ -257,6 +287,8 @@ export default function CasesPage() {
                     key={case_.id}
                     case_={case_}
                     onView={() => router.push(`/cases/${case_.id}`)}
+                    formatStatus={formatStatus}
+                    isRTL={isRTL}
                   />
                 ))}
               </tbody>
@@ -275,9 +307,11 @@ export default function CasesPage() {
 interface CaseRowProps {
   case_: Case;
   onView: () => void;
+  formatStatus: (status: string) => string;
+  isRTL: boolean;
 }
 
-function CaseRow({ case_, onView }: CaseRowProps) {
+function CaseRow({ case_, onView, formatStatus, isRTL }: CaseRowProps) {
   const statusStyles: Record<string, string> = {
     open: "bg-green-50 text-green-700 border-green-100",
     in_progress: "bg-orange-50 text-[#D97706] border-orange-100",
@@ -338,61 +372,13 @@ function CaseRow({ case_, onView }: CaseRowProps) {
       <td className="px-6 py-4 text-sm text-slate-500 font-medium">
         {formattedDate}
       </td>
-      <td className="px-6 py-4 text-right">
+      <td className={`px-6 py-4 ${isRTL ? 'text-left' : 'text-right'}`}>
         <button
           className="text-slate-400 hover:text-[#0F2942] p-2 hover:bg-white rounded-full transition-colors"
         >
-          <ChevronRight className="h-[18px] w-[18px]" />
+          <ChevronRight className={`h-[18px] w-[18px] ${isRTL ? 'rotate-180' : ''}`} />
         </button>
       </td>
     </tr>
   );
-}
-
-/* =============================================================================
-   EMPTY STATE COMPONENT
-   ============================================================================= */
-
-interface EmptyStateProps {
-  searchTerm: string;
-  onNewCase: () => void;
-}
-
-function EmptyState({ searchTerm, onNewCase }: EmptyStateProps) {
-  return (
-    <div className="p-12 text-center">
-      <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-        <FileText className="text-slate-400 h-7 w-7" />
-      </div>
-      <h3 className="font-bold text-lg text-[#0F2942] mb-2">
-        {searchTerm ? "No cases found" : "No cases yet"}
-      </h3>
-      <p className="text-slate-500 text-sm mb-4">
-        {searchTerm
-          ? "Try adjusting your filters or search term."
-          : "Create your first case to get started."}
-      </p>
-      {!searchTerm && (
-        <Button onClick={onNewCase}>
-          <Plus className="mr-2 h-4 w-4" />
-          Create Case
-        </Button>
-      )}
-    </div>
-  );
-}
-
-/* =============================================================================
-   UTILITY FUNCTIONS
-   ============================================================================= */
-
-function formatStatus(status: string) {
-  const statusMap: Record<string, string> = {
-    open: "Active",
-    in_progress: "In Progress",
-    pending_hearing: "Pending",
-    closed: "Closed",
-    archived: "Archived",
-  };
-  return statusMap[status] || status.replace(/_/g, " ");
 }

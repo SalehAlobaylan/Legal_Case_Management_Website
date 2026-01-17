@@ -20,6 +20,7 @@ import { Search, Bell, Settings, ChevronDown, LogOut } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useLogout } from "@/lib/hooks/use-auth";
 import { useWebSocket } from "@/lib/hooks/use-websocket";
+import { useI18n } from "@/lib/hooks/use-i18n";
 import { cn } from "@/lib/utils/cn";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 import { ConnectionStatusIndicator } from "@/components/layout/connection-status";
@@ -48,6 +49,7 @@ export function Header({
   const router = useRouter();
   const { user } = useAuthStore();
   const logout = useLogout();
+  const { t, isRTL } = useI18n();
   const [searchQuery, setSearchQuery] = React.useState("");
   const [showUserMenu, setShowUserMenu] = React.useState(false);
 
@@ -123,13 +125,13 @@ export function Header({
         />
         <div className="hidden sm:block">
           <h1
-            className="text-xl font-bold text-[#D97706]"
-            style={{ fontFamily: 'var(--font-arabic), serif' }}
+            className="text-xl font-bold"
+            style={{ fontFamily: isRTL ? 'var(--font-arabic), serif' : 'inherit', color: '#D97706' }}
           >
-            صلة القانوني
+            {isRTL ? 'صلة القانوني' : 'Silah Legal'}
           </h1>
           <p className="text-[10px] text-[#D97706] font-medium tracking-wider">
-            Silah Legal
+            {isRTL ? 'منصة للقانونيين' : 'platform for lawyers'}
           </p>
         </div>
       </Link>
@@ -147,7 +149,8 @@ export function Header({
       >
         <Search
           className={cn(
-            "h-4 w-4 text-blue-300 mr-2 flex-shrink-0",
+            "h-4 w-4 text-blue-300 flex-shrink-0",
+            isRTL ? "ml-2" : "mr-2",
             "group-focus-within:text-[#D97706] transition-colors"
           )}
         />
@@ -155,7 +158,7 @@ export function Header({
           type="text"
           value={searchQuery}
           onChange={handleSearchChange}
-          placeholder="Search cases, regulations, or documents..."
+          placeholder={t("header.searchPlaceholder")}
           className={cn(
             "bg-transparent border-none outline-none",
             "text-sm w-full text-white",
@@ -169,7 +172,7 @@ export function Header({
         {/* Action Buttons */}
         <div className="flex items-center gap-1 sm:gap-2">
           {/* Connection Status */}
-          <div className="hidden md:flex mr-2">
+          <div className={`hidden md:flex ${isRTL ? 'ml-2' : 'mr-2'}`}>
             <ConnectionStatusIndicator />
           </div>
 
@@ -187,14 +190,15 @@ export function Header({
               "transition-colors duration-200",
               "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D97706]"
             )}
-            aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
-            title="Notifications"
+            aria-label={`${t("header.notifications")}${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
+            title={t("header.notifications")}
           >
             <Bell className="h-5 w-5" />
             {unreadCount > 0 && (
               <span
                 className={cn(
-                  "absolute top-1.5 right-1.5",
+                  "absolute top-1.5",
+                  isRTL ? "left-1.5" : "right-1.5",
                   "w-2.5 h-2.5 bg-[#D97706] rounded-full",
                   "border-2 border-[#0F2942]"
                 )}
@@ -214,8 +218,8 @@ export function Header({
               "transition-colors duration-200",
               "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D97706]"
             )}
-            aria-label="Settings"
-            title="Settings"
+            aria-label={t("header.settings")}
+            title={t("header.settings")}
           >
             <Settings className="h-5 w-5" />
           </button>
@@ -231,7 +235,8 @@ export function Header({
             onClick={() => setShowUserMenu(!showUserMenu)}
             className={cn(
               "flex items-center gap-2 sm:gap-3 cursor-pointer",
-              "p-1.5 pr-2 sm:pr-3 rounded-full",
+              "p-1.5 rounded-full",
+              isRTL ? "pl-2 sm:pl-3" : "pr-2 sm:pr-3",
               "border border-transparent",
               "hover:bg-[#1E3A56] hover:border-[#2A4D70]",
               "transition-all duration-200",
@@ -254,7 +259,7 @@ export function Header({
             </div>
 
             {/* User Info - Hidden on small screens */}
-            <div className="hidden lg:block text-left">
+            <div className={`hidden lg:block ${isRTL ? 'text-right' : 'text-left'}`}>
               <p className="text-sm font-bold text-white leading-none">
                 {userName}
               </p>
@@ -285,7 +290,8 @@ export function Header({
               {/* Menu */}
               <div
                 className={cn(
-                  "absolute right-0 top-full mt-2 z-50",
+                  "absolute top-full mt-2 z-50",
+                  isRTL ? "left-0" : "right-0",
                   "w-56 py-2",
                   "bg-white rounded-xl shadow-2xl",
                   "border border-slate-200",
@@ -311,7 +317,7 @@ export function Header({
                     )}
                   >
                     <Settings className="h-4 w-4" />
-                    Settings
+                    {t("header.settings")}
                   </Link>
                 </div>
 
@@ -328,7 +334,7 @@ export function Header({
                     )}
                   >
                     <LogOut className="h-4 w-4" />
-                    Sign out
+                    {t("auth.signOut")}
                   </button>
                 </div>
               </div>
