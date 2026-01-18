@@ -41,7 +41,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <WebSocketProvider>
-      <div className="flex min-h-screen flex-col bg-[#f8fafc] font-sans text-slate-900 selection:bg-[#D97706] selection:text-white">
+      <div className="flex min-h-screen flex-col bg-[#f9fafb] font-sans text-slate-900 selection:bg-[#D97706] selection:text-white">
         {/* Header - Dark navy with Silah branding */}
         <Header />
 

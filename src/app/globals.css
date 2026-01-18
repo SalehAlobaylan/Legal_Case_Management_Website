@@ -47,28 +47,40 @@
      SURFACE COLORS
      ------------------------------------------------------------------------- */
 
-  --color-surface-bg: #f8fafc;
+  /* -------------------------------------------------------------------------
+     SURFACE COLORS
+     ------------------------------------------------------------------------- */
+
+  --color-surface-bg: #f9fafb;
+  /* Gray 50 (was Slate 50) */
   --color-surface-card: #ffffff;
-  --color-surface-muted: #f1f5f9;
-  --color-surface-hover: #f8fafc;
+  --color-surface-muted: #f3f4f6;
+  /* Gray 100 (was Slate 100) */
+  --color-surface-hover: #f9fafb;
 
   /* -------------------------------------------------------------------------
      TEXT COLORS
      ------------------------------------------------------------------------- */
 
   --color-text-primary: #0F2942;
-  --color-text-secondary: #475569;
-  --color-text-muted: #64748b;
-  --color-text-light: #94a3b8;
+  --color-text-secondary: #4b5563;
+  /* Gray 600 */
+  --color-text-muted: #6b7280;
+  /* Gray 500 */
+  --color-text-light: #9ca3af;
+  /* Gray 400 */
   --color-text-inverse: #ffffff;
 
   /* -------------------------------------------------------------------------
      BORDER COLORS
      ------------------------------------------------------------------------- */
 
-  --color-border-default: #e2e8f0;
-  --color-border-light: #f1f5f9;
-  --color-border-dark: #cbd5e1;
+  --color-border-default: #e5e7eb;
+  /* Gray 200 */
+  --color-border-light: #f3f4f6;
+  /* Gray 100 */
+  --color-border-dark: #d1d5db;
+  /* Gray 300 */
   --color-border-focus: #D97706;
 
   /* -------------------------------------------------------------------------
@@ -189,22 +201,25 @@
 
 .dark {
   /* Surface colors */
-  --color-surface-bg: #0f172a;
-  --color-surface-card: #1e293b;
-  --color-surface-muted: #334155;
-  --color-surface-hover: #334155;
+  --color-surface-bg: #09090b;
+  /* Zinc 950 (Neutral Dark) */
+  --color-surface-card: #18181b;
+  /* Zinc 900 (Neutral Dark) */
+  --color-surface-muted: #27272a;
+  /* Zinc 800 */
+  --color-surface-hover: #27272a;
 
   /* Text colors */
-  --color-text-primary: #f8fafc;
-  --color-text-secondary: #cbd5e1;
-  --color-text-muted: #94a3b8;
-  --color-text-light: #64748b;
+  --color-text-primary: #f9fafb;
+  --color-text-secondary: #d1d5db;
+  --color-text-muted: #9ca3af;
+  --color-text-light: #6b7280;
   --color-text-inverse: #0F2942;
 
   /* Border colors */
-  --color-border-default: #334155;
-  --color-border-light: #1e293b;
-  --color-border-dark: #475569;
+  --color-border-default: #27272a;
+  --color-border-light: #18181b;
+  --color-border-dark: #3f3f46;
 
   /* Semantic - adjust for dark mode */
   --color-success-bg: rgba(22, 163, 74, 0.1);
@@ -333,6 +348,34 @@ h6 {
 
 .bg-brand-accent-hover:hover {
   background-color: var(--color-brand-accent-hover);
+}
+
+/* -------------------------------------------------------------------------
+   SURFACE BACKGROUND UTILITIES
+   ------------------------------------------------------------------------- */
+
+.bg-surface-bg {
+  background-color: var(--color-surface-bg);
+}
+
+.bg-surface-card {
+  background-color: var(--color-surface-card);
+}
+
+.bg-surface-muted {
+  background-color: var(--color-surface-muted);
+}
+
+.bg-surface-hover {
+  background-color: var(--color-surface-hover);
+}
+
+/* -------------------------------------------------------------------------
+   BORDER UTILITIES
+   ------------------------------------------------------------------------- */
+
+.border-border {
+  border-color: var(--color-border-default);
 }
 
 /* -------------------------------------------------------------------------

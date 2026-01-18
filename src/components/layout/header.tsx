@@ -16,7 +16,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, Bell, Settings, ChevronDown, LogOut } from "lucide-react";
+import { Search, Bell, Settings, ChevronDown, LogOut, User } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useLogout } from "@/lib/hooks/use-auth";
 import { useWebSocket } from "@/lib/hooks/use-websocket";
@@ -306,6 +306,19 @@ export function Header({
 
                 {/* Menu Items */}
                 <div className="py-1">
+                  <Link
+                    href="/profile"
+                    onClick={() => setShowUserMenu(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-2",
+                      "text-sm text-slate-700",
+                      "hover:bg-slate-50 hover:text-[#0F2942]",
+                      "transition-colors"
+                    )}
+                  >
+                    <User className="h-4 w-4" />
+                    {t("nav.profile")}
+                  </Link>
                   <Link
                     href="/settings"
                     onClick={() => setShowUserMenu(false)}

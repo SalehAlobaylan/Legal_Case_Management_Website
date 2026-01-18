@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils/cn";
 export type BadgeVariant =
   | "default"
   | "primary"
+  | "secondary"
   | "accent"
   | "success"
   | "warning"
@@ -62,6 +63,9 @@ export function Badge({
           // Primary - Navy
           "border-transparent bg-[#0F2942] text-white":
             variant === "primary",
+          // Secondary - Muted/Brand Secondary
+          "border-transparent bg-[#1E3A56] text-white":
+            variant === "secondary",
           // Accent - Orange
           "border-transparent bg-[#D97706] text-white shadow-sm":
             variant === "accent",

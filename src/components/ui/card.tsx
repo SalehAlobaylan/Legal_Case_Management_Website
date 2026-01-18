@@ -33,12 +33,12 @@ export function Card({
     <div
       className={cn(
         // Base styles
-        "rounded-2xl border bg-white text-[#0F2942]",
+        "rounded-2xl border bg-white text-gray-900",
         "shadow-sm",
         // Default border
-        "border-slate-200",
+        "border-gray-200",
         // Dark mode
-        "dark:bg-slate-900 dark:text-slate-100 dark:border-slate-800",
+        "dark:bg-zinc-900 dark:text-zinc-100 dark:border-zinc-800",
         // Hover state (optional)
         hoverable && [
           "transition-all duration-300",
@@ -75,7 +75,7 @@ export function CardHeader({
     <div
       className={cn(
         "flex flex-col space-y-1.5 p-6",
-        bordered && "border-b border-slate-100 dark:border-slate-800",
+        bordered && "border-b border-gray-100 dark:border-zinc-800",
         className
       )}
       {...props}
@@ -98,7 +98,7 @@ export function CardTitle({ className, serif = false, ...props }: CardTitleProps
     <h3
       className={cn(
         "text-lg font-bold leading-none tracking-tight",
-        "text-[#0F2942] dark:text-slate-100",
+        "text-gray-900 dark:text-zinc-100",
         serif && "font-serif",
         className
       )}
@@ -118,7 +118,7 @@ export function CardDescription({
   return (
     <p
       className={cn(
-        "text-sm text-slate-500 dark:text-slate-400",
+        "text-sm text-gray-500 dark:text-zinc-400",
         className
       )}
       {...props}
@@ -155,7 +155,7 @@ export function CardFooter({
     <div
       className={cn(
         "flex items-center p-6 pt-0",
-        bordered && "border-t border-slate-100 dark:border-slate-800 pt-6",
+        bordered && "border-t border-gray-100 dark:border-zinc-800 pt-6",
         className
       )}
       {...props}
