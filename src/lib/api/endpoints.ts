@@ -15,6 +15,12 @@ export const endpoints = {
     me: `${API_BASE}/api/auth/me`,
   },
 
+  // Dashboard
+  dashboard: {
+    stats: `${API_BASE}/api/dashboard/stats`,
+    recentActivity: `${API_BASE}/api/dashboard/recent-activity`,
+  },
+
   // Cases
   cases: {
     list: `${API_BASE}/api/cases`,
@@ -77,5 +83,15 @@ export const endpoints = {
   settings: {
     notifications: `${API_BASE}/api/settings/notifications`,
     organization: `${API_BASE}/api/settings/organization`,
+    team: `${API_BASE}/api/settings/team`,
+    teamInvite: `${API_BASE}/api/settings/team/invite`,
+    billing: `${API_BASE}/api/settings/billing`,
+  },
+
+  // AI Features
+  ai: {
+    chat: `${API_BASE}/api/ai/chat`,
+    analyzeCase: (caseId: number) => `${API_BASE}/api/ai/cases/${caseId}/analyze`,
+    summarizeDocument: (docId: number) => `${API_BASE}/api/documents/${docId}/summarize`,
   },
 } as const;

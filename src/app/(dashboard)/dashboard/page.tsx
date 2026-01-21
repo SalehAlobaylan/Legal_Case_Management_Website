@@ -23,6 +23,7 @@ import {
   Scale,
 } from "lucide-react";
 import { useCases } from "@/lib/hooks/use-cases";
+import { useDashboardStats, useRecentActivity } from "@/lib/hooks/use-dashboard";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { type Case, CaseType, CaseStatus } from "@/lib/types/case";
@@ -30,10 +31,13 @@ import { type Case, CaseType, CaseStatus } from "@/lib/types/case";
 export default function DashboardPage() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { data: cases, isLoading } = useCases();
+  const { data: cases, isLoading: casesLoading } = useCases();
+  const { data: stats, isLoading: statsLoading } = useDashboardStats();
+  const { data: activityData, isLoading: activityLoading } = useRecentActivity();
   const { t, isRTL } = useI18n();
 
   const userName = user?.fullName?.split(" ")[0] || "Ahmed";
+  const isLoading = casesLoading || statsLoading;
 
   // Status badge styles with translations
   const getStatusStyle = (status: string) => {
@@ -60,7 +64,7 @@ export default function DashboardPage() {
     return labels[type] || type;
   };
 
-  // Mock cases matching target design
+  // Mock cases fallback (only used if API returns no data)
   const mockCases: Case[] = [
     {
       id: 1,
@@ -96,23 +100,41 @@ export default function DashboardPage() {
 
   const displayCases = cases && cases.length > 0 ? cases : mockCases;
 
-  // Regulation updates matching target design
-  const regulationUpdates = [
-    {
-      id: 1,
-      type: "amendment",
-      title: t("dashboard.newAmendment"),
-      description: t("dashboard.amendmentDesc"),
-      action: t("dashboard.readAnalysis"),
-    },
-    {
-      id: 2,
-      type: "maintenance",
-      title: t("dashboard.systemMaintenance"),
-      description: t("dashboard.scheduledFor"),
-      action: null,
-    },
-  ];
+  // Use API stats with fallback to defaults
+  const dashboardStats = stats || {
+    activeCases: displayCases.filter(c => c.status !== CaseStatus.CLOSED && c.status !== CaseStatus.ARCHIVED).length,
+    activeCasesTrend: "+12%",
+    pendingRegulations: 12,
+    pendingRegulationsTrend: "+8%",
+    aiDiscoveries: 89,
+    aiDiscoveriesTrend: "+15%",
+    casesUpdatedToday: 3,
+  };
+
+  // Use API activity with fallback to static updates
+  const regulationUpdates = activityData?.recentUpdates?.map(update => ({
+    id: update.id,
+    type: update.type === "regulation_amendment" ? "amendment" :
+      update.type === "system" ? "maintenance" : "update",
+    title: update.title,
+    description: update.description,
+    action: update.type === "regulation_amendment" ? t("dashboard.readAnalysis") : null,
+  })) || [
+      {
+        id: 1,
+        type: "amendment",
+        title: t("dashboard.newAmendment"),
+        description: t("dashboard.amendmentDesc"),
+        action: t("dashboard.readAnalysis"),
+      },
+      {
+        id: 2,
+        type: "maintenance",
+        title: t("dashboard.systemMaintenance"),
+        description: t("dashboard.scheduledFor"),
+        action: null,
+      },
+    ];
 
   const handleNewCase = () => {
     router.push("/cases/new");
@@ -171,13 +193,13 @@ export default function DashboardPage() {
               <FileText className="h-6 w-6 text-[#D97706]" />
             </div>
             <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-md bg-[#D97706] text-white">
-              +12%
+              {dashboardStats.activeCasesTrend}
             </span>
           </div>
           <div className="h-4" />
-          <h3 className="text-3xl font-bold mb-1 font-serif text-white">24</h3>
+          <h3 className="text-3xl font-bold mb-1 font-serif text-white">{dashboardStats.activeCases}</h3>
           <p className="text-sm font-bold text-blue-200">{t("dashboard.activeCases")}</p>
-          <p className="text-xs mt-1 text-blue-300">{t("dashboard.updatedToday", { count: "3" })}</p>
+          <p className="text-xs mt-1 text-blue-300">{t("dashboard.updatedToday", { count: String(dashboardStats.casesUpdatedToday) })}</p>
         </div>
 
         {/* Pending Regulations */}
@@ -187,11 +209,11 @@ export default function DashboardPage() {
               <BookOpen className="h-6 w-6 text-[#0F2942]" />
             </div>
             <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-md bg-green-100 text-green-700">
-              +12%
+              {dashboardStats.pendingRegulationsTrend}
             </span>
           </div>
           <div className="h-4" />
-          <h3 className="text-3xl font-bold mb-1 font-serif text-[#0F2942]">12</h3>
+          <h3 className="text-3xl font-bold mb-1 font-serif text-[#0F2942]">{dashboardStats.pendingRegulations}</h3>
           <p className="text-sm font-bold text-slate-700">{t("dashboard.pendingRegulations")}</p>
           <p className="text-xs mt-1 text-slate-400">{t("dashboard.requiresReview")}</p>
         </div>
@@ -203,11 +225,11 @@ export default function DashboardPage() {
               <Sparkles className="h-6 w-6 text-purple-600" />
             </div>
             <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-md bg-green-100 text-green-700">
-              +12%
+              {dashboardStats.aiDiscoveriesTrend}
             </span>
           </div>
           <div className="h-4" />
-          <h3 className="text-3xl font-bold mb-1 font-serif text-[#0F2942]">89</h3>
+          <h3 className="text-3xl font-bold mb-1 font-serif text-[#0F2942]">{dashboardStats.aiDiscoveries}</h3>
           <p className="text-sm font-bold text-slate-700">{t("dashboard.aiDiscoveries")}</p>
           <p className="text-xs mt-1 text-slate-400">{t("dashboard.regulationsMatched")}</p>
         </div>

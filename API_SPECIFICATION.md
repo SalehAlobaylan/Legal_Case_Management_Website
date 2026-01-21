@@ -79,6 +79,63 @@ Get current authenticated user.
 
 ---
 
+## Dashboard
+
+### GET `/api/dashboard/stats`
+Get dashboard statistics for the current user's organization.
+
+**Response:** `200 OK`
+```json
+{
+  "activeCases": 24,
+  "activeCasesTrend": "+12%",
+  "pendingRegulations": 12,
+  "pendingRegulationsTrend": "+8%",
+  "aiDiscoveries": 89,
+  "aiDiscoveriesTrend": "+15%",
+  "casesUpdatedToday": 3,
+  "upcomingHearings": 5
+}
+```
+
+---
+
+### GET `/api/dashboard/recent-activity`
+Get recent activity and regulation updates for the dashboard.
+
+**Response:** `200 OK`
+```json
+{
+  "recentUpdates": [
+    {
+      "id": 1,
+      "type": "regulation_amendment",
+      "title": "New Amendment to Labor Law",
+      "description": "Article 77 has been revised with new termination compensation requirements",
+      "regulationId": 6,
+      "createdAt": "2024-12-20T10:30:00Z"
+    },
+    {
+      "id": 2,
+      "type": "ai_suggestion",
+      "title": "AI Found New Matches",
+      "description": "3 new regulation matches found for Case C-2024-001",
+      "caseId": 1,
+      "createdAt": "2024-12-19T14:00:00Z"
+    },
+    {
+      "id": 3,
+      "type": "system",
+      "title": "System Maintenance",
+      "description": "Scheduled maintenance on January 15th, 2025",
+      "createdAt": "2024-12-18T09:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
 ## Cases
 
 ### GET `/api/cases`
@@ -665,6 +722,73 @@ Update organization settings (admin only).
 
 ---
 
+### GET `/api/settings/team`
+Get list of organization members.
+
+**Response:** `200 OK`
+```json
+{
+  "members": [
+    {
+      "id": 1,
+      "fullName": "Ahmed Al-Lawyer",
+      "email": "ahmed@alfaisal.law",
+      "role": "admin",
+      "status": "active"
+    }
+  ]
+}
+```
+
+---
+
+### POST `/api/settings/team/invite`
+Invite a new member to the organization.
+
+**Request:**
+```json
+{
+  "email": "new@alfaisal.law",
+  "role": "lawyer"
+}
+```
+
+**Response:** `200 OK`
+
+---
+
+### GET `/api/settings/billing`
+Get subscription plan and invoice history.
+
+**Response:** `200 OK`
+```json
+{
+  "plan": {
+    "name": "Enterprise",
+    "price": 499,
+    "interval": "month",
+    "nextBillingDate": "2025-01-01"
+  },
+  "usage": {
+    "storageUsedGB": 4.2,
+    "storageLimitGB": 10,
+    "activeCases": 24,
+    "casesLimit": null
+  },
+  "invoices": [
+    {
+      "id": "INV-2024-012",
+      "date": "2024-12-01",
+      "amount": 499,
+      "status": "paid",
+      "pdfUrl": "/api/invoices/INV-2024-012.pdf"
+    }
+  ]
+}
+```
+
+---
+
 ## WebSocket Events (Socket.IO)
 
 The frontend uses Socket.IO for real-time updates. The backend must have Socket.IO server attached to handle these connections.
@@ -686,6 +810,74 @@ The frontend uses Socket.IO for real-time updates. The backend must have Socket.
 | `case:update` | Case object | Case was modified |
 | `regulation:update` | Regulation object | Regulation was updated |
 | `ai-link:new` | CaseRegulationLink object | New AI match found |
+
+---
+
+---
+
+## Advanced AI Features
+
+### POST `/api/ai/chat`
+Legal assistant chat interface. Supports context from cases or regulations.
+
+**Request:**
+```json
+{
+  "message": "What are the precedents for this case?",
+  "context": {
+    "caseId": 1,
+    "regulationIds": [1, 6]
+  },
+  "history": [
+    { "role": "user", "content": "..." },
+    { "role": "assistant", "content": "..." }
+  ]
+}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "response": "Based on the provided case details...",
+  "citations": [
+    { "source": "Saudi Labor Law", "article": "77", "link": "/regulations/6" }
+  ]
+}
+```
+
+---
+
+### POST `/api/ai/cases/:caseId/analyze`
+Generate comprehensive AI analysis of a case (strengths, weaknesses, strategy).
+
+**Response:** `200 OK`
+```json
+{
+  "summary": "This case revolves around...",
+  "strengths": ["Strong evidence of...", "Clear violation of..."],
+  "weaknesses": ["Lack of documentation for...", "Statute of limitations..."],
+  "recommendedStrategy": "Focus on negotiation regarding...",
+  "successProbability": 0.75,
+  "predictedTimeline": "3-6 months"
+}
+```
+
+---
+
+### POST `/api/documents/:docId/summarize`
+Generate an AI summary of a specific legal document.
+
+**Response:** `200 OK`
+```json
+{
+  "summary": "This contract outlines the terms of...",
+  "keyEntities": ["Company A", "Employee B"],
+  "effectiveDate": "2024-01-01",
+  "clauses": [
+    { "title": "Termination", "riskLevel": "high", "description": "Allows termination without cause..." }
+  ]
+}
+```
 
 ---
 
@@ -724,6 +916,8 @@ All errors follow this format:
 | POST | /api/auth/register | User registration |
 | POST | /api/auth/logout | User logout |
 | GET | /api/auth/me | Get current user |
+| GET | /api/dashboard/stats | Get dashboard statistics |
+| GET | /api/dashboard/recent-activity | Get recent activity |
 | GET | /api/cases | List cases |
 | GET | /api/cases/:id | Get case details |
 | POST | /api/cases | Create case |
@@ -758,3 +952,9 @@ All errors follow this format:
 | PUT | /api/settings/notifications | Update notification settings |
 | GET | /api/settings/organization | Get organization settings |
 | PUT | /api/settings/organization | Update organization settings |
+| GET | /api/settings/team | List team members |
+| POST | /api/settings/team/invite | Invite team member |
+| GET | /api/settings/billing | Get billing & usage info |
+| POST | /api/ai/chat | Legal Chat Assistant |
+| POST | /api/ai/cases/:caseId/analyze | Analyze Case Strategy |
+| POST | /api/documents/:docId/summarize | Summarize Document |

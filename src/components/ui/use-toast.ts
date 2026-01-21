@@ -27,3 +27,11 @@ export function toast(options: ToastOptions) {
     options.description ?? ""
   );
 }
+
+/**
+ * Hook wrapper for toast function to match the common pattern.
+ * Returns { toast } so components can destructure it.
+ */
+export function useToast() {
+  return { toast };
+}
