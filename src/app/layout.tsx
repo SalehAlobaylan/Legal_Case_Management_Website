@@ -52,6 +52,9 @@ export const metadata: Metadata = {
     "صلة",
     "إدارة القضايا",
   ],
+  icons: {
+    icon: "/circle-logo-silah.png",
+  },
 };
 
 export default function RootLayout({

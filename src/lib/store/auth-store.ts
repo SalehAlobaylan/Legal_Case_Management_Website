@@ -7,12 +7,17 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-interface User {
+export interface User {
   id: number;
   email: string;
   fullName: string;
   role: string;
   organizationId: number;
+  // Optional profile fields
+  phone?: string;
+  bio?: string;
+  location?: string;
+  avatarUrl?: string;
 }
 
 interface AuthState {
@@ -21,6 +26,7 @@ interface AuthState {
   isAuthenticated: boolean;
 
   setUser: (user: User, token: string) => void;
+  updateUser: (user: User) => void;
   logout: () => void;
 }
 
@@ -39,6 +45,10 @@ export const useAuthStore = create<AuthState>()(
           const maxAgeSeconds = 7 * 24 * 60 * 60; // 7 days
           document.cookie = `auth-storage=1; Path=/; Max-Age=${maxAgeSeconds}`;
         }
+      },
+
+      updateUser: (user) => {
+        set({ user });
       },
 
       logout: () => {
