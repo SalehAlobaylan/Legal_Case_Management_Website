@@ -21,7 +21,9 @@ interface LoginInput {
 
 interface RegisterInput extends LoginInput {
   fullName: string;
-  organizationId: number;
+  organizationId?: number;
+  organizationName?: string;
+  registrationType: "create" | "join";
 }
 
 interface AuthResponse<User = unknown> {

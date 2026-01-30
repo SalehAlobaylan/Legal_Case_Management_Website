@@ -4,12 +4,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { useRegister } from "@/lib/hooks/use-auth";
 import { useI18n } from "@/lib/hooks/use-i18n";
-import { Check, ArrowLeft, ArrowRight } from "lucide-react";
+import { Check, ArrowLeft, ArrowRight, Building2, Users } from "lucide-react";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 
-// Schema matching the form layout
+// Schema matching the form layout with conditional organization validation
 const registerSchema = z.object({
     fullName: z.string().min(3, "Name must be at least 3 characters"),
     email: z.string().email("Invalid email address"),
@@ -18,34 +19,86 @@ const registerSchema = z.object({
         .min(8, "Password must be at least 8 characters")
         .regex(/[A-Z]/, "Must contain an uppercase letter")
         .regex(/[0-9]/, "Must contain a number"),
-    organization: z.string().min(1, "Organization is required"),
+    registrationType: z.enum(["create", "join"]),
+    organizationName: z.string().optional(),
+    organizationId: z.string().optional(),
     role: z.string(),
+}).refine((data) => {
+    if (data.registrationType === "create") {
+        return data.organizationName && data.organizationName.length >= 2;
+    }
+    return true;
+}, {
+    message: "Organization name must be at least 2 characters",
+    path: ["organizationName"],
+}).refine((data) => {
+    if (data.registrationType === "join") {
+        return data.organizationId && data.organizationId !== "";
+    }
+    return true;
+}, {
+    message: "Please select an organization",
+    path: ["organizationId"],
 });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
+// Mock organizations - replace with API call when backend is ready
+const mockOrganizations = [
+    { id: 1, name: "Silah Legal Firm" },
+    { id: 2, name: "Justice Partners" },
+    { id: 3, name: "Al-Faisal Law Group" },
+];
+
 export default function RegisterPage() {
     const { mutate: registerUser, isPending, error } = useRegister();
     const { t, isRTL } = useI18n();
+    const [registrationType, setRegistrationType] = useState<"create" | "join">("create");
+    const [organizations, setOrganizations] = useState(mockOrganizations);
 
     const {
         register,
         handleSubmit,
+        setValue,
         formState: { errors },
     } = useForm<RegisterFormData>({
         resolver: zodResolver(registerSchema),
         defaultValues: {
             role: "Lawyer",
+            registrationType: "create",
         },
     });
 
+    // Update form value when registration type changes
+    useEffect(() => {
+        setValue("registrationType", registrationType);
+    }, [registrationType, setValue]);
+
+    // TODO: Fetch organizations from API when backend is ready
+    // useEffect(() => {
+    //     fetch('/api/organizations')
+    //         .then(res => res.json())
+    //         .then(data => setOrganizations(data.organizations));
+    // }, []);
+
     const onSubmit = (data: RegisterFormData) => {
-        registerUser({
-            fullName: data.fullName,
-            email: data.email,
-            password: data.password,
-            organizationId: 1,
-        });
+        if (data.registrationType === "create") {
+            registerUser({
+                fullName: data.fullName,
+                email: data.email,
+                password: data.password,
+                organizationName: data.organizationName,
+                registrationType: "create",
+            });
+        } else {
+            registerUser({
+                fullName: data.fullName,
+                email: data.email,
+                password: data.password,
+                organizationId: parseInt(data.organizationId || "1"),
+                registrationType: "join",
+            });
+        }
     };
 
     return (
@@ -213,32 +266,97 @@ export default function RegisterPage() {
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            {/* Organization Type Toggle */}
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-3">
+                                    {isRTL ? 'المنظمة' : 'Organization'}
+                                </label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setRegistrationType("create")}
+                                        className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${registrationType === "create"
+                                                ? "border-[#D97706] bg-[#D97706]/5 text-[#D97706]"
+                                                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                                            }`}
+                                    >
+                                        <Building2 size={24} />
+                                        <span className="text-sm font-semibold">
+                                            {isRTL ? 'إنشاء منظمة جديدة' : 'Create New'}
+                                        </span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setRegistrationType("join")}
+                                        className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${registrationType === "join"
+                                                ? "border-[#D97706] bg-[#D97706]/5 text-[#D97706]"
+                                                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                                            }`}
+                                    >
+                                        <Users size={24} />
+                                        <span className="text-sm font-semibold">
+                                            {isRTL ? 'الانضمام لمنظمة' : 'Join Existing'}
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Conditional Organization Input */}
+                            {registrationType === "create" ? (
                                 <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">{t("auth.organization")}</label>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                        {isRTL ? 'اسم المنظمة' : 'Organization Name'}
+                                    </label>
                                     <input
                                         type="text"
-                                        placeholder={t("auth.organizationPlaceholder")}
-                                        className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/20 transition-all bg-white text-sm"
-                                        {...register("organization")}
+                                        placeholder={isRTL ? "مثال: مكتب العدالة للمحاماة" : "e.g. Justice Law Firm"}
+                                        className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/20 transition-all bg-white"
+                                        {...register("organizationName")}
                                     />
-                                    {errors.organization && (
+                                    {errors.organizationName && (
                                         <p className="text-sm text-red-500 font-medium mt-2 animate-in slide-in-from-top-1">
-                                            {errors.organization.message}
+                                            {errors.organizationName.message}
+                                        </p>
+                                    )}
+                                    <p className="text-xs text-slate-500 mt-2">
+                                        {isRTL ? 'ستصبح مديراً لهذه المنظمة' : 'You will become the admin of this organization'}
+                                    </p>
+                                </div>
+                            ) : (
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                        {isRTL ? 'اختر المنظمة' : 'Select Organization'}
+                                    </label>
+                                    <select
+                                        className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/20 bg-white transition-all"
+                                        {...register("organizationId")}
+                                    >
+                                        <option value="">{isRTL ? '-- اختر منظمة --' : '-- Select an organization --'}</option>
+                                        {organizations.map((org) => (
+                                            <option key={org.id} value={org.id}>
+                                                {org.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {errors.organizationId && (
+                                        <p className="text-sm text-red-500 font-medium mt-2 animate-in slide-in-from-top-1">
+                                            {errors.organizationId.message}
                                         </p>
                                     )}
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">{t("auth.role")}</label>
-                                    <select
-                                        className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/20 bg-white transition-all text-sm"
-                                        {...register("role")}
-                                    >
-                                        <option value="Lawyer">{t("auth.lawyer")}</option>
-                                        <option value="Paralegal">{t("auth.paralegal")}</option>
-                                        <option value="Admin">{t("auth.admin")}</option>
-                                    </select>
-                                </div>
+                            )}
+
+                            {/* Role Selection */}
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">{t("auth.role")}</label>
+                                <select
+                                    className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/20 bg-white transition-all"
+                                    {...register("role")}
+                                >
+                                    <option value="Lawyer">{t("auth.lawyer")}</option>
+                                    <option value="Paralegal">{t("auth.paralegal")}</option>
+                                    <option value="Admin">{t("auth.admin")}</option>
+                                </select>
                             </div>
 
                             <div className="flex items-start gap-3 pt-1">
