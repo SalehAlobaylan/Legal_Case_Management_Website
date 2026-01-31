@@ -80,6 +80,8 @@
         "role": "الدور",
         "lawyer": "محامٍ",
         "paralegal": "باحث قانوني",
+        "seniorLawyer": "محامي أول",
+        "clerk": "كاتب",
         "admin": "مدير",
         "agreeToTerms": "أوافق على",
         "termsOfService": "شروط الخدمة",

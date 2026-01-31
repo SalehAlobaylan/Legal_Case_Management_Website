@@ -24,13 +24,39 @@ export interface LoginInput {
   password: string;
 }
 
-export interface RegisterInput {
-  fullName: string;
+export interface Organization {
+  id: number;
+  name: string;
+  country: string;
+  subscriptionTier: string;
+  licenseNumber?: string;
+  contactInfo?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type RegisterInputJoin = {
+  registrationType: "join";
   email: string;
   password: string;
   confirmPassword: string;
+  fullName: string;
   organizationId: number;
-}
+  role?: UserRole;
+};
+
+export type RegisterInputCreate = {
+  registrationType: "create";
+  email: string;
+  password: string;
+  confirmPassword: string;
+  fullName: string;
+  organizationName: string;
+  subscriptionTier?: string;
+  role?: UserRole;
+};
+
+export type RegisterInput = RegisterInputJoin | RegisterInputCreate;
 
 export interface AuthResponse {
   user: User;

@@ -39,20 +39,11 @@ import { useAuthStore } from "@/lib/store/auth-store";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
+import { useTeamMembers } from "@/lib/hooks/use-team";
+import { useBillingInfo } from "@/lib/hooks/use-billing";
+import { useUpdateProfile } from "@/lib/hooks/use-profile";
 
-// Mock data
-const MOCK_TEAM = [
-  { id: 1, name: "Ahmed Al-Lawyer", email: "ahmed@alfaisal.law", role: "Admin", status: "Active" },
-  { id: 2, name: "Sara Al-Faisal", email: "sara@alfaisal.law", role: "Lawyer", status: "Active" },
-  { id: 3, name: "Mohammed Hassan", email: "mohammed@alfaisal.law", role: "Paralegal", status: "Pending" },
-];
-
-const MOCK_INVOICES = [
-  { id: "INV-2024-012", date: "Dec 1, 2024", amount: "SAR 499", status: "Paid" },
-  { id: "INV-2024-011", date: "Nov 1, 2024", amount: "SAR 499", status: "Paid" },
-  { id: "INV-2024-010", date: "Oct 1, 2024", amount: "SAR 499", status: "Paid" },
-];
-
+// Mock data for login history (no API available yet)
 const MOCK_LOGIN_HISTORY = [
   { device: "MacBook Pro - Chrome", location: "Riyadh, SA", ip: "192.168.1.1", time: "now" },
   { device: "iPhone 15 - Safari", location: "Riyadh, SA", ip: "192.168.1.2", time: "2hours" },
@@ -66,6 +57,10 @@ export default function SettingsPage() {
   const [role, setRole] = React.useState<"Admin" | "Lawyer">("Admin");
   const { user } = useAuthStore();
   const { t, isRTL } = useI18n();
+
+  const { data: teamData } = useTeamMembers();
+  const { data: billingData } = useBillingInfo();
+  const { mutate: updateProfile, isPending: isUpdatingProfile } = useUpdateProfile();
 
   const TABS = [
     { id: "profile" as TabId, label: t("settings.myProfile"), icon: <User size={18} /> },
@@ -143,11 +138,11 @@ export default function SettingsPage() {
 
           {/* Tab Content */}
           {activeTab === "profile" && <ProfileTab t={t} isRTL={isRTL} />}
-          {activeTab === "org" && <OrganizationTab t={t} isRTL={isRTL} />}
+          {activeTab === "org" && <OrganizationTab t={t} isRTL={isRTL} teamData={teamData} />}
           {activeTab === "notifications" && <NotificationsTab t={t} />}
           {activeTab === "security" && <SecurityTab t={t} isRTL={isRTL} />}
           {activeTab === "integrations" && <IntegrationsTab t={t} />}
-          {activeTab === "billing" && <BillingTab t={t} isRTL={isRTL} />}
+          {activeTab === "billing" && <BillingTab t={t} isRTL={isRTL} billingData={billingData} />}
         </div>
       </div>
     </div>
@@ -159,16 +154,31 @@ export default function SettingsPage() {
    ============================================================================= */
 
 function ProfileTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }) {
+  const { user } = useAuthStore();
+  const { mutate: updateProfile } = useUpdateProfile();
+
+  const initials = user?.fullName?.split(" ").map(n => n[0]).join("").toUpperCase() || "AL";
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateProfile({
+      fullName: user?.fullName || "",
+      phone: user?.phone || "",
+      location: user?.location || "",
+      bio: user?.bio || "",
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Avatar Section */}
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-6">
         <div className="w-20 h-20 rounded-full bg-[#0F2942] text-white flex items-center justify-center text-2xl font-bold ring-4 ring-slate-100">
-          AL
+          {initials}
         </div>
         <div>
-          <h4 className="text-lg font-bold text-[#0F2942]">Ahmed Al-Lawyer</h4>
-          <p className="text-sm text-slate-500 mb-3">Senior Partner • Al-Faisal Law Firm</p>
+          <h4 className="text-lg font-bold text-[#0F2942]">{user?.fullName || "Loading..."}</h4>
+          <p className="text-sm text-slate-500 mb-3">{user?.role || "User"}</p>
           <button className="text-xs font-bold text-[#D97706] border border-[#D97706] px-3 py-1.5 rounded-lg hover:bg-orange-50 transition-colors">
             {t("settings.changeAvatar")}
           </button>
@@ -176,12 +186,15 @@ function ProfileTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }
       </div>
 
       {/* Form Fields */}
-      <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6"
+      >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField label={t("auth.fullName")} defaultValue="Ahmed Al-Lawyer" />
-          <FormField label={t("auth.emailAddress")} type="email" defaultValue="ahmed@alfaisal.law" />
-          <FormField label={t("auth.role")} defaultValue="Senior Partner" />
-          <FormField label={t("auth.email")} type="tel" defaultValue="+966 50 123 4567" />
+          <FormField label={t("auth.fullName")} defaultValue={user?.fullName || ""} />
+          <FormField label={t("auth.emailAddress")} type="email" defaultValue={user?.email || ""} disabled />
+          <FormField label={t("auth.role")} defaultValue={user?.role || ""} disabled />
+          <FormField label={t("auth.email")} type="tel" defaultValue={user?.phone || ""} />
         </div>
 
         <div className="pt-4 border-t border-slate-100">
@@ -202,7 +215,7 @@ function ProfileTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }
             </div>
           </div>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
@@ -211,7 +224,7 @@ function ProfileTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }
    ORGANIZATION TAB
    ============================================================================= */
 
-function OrganizationTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }) {
+function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; isRTL: boolean; teamData?: { members: any[]; total: number } }) {
   return (
     <div className="space-y-6">
       {/* Org Header */}
@@ -251,10 +264,10 @@ function OrganizationTab({ t, isRTL }: { t: (key: string) => string; isRTL: bool
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {MOCK_TEAM.map((member) => (
+            {teamData?.members.map((member: any) => (
               <tr key={member.id} className="hover:bg-slate-50 transition-colors">
                 <td className="px-6 py-4">
-                  <div className="font-bold text-[#0F2942]">{member.name}</div>
+                  <div className="font-bold text-[#0F2942]">{member.fullName}</div>
                   <div className="text-xs text-slate-400">{member.email}</div>
                 </td>
                 <td className="px-6 py-4">
@@ -421,7 +434,9 @@ function IntegrationsTab({ t }: { t: (key: string) => string }) {
    BILLING TAB
    ============================================================================= */
 
-function BillingTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }) {
+function BillingTab({ t, isRTL, billingData }: { t: (key: string) => string; isRTL: boolean; billingData?: any }) {
+  const invoices = billingData?.invoices || [];
+
   return (
     <div className="space-y-6">
       {/* Plan Card */}
@@ -430,12 +445,12 @@ function BillingTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }
         <div className="relative z-10 flex justify-between items-start">
           <div>
             <p className="text-blue-200 text-sm font-bold uppercase tracking-wider mb-2">{t("settings.currentPlan")}</p>
-            <h2 className="text-3xl font-bold font-serif mb-1">{t("settings.enterprisePlan")}</h2>
-            <p className="text-blue-200">{t("settings.billedAnnually")} • {t("settings.nextBilling")}</p>
+            <h2 className="text-3xl font-bold font-serif mb-1">{billingData?.plan?.name || t("settings.enterprisePlan")}</h2>
+            <p className="text-blue-200">{t("settings.billedAnnually")} • {billingData?.nextBillingDate || t("settings.nextBilling")}</p>
           </div>
           <div className={isRTL ? 'text-left' : 'text-right'}>
             <h2 className="text-3xl font-bold">
-              SAR 499<span className="text-lg text-blue-300 font-normal">{t("settings.perMonth")}</span>
+              SAR {billingData?.plan?.price || 499}<span className="text-lg text-blue-300 font-normal">{t("settings.perMonth")}</span>
             </h2>
           </div>
         </div>
@@ -466,14 +481,14 @@ function BillingTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {MOCK_INVOICES.map((inv) => (
+            {invoices.map((inv: any) => (
               <tr key={inv.id} className="hover:bg-slate-50 transition-colors">
                 <td className="px-6 py-4 font-medium text-[#0F2942]">{inv.id}</td>
-                <td className="px-6 py-4 text-slate-600">{inv.date}</td>
-                <td className="px-6 py-4 font-bold text-[#0F2942]">{inv.amount}</td>
+                <td className="px-6 py-4 text-slate-600">{new Date(inv.date).toLocaleDateString()}</td>
+                <td className="px-6 py-4 font-bold text-[#0F2942]">{inv.amount} SAR</td>
                 <td className="px-6 py-4">
                   <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold flex items-center gap-1 w-fit">
-                    <CheckCircle size={10} /> {t("settings.paid")}
+                    <CheckCircle size={10} /> {inv.status}
                   </span>
                 </td>
                 <td className={`px-6 py-4 ${isRTL ? 'text-left' : 'text-right'}`}>
@@ -494,14 +509,15 @@ function BillingTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }
    HELPER COMPONENTS
    ============================================================================= */
 
-function FormField({ label, type = "text", defaultValue }: { label: string; type?: string; defaultValue: string }) {
+function FormField({ label, type = "text", defaultValue, disabled }: { label: string; type?: string; defaultValue: string; disabled?: boolean }) {
   return (
     <div className="space-y-2">
       <label className="text-sm font-bold text-slate-700">{label}</label>
       <input
         type={type}
         defaultValue={defaultValue}
-        className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706] bg-slate-50"
+        disabled={disabled}
+        className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706] bg-slate-50 disabled:bg-slate-100 disabled:cursor-not-allowed"
       />
     </div>
   );

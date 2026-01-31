@@ -26,7 +26,7 @@ import { useCases } from "@/lib/hooks/use-cases";
 import { useDashboardStats, useRecentActivity } from "@/lib/hooks/use-dashboard";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useI18n } from "@/lib/hooks/use-i18n";
-import { type Case, CaseType, CaseStatus } from "@/lib/types/case";
+import { type Case, CaseStatus } from "@/lib/types/case";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -64,51 +64,21 @@ export default function DashboardPage() {
     return labels[type] || type;
   };
 
-  // Mock cases fallback (only used if API returns no data)
-  const mockCases: Case[] = [
-    {
-      id: 1,
-      organization_id: 1,
-      title: "Al-Amoudi vs. TechSolutions Ltd",
-      case_number: "C-2024-001",
-      case_type: CaseType.LABOR,
-      status: CaseStatus.OPEN,
-      created_at: "2024-12-01",
-      updated_at: "2024-12-25",
-    },
-    {
-      id: 2,
-      organization_id: 1,
-      title: "Estate of Sheikh H. Al-Rahman",
-      case_number: "C-2024-002",
-      case_type: CaseType.CIVIL,
-      status: CaseStatus.IN_PROGRESS,
-      created_at: "2024-11-15",
-      updated_at: "2024-12-24",
-    },
-    {
-      id: 3,
-      organization_id: 1,
-      title: "Construction Liability Case",
-      case_number: "C-2024-003",
-      case_type: CaseType.COMMERCIAL,
-      status: CaseStatus.PENDING_HEARING,
-      created_at: "2024-10-20",
-      updated_at: "2024-12-20",
-    },
-  ];
-
-  const displayCases = cases && cases.length > 0 ? cases : mockCases;
+  const displayCases = cases || [];
 
   // Use API stats with fallback to defaults
+  const activeCasesCount = displayCases.length > 0
+    ? displayCases.filter(c => c.status !== CaseStatus.CLOSED && c.status !== CaseStatus.ARCHIVED).length
+    : 0;
+
   const dashboardStats = stats || {
-    activeCases: displayCases.filter(c => c.status !== CaseStatus.CLOSED && c.status !== CaseStatus.ARCHIVED).length,
+    activeCases: activeCasesCount,
     activeCasesTrend: "+12%",
     pendingRegulations: 12,
     pendingRegulationsTrend: "+8%",
     aiDiscoveries: 89,
     aiDiscoveriesTrend: "+15%",
-    casesUpdatedToday: 3,
+    casesUpdatedToday: 0,
   };
 
   // Use API activity with fallback to static updates

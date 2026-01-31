@@ -9,27 +9,28 @@ import { useRegister } from "@/lib/hooks/use-auth";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { Check, ArrowLeft, ArrowRight, Building2, Users } from "lucide-react";
 import { LanguageToggle } from "@/components/layout/language-toggle";
+import { Organization } from "@/lib/types/auth";
 
-// Schema matching the form layout with conditional organization validation
 const registerSchema = z.object({
-    fullName: z.string().min(3, "Name must be at least 3 characters"),
+    fullName: z.string().min(2, "Name must be at least 2 characters"),
     email: z.string().email("Invalid email address"),
-    password: z
-        .string()
-        .min(8, "Password must be at least 8 characters")
-        .regex(/[A-Z]/, "Must contain an uppercase letter")
-        .regex(/[0-9]/, "Must contain a number"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string().min(8, "Please confirm your password"),
     registrationType: z.enum(["create", "join"]),
     organizationName: z.string().optional(),
     organizationId: z.string().optional(),
+    subscriptionTier: z.string().optional(),
     role: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
 }).refine((data) => {
     if (data.registrationType === "create") {
         return data.organizationName && data.organizationName.length >= 2;
     }
     return true;
 }, {
-    message: "Organization name must be at least 2 characters",
+    message: "Organization name is required",
     path: ["organizationName"],
 }).refine((data) => {
     if (data.registrationType === "join") {
@@ -43,18 +44,12 @@ const registerSchema = z.object({
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
-// Mock organizations - replace with API call when backend is ready
-const mockOrganizations = [
-    { id: 1, name: "Silah Legal Firm" },
-    { id: 2, name: "Justice Partners" },
-    { id: 3, name: "Al-Faisal Law Group" },
-];
-
 export default function RegisterPage() {
     const { mutate: registerUser, isPending, error } = useRegister();
     const { t, isRTL } = useI18n();
     const [registrationType, setRegistrationType] = useState<"create" | "join">("create");
-    const [organizations, setOrganizations] = useState(mockOrganizations);
+    const [organizations, setOrganizations] = useState<Organization[]>([]);
+    const [isLoadingOrgs, setIsLoadingOrgs] = useState(false);
 
     const {
         register,
@@ -64,51 +59,66 @@ export default function RegisterPage() {
     } = useForm<RegisterFormData>({
         resolver: zodResolver(registerSchema),
         defaultValues: {
-            role: "Lawyer",
+            role: "lawyer",
             registrationType: "create",
+            subscriptionTier: "free",
         },
     });
 
-    // Update form value when registration type changes
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+    useEffect(() => {
+        const fetchOrganizations = async () => {
+            setIsLoadingOrgs(true);
+            try {
+                const response = await fetch(`${API_BASE}/api/organizations`);
+                const data = await response.json();
+                setOrganizations(data.organizations || []);
+            } catch (err) {
+                console.error("Failed to fetch organizations:", err);
+            } finally {
+                setIsLoadingOrgs(false);
+            }
+        };
+
+        fetchOrganizations();
+    }, [API_BASE]);
+
     useEffect(() => {
         setValue("registrationType", registrationType);
     }, [registrationType, setValue]);
 
-    // TODO: Fetch organizations from API when backend is ready
-    // useEffect(() => {
-    //     fetch('/api/organizations')
-    //         .then(res => res.json())
-    //         .then(data => setOrganizations(data.organizations));
-    // }, []);
-
     const onSubmit = (data: RegisterFormData) => {
         if (data.registrationType === "create") {
             registerUser({
+                registrationType: "create",
                 fullName: data.fullName,
                 email: data.email,
                 password: data.password,
-                organizationName: data.organizationName,
-                registrationType: "create",
+                confirmPassword: data.confirmPassword,
+                organizationName: data.organizationName!,
+                subscriptionTier: data.subscriptionTier || "free",
+                role: data.role as "lawyer" | "senior_lawyer" | "paralegal" | "clerk" | "admin" | undefined,
             });
         } else {
             registerUser({
+                registrationType: "join",
                 fullName: data.fullName,
                 email: data.email,
                 password: data.password,
-                organizationId: parseInt(data.organizationId || "1"),
-                registrationType: "join",
+                confirmPassword: data.confirmPassword,
+                organizationId: parseInt(data.organizationId || "0"),
+                role: data.role as "lawyer" | "senior_lawyer" | "paralegal" | "clerk" | "admin" | undefined,
             });
         }
     };
 
     return (
         <div className={`min-h-screen flex bg-gradient-to-br from-slate-50 to-slate-100 ${isRTL ? 'flex-row-reverse' : ''}`}>
-            {/* Language Toggle - Fixed Position */}
             <div className="fixed top-6 right-6 z-50">
                 <LanguageToggle variant="full" />
             </div>
 
-            {/* Back to Home - Fixed Position */}
             <Link
                 href="/"
                 className="fixed top-6 left-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm group"
@@ -117,9 +127,7 @@ export default function RegisterPage() {
                 <span className="text-sm font-semibold">{isRTL ? 'الرئيسية' : 'Home'}</span>
             </Link>
 
-            {/* Left Side - Visual */}
             <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-[#D97706] via-[#B45309] to-[#92400e] relative overflow-hidden items-center justify-center p-12">
-                {/* Background Effects */}
                 <div className="absolute top-0 left-0 w-full h-full z-0">
                     <div className="absolute top-[-20%] left-[-20%] w-[80%] h-[80%] bg-[#0F2942]/20 rounded-full blur-[120px]"></div>
                     <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#0F2942]/15 rounded-full blur-[100px]"></div>
@@ -181,10 +189,8 @@ export default function RegisterPage() {
                 </div>
             </div>
 
-            {/* Right Side - Form */}
             <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-8">
                 <div className="max-w-md w-full">
-                    {/* Mobile Header with Gradient Background */}
                     <div className="lg:hidden mb-8">
                         <div className="bg-gradient-to-r from-[#D97706] to-[#B45309] rounded-2xl p-6 text-center shadow-xl">
                             <Link href="/" className="inline-block mb-4">
@@ -195,31 +201,26 @@ export default function RegisterPage() {
                         </div>
                     </div>
 
-                    {/* Desktop Header */}
                     <div className="hidden lg:block text-center mb-8">
                         <h2 className="text-3xl font-bold text-[#0F2942] font-serif mb-2">{t("auth.createAccount")}</h2>
                         <p className="text-slate-500">{t("auth.joinThousands")}</p>
                     </div>
 
                     <div className="space-y-5">
-                        {/* Google Sign Up */}
                         <button
                             type="button"
                             className="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 p-3.5 rounded-xl font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
                         >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
                             {t("auth.signUpWithGoogle")}
                         </button>
 
-                        {/* Divider */}
                         <div className="relative flex items-center py-1">
                             <div className="flex-grow border-t border-slate-200"></div>
                             <span className="flex-shrink-0 mx-4 text-slate-400 text-xs uppercase font-bold tracking-wider">{t("auth.orWithEmail")}</span>
                             <div className="flex-grow border-t border-slate-200"></div>
                         </div>
 
-                        {/* Form */}
                         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">{t("auth.fullName")}</label>
@@ -266,7 +267,21 @@ export default function RegisterPage() {
                                 )}
                             </div>
 
-                            {/* Organization Type Toggle */}
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">{t("auth.confirmPassword")}</label>
+                                <input
+                                    type="password"
+                                    placeholder={t("auth.confirmPassword")}
+                                    className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/20 transition-all bg-white"
+                                    {...register("confirmPassword")}
+                                />
+                                {errors.confirmPassword && (
+                                    <p className="text-sm text-red-500 font-medium mt-2 animate-in slide-in-from-top-1">
+                                        {errors.confirmPassword.message}
+                                    </p>
+                                )}
+                            </div>
+
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-3">
                                     {isRTL ? 'المنظمة' : 'Organization'}
@@ -301,26 +316,41 @@ export default function RegisterPage() {
                                 </div>
                             </div>
 
-                            {/* Conditional Organization Input */}
                             {registrationType === "create" ? (
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                                        {isRTL ? 'اسم المنظمة' : 'Organization Name'}
-                                    </label>
-                                    <input
-                                        type="text"
-                                        placeholder={isRTL ? "مثال: مكتب العدالة للمحاماة" : "e.g. Justice Law Firm"}
-                                        className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/20 transition-all bg-white"
-                                        {...register("organizationName")}
-                                    />
-                                    {errors.organizationName && (
-                                        <p className="text-sm text-red-500 font-medium mt-2 animate-in slide-in-from-top-1">
-                                            {errors.organizationName.message}
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                            {isRTL ? 'اسم المنظمة' : 'Organization Name'}
+                                        </label>
+                                        <input
+                                            type="text"
+                                            placeholder={isRTL ? "مثال: مكتب العدالة للمحاماة" : "e.g. Justice Law Firm"}
+                                            className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/20 transition-all bg-white"
+                                            {...register("organizationName")}
+                                        />
+                                        {errors.organizationName && (
+                                            <p className="text-sm text-red-500 font-medium mt-2 animate-in slide-in-from-top-1">
+                                                {errors.organizationName.message}
+                                            </p>
+                                        )}
+                                        <p className="text-xs text-slate-500 mt-2">
+                                            {isRTL ? 'ستصبح مديراً لهذه المنظمة' : 'You will become the admin of this organization'}
                                         </p>
-                                    )}
-                                    <p className="text-xs text-slate-500 mt-2">
-                                        {isRTL ? 'ستصبح مديراً لهذه المنظمة' : 'You will become the admin of this organization'}
-                                    </p>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                            {isRTL ? 'المستوى' : 'Plan'}
+                                        </label>
+                                        <select
+                                            className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/20 bg-white transition-all"
+                                            {...register("subscriptionTier")}
+                                        >
+                                            <option value="free">{isRTL ? 'مجاني' : 'Free'}</option>
+                                            <option value="premium">{isRTL ? 'مميز' : 'Premium'}</option>
+                                            <option value="enterprise">{isRTL ? 'المؤسسات' : 'Enterprise'}</option>
+                                        </select>
+                                    </div>
                                 </div>
                             ) : (
                                 <div>
@@ -330,8 +360,14 @@ export default function RegisterPage() {
                                     <select
                                         className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/20 bg-white transition-all"
                                         {...register("organizationId")}
+                                        disabled={isLoadingOrgs}
                                     >
-                                        <option value="">{isRTL ? '-- اختر منظمة --' : '-- Select an organization --'}</option>
+                                        <option value="">
+                                            {isLoadingOrgs
+                                                ? (isRTL ? 'جاري التحميل...' : 'Loading...')
+                                                : (isRTL ? '-- اختر منظمة --' : '-- Select an organization --')
+                                            }
+                                        </option>
                                         {organizations.map((org) => (
                                             <option key={org.id} value={org.id}>
                                                 {org.name}
@@ -343,19 +379,25 @@ export default function RegisterPage() {
                                             {errors.organizationId.message}
                                         </p>
                                     )}
+                                    {organizations.length === 0 && !isLoadingOrgs && (
+                                        <p className="text-xs text-slate-500 mt-2">
+                                            {isRTL ? 'لا توجد منظمات متاحة حالياً' : 'No organizations available'}
+                                        </p>
+                                    )}
                                 </div>
                             )}
 
-                            {/* Role Selection */}
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">{t("auth.role")}</label>
                                 <select
                                     className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/20 bg-white transition-all"
                                     {...register("role")}
                                 >
-                                    <option value="Lawyer">{t("auth.lawyer")}</option>
-                                    <option value="Paralegal">{t("auth.paralegal")}</option>
-                                    <option value="Admin">{t("auth.admin")}</option>
+                                    <option value="lawyer">{t("auth.lawyer")}</option>
+                                    <option value="paralegal">{t("auth.paralegal")}</option>
+                                    <option value="senior_lawyer">{t("auth.seniorLawyer")}</option>
+                                    <option value="clerk">{t("auth.clerk")}</option>
+                                    <option value="admin">{t("auth.admin")}</option>
                                 </select>
                             </div>
 
@@ -375,8 +417,7 @@ export default function RegisterPage() {
 
                             {error && (
                                 <div className="rounded-xl bg-red-50 p-4 text-sm font-medium text-red-600 border border-red-100 text-center">
-                                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                                    {(error as any).response?.data?.error || t("auth.errorOccurred")}
+                                    {"response" in error ? (error as { response?: { data?: { error?: string } } }).response?.data?.error : t("auth.errorOccurred")}
                                 </div>
                             )}
 

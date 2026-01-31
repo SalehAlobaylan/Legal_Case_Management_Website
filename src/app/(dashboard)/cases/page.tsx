@@ -12,7 +12,6 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   FileText,
@@ -28,71 +27,7 @@ import { useI18n } from "@/lib/hooks/use-i18n";
 import { FilterPill, FilterPills } from "@/components/ui/filter-pills";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
-import { type Case, CaseType, CaseStatus } from "@/lib/types/case";
-
-// Mock cases matching target mockup
-const MOCK_CASES: Case[] = [
-  {
-    id: 1,
-    organization_id: 1,
-    title: "Al-Amoudi vs. TechSolutions Ltd",
-    case_number: "C-2024-001",
-    case_type: CaseType.LABOR,
-    status: CaseStatus.OPEN,
-    created_at: "2024-12-01",
-    updated_at: "2024-12-25",
-  },
-  {
-    id: 2,
-    organization_id: 1,
-    title: "Estate of Sheikh H. Al-Rahman",
-    case_number: "C-2024-002",
-    case_type: CaseType.CIVIL,
-    status: CaseStatus.IN_PROGRESS,
-    created_at: "2024-11-15",
-    updated_at: "2024-12-24",
-  },
-  {
-    id: 3,
-    organization_id: 1,
-    title: "Construction Liability Case",
-    case_number: "C-2024-003",
-    case_type: CaseType.COMMERCIAL,
-    status: CaseStatus.PENDING_HEARING,
-    created_at: "2024-10-20",
-    updated_at: "2024-12-20",
-  },
-  {
-    id: 4,
-    organization_id: 1,
-    title: "StartUp Inc. IP Infringement",
-    case_number: "C-2024-004",
-    case_type: CaseType.COMMERCIAL,
-    status: CaseStatus.OPEN,
-    created_at: "2024-09-10",
-    updated_at: "2024-12-18",
-  },
-  {
-    id: 5,
-    organization_id: 1,
-    title: "Al-Fulani Real Estate Dispute",
-    case_number: "C-2024-005",
-    case_type: CaseType.CIVIL,
-    status: CaseStatus.CLOSED,
-    created_at: "2024-08-01",
-    updated_at: "2024-11-30",
-  },
-  {
-    id: 6,
-    organization_id: 1,
-    title: "Global Corp Merger Review",
-    case_number: "C-2024-006",
-    case_type: CaseType.COMMERCIAL,
-    status: CaseStatus.IN_PROGRESS,
-    created_at: "2024-07-15",
-    updated_at: "2024-12-15",
-  },
-];
+import { type Case, CaseStatus } from "@/lib/types/case";
 
 export default function CasesPage() {
   const router = useRouter();
@@ -109,13 +44,10 @@ export default function CasesPage() {
     { id: "closed", label: t("cases.filters.closed") },
   ];
 
-  // Use mock data if API returns nothing
-  const displayCases = (cases && cases.length > 0) ? cases : MOCK_CASES;
-
   const filteredCases = React.useMemo(() => {
-    if (!displayCases) return [];
+    if (!cases) return [];
 
-    return displayCases.filter((case_) => {
+    return cases.filter((case_) => {
       // Status filter
       if (statusFilter !== "all" && case_.status !== statusFilter) {
         return false;
@@ -133,7 +65,7 @@ export default function CasesPage() {
 
       return true;
     });
-  }, [displayCases, statusFilter, searchTerm]);
+  }, [cases, statusFilter, searchTerm]);
 
   const handleNewCase = () => {
     router.push("/cases/new");

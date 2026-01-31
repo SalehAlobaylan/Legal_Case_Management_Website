@@ -80,6 +80,8 @@
         "role": "Role",
         "lawyer": "Lawyer",
         "paralegal": "Paralegal",
+        "seniorLawyer": "Senior Lawyer",
+        "clerk": "Clerk",
         "admin": "Admin",
         "agreeToTerms": "I agree to the",
         "termsOfService": "Terms of Service",

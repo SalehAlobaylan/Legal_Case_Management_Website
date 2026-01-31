@@ -15,6 +15,15 @@ export const endpoints = {
     me: `${API_BASE}/api/auth/me`,
   },
 
+  // Organizations
+  organizations: {
+    list: `${API_BASE}/api/organizations`,
+    detail: (id: number) => `${API_BASE}/api/organizations/${id}`,
+    create: `${API_BASE}/api/organizations`,
+    update: (id: number) => `${API_BASE}/api/organizations/${id}`,
+    delete: (id: number) => `${API_BASE}/api/organizations/${id}`,
+  },
+
   // Dashboard
   dashboard: {
     stats: `${API_BASE}/api/dashboard/stats`,

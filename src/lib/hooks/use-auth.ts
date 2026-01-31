@@ -19,12 +19,26 @@ interface LoginInput {
   password: string;
 }
 
-interface RegisterInput extends LoginInput {
+interface RegisterInputBase {
   fullName: string;
-  organizationId?: number;
-  organizationName?: string;
-  registrationType: "create" | "join";
+  email: string;
+  password: string;
+  confirmPassword: string;
+  role?: string;
 }
+
+interface RegisterInputJoin extends RegisterInputBase {
+  organizationId: number;
+  registrationType: "join";
+}
+
+interface RegisterInputCreate extends RegisterInputBase {
+  organizationName: string;
+  subscriptionTier?: string;
+  registrationType: "create";
+}
+
+type RegisterInput = RegisterInputJoin | RegisterInputCreate;
 
 interface AuthResponse<User = unknown> {
   user: User;
