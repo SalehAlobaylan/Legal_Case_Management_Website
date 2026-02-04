@@ -138,7 +138,7 @@ export default function RegisterPage() {
                     <Link href="/" className="inline-flex items-center gap-4 mb-10 group">
                         <div className="bg-white rounded-xl p-3 shadow-lg group-hover:scale-105 transition-transform">
                             <img
-                                src="/silah-logo.png"
+                                src="/silah-logo.svg"
                                 alt="Silah"
                                 className="h-12 w-auto"
                             />
@@ -194,7 +194,7 @@ export default function RegisterPage() {
                     <div className="lg:hidden mb-8">
                         <div className="bg-gradient-to-r from-[#D97706] to-[#B45309] rounded-2xl p-6 text-center shadow-xl">
                             <Link href="/" className="inline-block mb-4">
-                                <img src="/silah-logo.png" alt="Silah" className="h-12 w-auto mx-auto" />
+                                <img src="/silah-logo.svg" alt="Silah" className="h-12 w-auto mx-auto" />
                             </Link>
                             <h2 className="text-xl font-bold text-white mb-1">{t("auth.createAccount")}</h2>
                             <p className="text-white/80 text-sm">{t("auth.joinThousands")}</p>
