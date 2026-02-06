@@ -63,7 +63,7 @@ export default function SignInPage() {
           <Link href="/" className="inline-flex items-center gap-4 mb-10 group">
             <div className="bg-white rounded-xl p-3 shadow-lg group-hover:scale-105 transition-transform">
               <img
-                src="/silah-logo.png"
+                src="/silah-logo.svg"
                 alt="Silah"
                 className="h-12 w-auto"
               />
@@ -111,7 +111,7 @@ export default function SignInPage() {
           <div className="lg:hidden mb-8">
             <div className="bg-gradient-to-r from-[#0F2942] to-[#1E3A56] rounded-2xl p-6 text-center shadow-xl">
               <Link href="/" className="inline-block mb-4">
-                <img src="/silah-logo.png" alt="Silah" className="h-12 w-auto mx-auto" />
+                <img src="/silah-logo.svg" alt="Silah" className="h-12 w-auto mx-auto" />
               </Link>
               <h2 className="text-xl font-bold text-white mb-1">{t("auth.signInToSilah")}</h2>
               <p className="text-blue-200/80 text-sm">{t("auth.enterCredentials")}</p>
