@@ -6,6 +6,7 @@ import { z } from "zod";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRegister } from "@/lib/hooks/use-auth";
+import { useGoogleSignIn } from "@/lib/hooks/use-oauth";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { Check, ArrowLeft, ArrowRight, Building2, Users } from "lucide-react";
 import { LanguageToggle } from "@/components/layout/language-toggle";
@@ -46,6 +47,7 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
     const { mutate: registerUser, isPending, error } = useRegister();
+    const { signInWithGoogle } = useGoogleSignIn();
     const { t, isRTL } = useI18n();
     const [registrationType, setRegistrationType] = useState<"create" | "join">("create");
     const [organizations, setOrganizations] = useState<Organization[]>([]);
@@ -209,6 +211,7 @@ export default function RegisterPage() {
                     <div className="space-y-5">
                         <button
                             type="button"
+                            onClick={signInWithGoogle}
                             className="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 p-3.5 rounded-xl font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
                         >
                             <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />

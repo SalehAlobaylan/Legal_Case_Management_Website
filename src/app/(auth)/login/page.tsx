@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import { useLogin } from "@/lib/hooks/use-auth";
+import { useGoogleSignIn } from "@/lib/hooks/use-oauth";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { Star, ArrowLeft, ArrowRight } from "lucide-react";
 import { LanguageToggle } from "@/components/layout/language-toggle";
@@ -18,6 +19,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function SignInPage() {
   const { mutate: login, isPending, error } = useLogin();
+  const { signInWithGoogle } = useGoogleSignIn();
   const { t, isRTL } = useI18n();
 
   const {
@@ -126,6 +128,7 @@ export default function SignInPage() {
             {/* Google Sign In */}
             <button
               type="button"
+              onClick={signInWithGoogle}
               className="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 p-3.5 rounded-xl font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}

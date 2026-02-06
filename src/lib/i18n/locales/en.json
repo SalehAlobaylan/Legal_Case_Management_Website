@@ -87,7 +87,10 @@
         "termsOfService": "Terms of Service",
         "privacyPolicy": "Privacy Policy",
         "signOut": "Sign out",
-        "errorOccurred": "An error occurred during sign in"
+        "errorOccurred": "An error occurred during sign in",
+        "oauthFailed": "Google Sign-In failed. Please try again.",
+        "oauthAccountExists": "An account with this Google account already exists",
+        "oauthOnlyAccount": "This account uses Google Sign-In. Please sign in with Google."
     },
     "nav": {
         "dashboard": "Dashboard",

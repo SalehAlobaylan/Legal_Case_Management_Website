@@ -8,7 +8,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export interface User {
-  id: number;
+  id: string;
   email: string;
   fullName: string;
   role: string;
@@ -18,6 +18,7 @@ export interface User {
   bio?: string;
   location?: string;
   avatarUrl?: string;
+  isOAuthUser?: boolean;
 }
 
 interface AuthState {

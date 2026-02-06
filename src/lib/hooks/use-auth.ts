@@ -58,7 +58,7 @@ export function useLogin() {
       // Persist auth state and navigate to dashboard
       setUser(
         data.user as {
-          id: number;
+          id: string;
           email: string;
           fullName: string;
           role: string;
@@ -86,7 +86,7 @@ export function useRegister() {
     onSuccess: (data) => {
       setUser(
         data.user as {
-          id: number;
+          id: string;
           email: string;
           fullName: string;
           role: string;

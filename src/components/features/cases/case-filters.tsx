@@ -15,7 +15,7 @@ import { useAuthStore } from "@/lib/store/auth-store";
 export type CaseFilterValues = {
   status?: CaseStatus;
   caseType?: CaseType;
-  assignedLawyerId?: number;
+  assignedLawyerId?: string;
 };
 
 interface CaseFiltersProps {
