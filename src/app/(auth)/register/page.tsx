@@ -11,6 +11,7 @@ import { useI18n } from "@/lib/hooks/use-i18n";
 import { Check, ArrowLeft, ArrowRight, Building2, Users } from "lucide-react";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 import { Organization } from "@/lib/types/auth";
+import Image from "next/image";
 
 const registerSchema = z.object({
     fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -22,6 +23,7 @@ const registerSchema = z.object({
     organizationId: z.string().optional(),
     subscriptionTier: z.string().optional(),
     role: z.string(),
+    termsAccepted: z.boolean().refine(val => val === true, "You must accept the terms and conditions"),
 }).refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
@@ -53,10 +55,11 @@ export default function RegisterPage() {
     const [organizations, setOrganizations] = useState<Organization[]>([]);
     const [isLoadingOrgs, setIsLoadingOrgs] = useState(false);
 
-    const {
+const {
         register,
         handleSubmit,
         setValue,
+        watch,
         formState: { errors },
     } = useForm<RegisterFormData>({
         resolver: zodResolver(registerSchema),
@@ -126,7 +129,7 @@ export default function RegisterPage() {
                 className="fixed top-6 left-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm group"
             >
                 {isRTL ? <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" /> : <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />}
-                <span className="text-sm font-semibold">{isRTL ? 'الرئيسية' : 'Home'}</span>
+                <span className="text-sm font-semibold">{isRTL ? t("nav.home") : 'Home'}</span>
             </Link>
 
             <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-[#D97706] via-[#B45309] to-[#92400e] relative overflow-hidden items-center justify-center p-12">
@@ -196,7 +199,13 @@ export default function RegisterPage() {
                     <div className="lg:hidden mb-8">
                         <div className="bg-gradient-to-r from-[#D97706] to-[#B45309] rounded-2xl p-6 text-center shadow-xl">
                             <Link href="/" className="inline-block mb-4">
-                                <img src="/silah-logo.svg" alt="Silah" className="h-12 w-auto mx-auto" />
+                                <Image
+                                src="/silah-logo.svg"
+                                alt="Silah"
+                                width={48}
+                                height={48}
+                                className="h-12 w-auto mx-auto"
+                            />
                             </Link>
                             <h2 className="text-xl font-bold text-white mb-1">{t("auth.createAccount")}</h2>
                             <p className="text-white/80 text-sm">{t("auth.joinThousands")}</p>
@@ -404,11 +413,12 @@ export default function RegisterPage() {
                                 </select>
                             </div>
 
-                            <div className="flex items-start gap-3 pt-1">
+<div className="flex items-start gap-3 pt-1">
                                 <input
                                     type="checkbox"
                                     id="terms"
                                     className="mt-1 w-4 h-4 rounded border-slate-300 text-[#D97706] focus:ring-[#D97706] focus:ring-offset-0"
+                                    {...register("termsAccepted")}
                                 />
                                 <label htmlFor="terms" className="text-xs text-slate-500 leading-relaxed">
                                     {t("auth.agreeToTerms")}{" "}
@@ -417,6 +427,11 @@ export default function RegisterPage() {
                                     <Link href="#" className="text-[#0F2942] font-bold underline hover:text-[#1E3A56] transition-colors">{t("auth.privacyPolicy")}</Link>.
                                 </label>
                             </div>
+                            {errors.termsAccepted && (
+                                <p className="text-sm text-red-500 font-medium animate-in slide-in-from-top-1">
+                                    {errors.termsAccepted.message}
+                                </p>
+                            )}
 
                             {error && (
                                 <div className="rounded-xl bg-red-50 p-4 text-sm font-medium text-red-600 border border-red-100 text-center">

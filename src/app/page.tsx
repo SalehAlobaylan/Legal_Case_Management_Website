@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Scale,
@@ -155,9 +156,9 @@ export default function LandingPage() {
 
       {/* Navbar */}
       <nav className="relative z-20 flex justify-between items-center px-6 md:px-8 py-6 max-w-7xl mx-auto w-full">
-        <Link href="/" className="flex items-center gap-3 cursor-pointer group">
+<Link href="/" className="flex items-center gap-3 cursor-pointer group">
           <div className="bg-white rounded-xl p-1.5 shadow-lg shadow-orange-900/20 group-hover:scale-105 transition-transform">
-            <img src="/silah-logo.svg" alt="Silah" className="h-8 w-auto" />
+            <Image src="/silah-logo.svg" alt="Silah" width={32} height={32} className="h-8 w-auto" />
           </div>
           <h1 className="font-bold text-2xl tracking-wide font-serif text-white">{t("landing.appName")}</h1>
         </Link>
@@ -633,7 +634,7 @@ export default function LandingPage() {
           <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
               <div className="bg-white rounded-lg p-1">
-                <img src="/silah-logo.svg" alt="Silah" className="h-6 w-6" />
+                <Image src="/silah-logo.svg" alt="Silah" width={24} height={24} className="h-6 w-6" />
               </div>
               <span className="font-bold text-white">{t("landing.appName")}</span>
             </div>

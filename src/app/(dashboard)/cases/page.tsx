@@ -21,17 +21,19 @@ import {
   Search,
   Plus,
   Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { useCases } from "@/lib/hooks/use-cases";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { FilterPill, FilterPills } from "@/components/ui/filter-pills";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils/cn";
 import { type Case, CaseStatus } from "@/lib/types/case";
 
 export default function CasesPage() {
   const router = useRouter();
-  const { data: cases, isLoading, error } = useCases();
+  const { data: cases, isLoading, error, refetch } = useCases();
   const { t, isRTL } = useI18n();
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -92,11 +94,15 @@ export default function CasesPage() {
 
   if (error) {
     return (
-      <div className="py-16 text-center">
-        <p className="text-sm text-red-500">
-          {t("cases.unableToLoad")}
-        </p>
-      </div>
+      <EmptyState
+        icon={AlertCircle}
+        title={t("cases.unableToLoad")}
+        variant="error"
+        action={{
+          label: t("common.retry"),
+          onClick: () => refetch(),
+        }}
+      />
     );
   }
 
@@ -174,23 +180,19 @@ export default function CasesPage() {
 
         {/* Table or Empty State */}
         {filteredCases.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-              <FileText className="text-slate-400 h-7 w-7" />
-            </div>
-            <h3 className="font-bold text-lg text-[#0F2942] mb-2">
-              {searchTerm ? t("cases.noResultsFound") : t("cases.noCases")}
-            </h3>
-            <p className="text-slate-500 text-sm mb-4">
-              {searchTerm ? t("cases.adjustFilters") : t("cases.noCasesDesc")}
-            </p>
-            {!searchTerm && (
-              <Button onClick={handleNewCase}>
-                <Plus className="mr-2 h-4 w-4" />
-                {t("cases.createCase")}
-              </Button>
-            )}
-          </div>
+          <EmptyState
+            icon={FileText}
+            title={searchTerm ? t("cases.noResultsFound") : t("cases.noCases")}
+            description={searchTerm ? t("cases.adjustFilters") : t("cases.noCasesDesc")}
+            action={
+              !searchTerm
+                ? {
+                    label: t("cases.createCase"),
+                    onClick: handleNewCase,
+                  }
+                : undefined
+            }
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left">

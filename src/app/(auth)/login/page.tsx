@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
+import Image from "next/image";
 import { useLogin } from "@/lib/hooks/use-auth";
 import { useGoogleSignIn } from "@/lib/hooks/use-oauth";
 import { useI18n } from "@/lib/hooks/use-i18n";
@@ -47,7 +48,7 @@ export default function SignInPage() {
         className="fixed top-6 left-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm group"
       >
         {isRTL ? <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" /> : <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />}
-        <span className="text-sm font-semibold">{isRTL ? 'الرئيسية' : 'Home'}</span>
+        <span className="text-sm font-semibold">{isRTL ? t("nav.home") : 'Home'}</span>
       </Link>
 
       {/* Left Side - Visual */}
@@ -110,8 +111,8 @@ export default function SignInPage() {
           {/* Mobile Header with Gradient Background */}
           <div className="lg:hidden mb-8">
             <div className="bg-gradient-to-r from-[#0F2942] to-[#1E3A56] rounded-2xl p-6 text-center shadow-xl">
-              <Link href="/" className="inline-block mb-4">
-                <img src="/silah-logo.svg" alt="Silah" className="h-12 w-auto mx-auto" />
+<Link href="/" className="inline-block mb-4">
+                <Image src="/silah-logo.svg" alt="Silah" width={48} height={48} className="h-12 w-auto mx-auto" />
               </Link>
               <h2 className="text-xl font-bold text-white mb-1">{t("auth.signInToSilah")}</h2>
               <p className="text-blue-200/80 text-sm">{t("auth.enterCredentials")}</p>

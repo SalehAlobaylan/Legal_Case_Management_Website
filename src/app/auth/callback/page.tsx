@@ -4,6 +4,7 @@ import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { Loader2 } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 
 /**
  * OAuth Callback Page Component
@@ -31,36 +32,51 @@ function AuthCallbackContent() {
     const token = searchParams.get("token");
     const error = searchParams.get("error");
 
+    console.log("🔐 OAuth callback triggered");
+    console.log("Token present:", !!token);
+    console.log("Error present:", error);
+
     if (error) {
+      console.error("❌ OAuth error from backend:", error);
       router.push("/login?error=oauth_failed");
       return;
     }
 
     if (!token) {
+      console.error("❌ No token in URL");
       router.push("/login?error=no_token");
       return;
     }
 
-    // Fetch user profile using the token
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+// Fetch user profile using the token
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    console.log("📡 Fetching user from:", backendUrl);
 
     fetch(`${backendUrl}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
+        console.log("📡 Auth response status:", res.status);
         if (!res.ok) {
-          throw new Error("Failed to fetch user");
+          throw new Error(`Failed to fetch user: ${res.status} ${res.statusText}`);
         }
         return res.json();
       })
       .then((data) => {
+        console.log("✅ User data received:", data);
         // Store user and token in auth store
         setUser(data.user, token);
+        console.log("✅ User stored in auth store");
         // Redirect to dashboard
         router.push("/dashboard");
       })
-      .catch((err) => {
-        console.error("OAuth callback error:", err);
+.catch((err) => {
+        console.error("❌ OAuth callback error:", err);
+        toast({
+          title: "Authentication Error",
+          description: err.message || "Failed to complete sign in. Please try again.",
+          variant: "destructive",
+        });
         router.push("/login?error=fetch_user_failed");
       });
   }, [searchParams, router, setUser]);

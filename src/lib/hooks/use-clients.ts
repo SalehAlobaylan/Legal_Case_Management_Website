@@ -85,3 +85,41 @@ export function useDeleteClient() {
     },
   });
 }
+
+/**
+ * Hook for exporting clients
+ */
+export function useExportClients() {
+  return useMutation({
+    mutationFn: (format: "csv" = "csv") => clientsApi.exportClients(format),
+    onSuccess: (blob) => {
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `clients-export-${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    },
+  });
+}
+
+/**
+ * Hook for sending messages to clients
+ */
+export function useSendMessageToClient() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, message, type }: {
+      id: number;
+      message: string;
+      type?: "case_update" | "hearing_reminder" | "document_request" | "general";
+    }) => clientsApi.sendMessageToClient(id, message, type),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+    },
+  });
+}

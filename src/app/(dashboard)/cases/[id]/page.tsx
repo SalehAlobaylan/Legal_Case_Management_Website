@@ -10,7 +10,6 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ChevronRight,
@@ -31,8 +30,10 @@ import {
 import { useCase } from "@/lib/hooks/use-cases";
 import { useAILinks, useGenerateAILinks, useVerifyLink, useDismissLink } from "@/lib/hooks/use-ai-links";
 import { useDocuments, useUploadDocument, useDeleteDocument, getDocumentDownloadUrl } from "@/lib/hooks/use-documents";
+import { useI18n } from "@/lib/hooks/use-i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils/cn";
 import type { Document } from "@/lib/types/document";
 import type { CaseRegulationLink } from "@/lib/types/case";
@@ -48,6 +49,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
   const resolvedParams = React.use(params);
   const caseId = Number(resolvedParams.id);
   const [activeTab, setActiveTab] = React.useState<"details" | "documents">("details");
+  const { t, isRTL } = useI18n();
 
   // Fetch case data
   const { data: case_, isLoading } = useCase(caseId);
@@ -96,12 +98,15 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
 
   if (!case_) {
     return (
-      <div className="py-16 text-center">
-        <p className="text-sm text-slate-500">Case not found.</p>
-        <Link href="/cases" className="text-[#D97706] text-sm font-bold hover:underline mt-2 inline-block">
-          Back to Cases
-        </Link>
-      </div>
+      <EmptyState
+        icon={FileText}
+        title={t("cases.caseNotFound")}
+        variant="notFound"
+        action={{
+          label: t("cases.backToCases"),
+          onClick: () => router.push("/cases"),
+        }}
+      />
     );
   }
 
@@ -114,8 +119,8 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
       <div className="flex-1 overflow-y-auto p-8 pb-32 border-r border-slate-200 bg-white">
         <div className="max-w-4xl mx-auto">
           {/* Back Button */}
-          <button
-            onClick={() => router.push("/dashboard")}
+<button
+            onClick={() => router.push("/cases")}
             className={cn(
               "flex items-center text-slate-500 hover:text-[#0F2942]",
               "mb-8 text-sm font-medium group transition-colors"
@@ -129,7 +134,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
             >
               <ChevronRight className="rotate-180 h-3.5 w-3.5" />
             </div>
-            Back to Dashboard
+            {t("cases.backToCases")}
           </button>
 
           {/* Case Header */}
@@ -148,30 +153,30 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
                 Client: <span className="font-bold text-slate-800">{case_.client_info || "Unknown"}</span>
               </p>
             </div>
-            <Button
+<Button
               variant="outline"
               onClick={() => router.push(`/cases/${caseId}/edit`)}
               className="flex items-center gap-2"
             >
               <Edit2 className="h-4 w-4" />
-              Edit Case
+              {t("cases.editCase")}
             </Button>
           </div>
 
-          {/* Tab Navigation */}
+{/* Tab Navigation */}
           <div className="flex gap-8 border-b border-slate-200 mb-8">
             <TabButton
               active={activeTab === "details"}
               onClick={() => setActiveTab("details")}
             >
-              Case Details
+              {t("cases.caseDetails")}
             </TabButton>
             <TabButton
               active={activeTab === "documents"}
               onClick={() => setActiveTab("documents")}
               count={documents?.length}
             >
-              Documents
+              {t("cases.documents")}
             </TabButton>
           </div>
 
@@ -203,9 +208,9 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
               <p className="text-xs text-slate-500 mt-1">Regulation Matching</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+<div className="flex items-center gap-2">
             <span className="text-xs bg-[#D97706] text-white px-3 py-1.5 rounded-lg font-bold shadow-sm shadow-orange-900/20">
-              {pendingCount} Suggestions
+              {pendingCount} {t("cases.suggestions")}
             </span>
             <Button
               size="sm"
@@ -222,18 +227,18 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
         {/* Suggestions List */}
         <div className="flex-1 overflow-y-auto p-6 space-y-5 pb-32">
           {isLoadingAILinks ? (
-            <div className="text-center py-8">
+<div className="text-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-[#D97706] mx-auto" />
-              <p className="text-slate-500 text-sm mt-2">Loading suggestions...</p>
+              <p className="text-slate-500 text-sm mt-2">{t("common.loading")}</p>
             </div>
           ) : !aiLinks || aiLinks.length === 0 ? (
             <div className="text-center py-8">
               <div className="bg-slate-100 p-4 rounded-full w-fit mx-auto mb-3">
                 <Sparkles className="h-6 w-6 text-slate-400" />
               </div>
-              <p className="text-sm text-slate-600 font-medium mb-2">No AI suggestions yet</p>
+              <p className="text-sm text-slate-600 font-medium mb-2">{t("cases.noAiSuggestions")}</p>
               <p className="text-xs text-slate-400 mb-4">
-                Click "Refresh" to generate regulation matches
+                {t("cases.noAiSuggestionsDesc")}
               </p>
               <Button
                 size="sm"
@@ -241,14 +246,14 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
                 disabled={isGenerating}
                 className="bg-[#D97706] hover:bg-[#B45309] text-white"
               >
-                {isGenerating ? "Generating..." : "Generate Suggestions"}
+                {isGenerating ? t("cases.generating") : t("cases.generateSuggestions")}
               </Button>
             </div>
           ) : (
             <>
               {/* Analysis info */}
               <div className="text-xs text-slate-500 text-center mb-2 font-medium bg-[#0F2942]/5 py-2 rounded-lg border border-[#0F2942]/10">
-                Found {aiLinks.length} potential regulation matches
+                {t("cases.foundMatches", { count: aiLinks.length })}
               </div>
 
               {aiLinks.map((link) => (
@@ -325,14 +330,15 @@ interface DetailsTabProps {
 }
 
 function DetailsTab({ case_ }: DetailsTabProps) {
+  const { t } = useI18n();
   return (
     <div className="prose prose-slate max-w-none">
-      <h3 className="text-xl font-bold text-[#0F2942] mb-4">Case Description</h3>
+      <h3 className="text-xl font-bold text-[#0F2942] mb-4">{t("cases.caseDescription")}</h3>
       <p className="leading-relaxed mb-8 text-slate-600 bg-slate-50 p-6 rounded-2xl border border-slate-100">
-        {case_.description || "No description provided."}
+        {case_.description || t("cases.noDescription")}
       </p>
 
-      <h3 className="text-xl font-bold text-[#0F2942] mb-4">Client Requirements</h3>
+      <h3 className="text-xl font-bold text-[#0F2942] mb-4">{t("cases.clientRequirements")}</h3>
       <ul className="space-y-3 mb-8">
         <li className="flex items-start gap-3">
           <CheckCircle className="h-[18px] w-[18px] text-green-600 mt-1 shrink-0" />
@@ -368,6 +374,7 @@ interface DocumentsTabProps {
 }
 
 function DocumentsTab({ documents, isLoading, onUpload, onDelete, isUploading }: DocumentsTabProps) {
+  const { t } = useI18n();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const getFileIcon = (mimeType: string) => {
@@ -415,22 +422,22 @@ function DocumentsTab({ documents, isLoading, onUpload, onDelete, isUploading }:
             <UploadCloud className="h-8 w-8 text-slate-400 group-hover:text-[#D97706]" />
           )}
         </div>
-        <p className="font-bold text-slate-700 group-hover:text-[#0F2942]">
-          {isUploading ? "Uploading..." : "Upload Documents"}
+<p className="font-bold text-slate-700 group-hover:text-[#0F2942]">
+          {isUploading ? t("cases.uploading") : t("cases.uploadDocuments")}
         </p>
         <p className="text-xs mt-1">PDF, DOC, or images up to 10MB</p>
       </div>
 
       {/* Documents Table */}
       {isLoading ? (
-        <div className="text-center py-8">
+<div className="text-center py-8">
           <Loader2 className="h-6 w-6 animate-spin text-[#D97706] mx-auto" />
-          <p className="text-slate-500 text-sm mt-2">Loading documents...</p>
+          <p className="text-slate-500 text-sm mt-2">{t("common.loading")}</p>
         </div>
       ) : documents.length === 0 ? (
         <div className="text-center py-8 bg-slate-50 rounded-2xl border border-slate-100">
           <FileText className="h-8 w-8 text-slate-300 mx-auto mb-2" />
-          <p className="text-slate-500 text-sm">No documents uploaded yet</p>
+          <p className="text-slate-500 text-sm">{t("documents.noDocuments")}</p>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">

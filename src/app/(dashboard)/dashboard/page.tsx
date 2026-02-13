@@ -21,6 +21,7 @@ import {
   AlertCircle,
   Clock,
   Scale,
+  Plus,
 } from "lucide-react";
 import { useCases } from "@/lib/hooks/use-cases";
 import { useDashboardStats, useRecentActivity } from "@/lib/hooks/use-dashboard";
@@ -132,12 +133,12 @@ export default function DashboardPage() {
   return (
     <div>
       {/* Welcome Section */}
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-[#0F2942] font-serif">
+          <h2 className="text-2xl sm:text-3xl font-bold text-[#0F2942] font-serif">
             {t("dashboard.welcome", { name: userName })}
           </h2>
-          <p className="text-slate-500 mt-2">
+          <p className="text-slate-500 mt-2 text-sm sm:text-base">
             {t("dashboard.aiAnalysis", { count: "3" }).split("3")[0]}
             <span className="font-bold text-[#D97706]">3 {isRTL ? "" : "new cases"}</span>
             {t("dashboard.aiAnalysis", { count: "3" }).split("3")[1] || ""}
@@ -145,72 +146,73 @@ export default function DashboardPage() {
         </div>
         <button
           onClick={handleNewCase}
-          className="bg-[#D97706] hover:bg-[#B45309] text-white px-6 py-3 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 font-bold flex items-center gap-2"
+          className="bg-[#D97706] hover:bg-[#B45309] text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 font-bold flex items-center gap-2 text-sm whitespace-nowrap self-start sm:self-auto"
         >
           <div className="bg-white/20 p-1 rounded-md">
             <Scale className="h-3.5 w-3.5" />
           </div>
-          {t("dashboard.newCase")}
+          <span className="hidden sm:inline">{t("dashboard.newCase")}</span>
+          <span className="sm:hidden">{t("dashboard.newCase").split(" ")[0]}</span>
         </button>
       </div>
 
       {/* Stats Cards - 3 columns */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 mt-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8 mt-8">
         {/* Active Cases - Highlighted */}
-        <div className="p-6 rounded-2xl shadow-sm border bg-[#0F2942] border-[#0F2942] text-white">
+        <div className="p-4 md:p-6 rounded-2xl shadow-sm border bg-[#0F2942] border-[#0F2942] text-white">
           <div className="flex justify-between items-start mb-4">
-            <div className="p-3 rounded-xl bg-white/10">
-              <FileText className="h-6 w-6 text-[#D97706]" />
+            <div className="p-2 md:p-3 rounded-xl bg-white/10">
+              <FileText className="h-5 w-5 md:h-6 md:w-6 text-[#D97706]" />
             </div>
             <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-md bg-[#D97706] text-white">
               {dashboardStats.activeCasesTrend}
             </span>
           </div>
-          <div className="h-4" />
-          <h3 className="text-3xl font-bold mb-1 font-serif text-white">{dashboardStats.activeCases}</h3>
-          <p className="text-sm font-bold text-blue-200">{t("dashboard.activeCases")}</p>
-          <p className="text-xs mt-1 text-blue-300">{t("dashboard.updatedToday", { count: String(dashboardStats.casesUpdatedToday) })}</p>
+          <div className="h-2 md:h-4" />
+          <h3 className="text-2xl md:text-3xl font-bold mb-1 font-serif text-white">{dashboardStats.activeCases}</h3>
+          <p className="text-xs md:text-sm font-bold text-blue-200">{t("dashboard.activeCases")}</p>
+          <p className="text-[10px] md:text-xs mt-1 text-blue-300">{t("dashboard.updatedToday", { count: String(dashboardStats.casesUpdatedToday) })}</p>
         </div>
 
         {/* Pending Regulations */}
-        <div className="p-6 rounded-2xl shadow-sm border bg-white border-slate-200 hover:border-[#D97706]/50 transition-shadow">
+        <div className="p-4 md:p-6 rounded-2xl shadow-sm border bg-white border-slate-200 hover:border-[#D97706]/50 transition-shadow">
           <div className="flex justify-between items-start mb-4">
-            <div className="p-3 rounded-xl bg-slate-50">
-              <BookOpen className="h-6 w-6 text-[#0F2942]" />
+            <div className="p-2 md:p-3 rounded-xl bg-slate-50">
+              <BookOpen className="h-5 w-5 md:h-6 md:w-6 text-[#0F2942]" />
             </div>
             <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-md bg-green-100 text-green-700">
               {dashboardStats.pendingRegulationsTrend}
             </span>
           </div>
-          <div className="h-4" />
-          <h3 className="text-3xl font-bold mb-1 font-serif text-[#0F2942]">{dashboardStats.pendingRegulations}</h3>
-          <p className="text-sm font-bold text-slate-700">{t("dashboard.pendingRegulations")}</p>
-          <p className="text-xs mt-1 text-slate-400">{t("dashboard.requiresReview")}</p>
+          <div className="h-2 md:h-4" />
+          <h3 className="text-2xl md:text-3xl font-bold mb-1 font-serif text-[#0F2942]">{dashboardStats.pendingRegulations}</h3>
+          <p className="text-xs md:text-sm font-bold text-slate-700">{t("dashboard.pendingRegulations")}</p>
+          <p className="text-[10px] md:text-xs mt-1 text-slate-400">{t("dashboard.requiresReview")}</p>
         </div>
 
         {/* AI Discoveries */}
-        <div className="p-6 rounded-2xl shadow-sm border bg-white border-slate-200 hover:border-[#D97706]/50 transition-shadow">
+        <div className="p-4 md:p-6 rounded-2xl shadow-sm border bg-white border-slate-200 hover:border-[#D97706]/50 transition-shadow">
           <div className="flex justify-between items-start mb-4">
-            <div className="p-3 rounded-xl bg-slate-50">
-              <Sparkles className="h-6 w-6 text-purple-600" />
+            <div className="p-2 md:p-3 rounded-xl bg-slate-50">
+              <Sparkles className="h-5 w-5 md:h-6 md:w-6 text-purple-600" />
             </div>
             <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-md bg-green-100 text-green-700">
               {dashboardStats.aiDiscoveriesTrend}
             </span>
           </div>
-          <div className="h-4" />
-          <h3 className="text-3xl font-bold mb-1 font-serif text-[#0F2942]">{dashboardStats.aiDiscoveries}</h3>
-          <p className="text-sm font-bold text-slate-700">{t("dashboard.aiDiscoveries")}</p>
-          <p className="text-xs mt-1 text-slate-400">{t("dashboard.regulationsMatched")}</p>
+          <div className="h-2 md:h-4" />
+          <h3 className="text-2xl md:text-3xl font-bold mb-1 font-serif text-[#0F2942]">{dashboardStats.aiDiscoveries}</h3>
+          <p className="text-xs md:text-sm font-bold text-slate-700">{t("dashboard.aiDiscoveries")}</p>
+          <p className="text-[10px] md:text-xs mt-1 text-slate-400">{t("dashboard.regulationsMatched")}</p>
         </div>
       </div>
 
       {/* Two Column Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Recent Cases - Card Style */}
-        <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="font-bold text-lg text-[#0F2942]">{t("dashboard.recentCases")}</h3>
+        <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 md:p-6">
+          <div className="flex justify-between items-center mb-4 md:mb-6">
+            <h3 className="font-bold text-base md:text-lg text-[#0F2942]">{t("dashboard.recentCases")}</h3>
             <Link
               href="/cases"
               className="text-[#D97706] text-sm font-bold hover:underline flex items-center gap-1"
@@ -219,73 +221,94 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          <div className="space-y-4">
-            {displayCases.slice(0, 3).map((case_) => {
-              const statusStyle = getStatusStyle(case_.status);
-              const typeLabel = getTypeLabel(case_.case_type);
-
-              return (
-                <div
-                  key={case_.id}
-                  onClick={() => router.push(`/cases/${case_.id}`)}
-                  className="flex items-center justify-between p-4 hover:bg-slate-50 rounded-xl border border-transparent hover:border-[#D97706]/30 transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-[#0F2942] flex items-center justify-center text-white group-hover:bg-[#D97706] transition-colors shadow-md">
-                      <FileText className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-[#0F2942]">{case_.title}</h4>
-                      <p className="text-xs text-slate-500 font-medium mt-0.5">
-                        {case_.case_number} •{" "}
-                        <span className="text-slate-400">{typeLabel}</span>
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-bold ${statusStyle.bg} ${statusStyle.text}`}
-                    >
-                      {statusStyle.label}
-                    </span>
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-slate-300 group-hover:text-[#D97706] transition-colors">
-                      <ChevronRight className={`h-4 w-4 ${isRTL ? 'rotate-180' : ''}`} />
-                    </div>
-                  </div>
+          <div className="space-y-3 md:space-y-4">
+            {displayCases.length === 0 ? (
+              <div className="py-8 md:py-12 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3 md:mb-4">
+                  <FileText className="text-slate-400 h-6 w-6 md:h-7 md:w-7" />
                 </div>
-              );
-            })}
+                <h3 className="font-bold text-[#0F2942] mb-2 text-sm md:text-base">
+                  {t("dashboard.noCases")}
+                </h3>
+                <p className="text-slate-500 text-xs md:text-sm mb-3 md:mb-4">
+                  {t("dashboard.noCasesDesc")}
+                </p>
+                <button
+                  onClick={handleNewCase}
+                  className="bg-[#D97706] hover:bg-[#B45309] text-white px-4 md:px-6 py-2 md:py-2.5 rounded-xl font-bold inline-flex items-center gap-2 transition-all text-xs md:text-sm"
+                >
+                  <Plus className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                  {t("dashboard.newCase")}
+                </button>
+              </div>
+            ) : (
+              displayCases.slice(0, 3).map((case_) => {
+                const statusStyle = getStatusStyle(case_.status);
+                const typeLabel = getTypeLabel(case_.case_type);
+
+                return (
+                  <div
+                    key={case_.id}
+                    onClick={() => router.push(`/cases/${case_.id}`)}
+                    className="flex items-center justify-between p-3 md:p-4 hover:bg-slate-50 rounded-xl border border-transparent hover:border-[#D97706]/30 transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-3 md:gap-4 min-w-0">
+                      <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-[#0F2942] flex items-center justify-center text-white group-hover:bg-[#D97706] transition-colors shadow-md flex-shrink-0">
+                        <FileText className="h-4 w-4 md:h-5 md:w-5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-bold text-[#0F2942] text-sm md:text-base truncate">{case_.title}</h4>
+                        <p className="text-xs text-slate-500 font-medium mt-0.5 truncate">
+                          {case_.case_number} •{" "}
+                          <span className="text-slate-400">{typeLabel}</span>
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
+                      <span
+                        className={`px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-bold whitespace-nowrap ${statusStyle.bg} ${statusStyle.text}`}
+                      >
+                        {statusStyle.label}
+                      </span>
+                      <div className="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-slate-300 group-hover:text-[#D97706] transition-colors">
+                        <ChevronRight className={`h-3.5 w-3.5 md:h-4 md:w-4 ${isRTL ? 'rotate-180' : ''}`} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
 
         {/* Regulation Updates */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 h-fit">
-          <h3 className="font-bold text-lg text-[#0F2942] mb-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 md:p-6 h-fit">
+          <h3 className="font-bold text-base md:text-lg text-[#0F2942] mb-4 md:mb-6">
             {t("dashboard.regulationUpdates")}
           </h3>
 
-          <div className="space-y-[32px]">
+          <div className="space-y-4 md:space-y-[32px]">
             {regulationUpdates.map((update) => (
               <div
                 key={update.id}
-                className={`flex gap-6 p-[24px] rounded-xl transition-colors group ${update.type === "amendment"
+                className={`flex gap-4 md:gap-6 p-3 md:p-[24px] rounded-xl transition-colors group ${update.type === "amendment"
                   ? "hover:bg-orange-50/50"
                   : "hover:bg-slate-50"
                   }`}
               >
                 <div
-                  className={`mt-1 p-2 rounded-lg h-fit transition-colors ${update.type === "amendment"
+                  className={`mt-1 p-2 rounded-lg h-fit transition-colors flex-shrink-0 ${update.type === "amendment"
                     ? "bg-orange-100 text-[#D97706] group-hover:bg-[#D97706] group-hover:text-white"
                     : "bg-slate-100 text-slate-500"
                     }`}
                 >
                   {update.type === "amendment" ? (
-                    <AlertCircle className="h-[18px] w-[18px]" />
+                    <AlertCircle className="h-4 w-4 md:h-[18px] md:w-[18px]" />
                   ) : (
-                    <Clock className="h-[18px] w-[18px]" />
+                    <Clock className="h-4 w-4 md:h-[18px] md:w-[18px]" />
                   )}
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-bold text-[#0F2942]">
                     {update.title}
                   </p>

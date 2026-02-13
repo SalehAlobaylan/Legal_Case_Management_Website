@@ -29,7 +29,18 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
-import { useClient, useClientCases } from "@/lib/hooks/use-clients";
+import { useClient, useClientCases, useSendMessageToClient } from "@/lib/hooks/use-clients";
+import { useI18n } from "@/lib/hooks/use-i18n";
+import { EmptyState } from "@/components/ui/empty-state";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogBody,
+  DialogFooter,
+  DialogCloseIconButton,
+} from "@/components/ui/dialog";
 
 /* =============================================================================
    CLIENT TYPE ICON MAPPING
@@ -79,11 +90,15 @@ const getStatusColor = (clientType: string) => {
 export default function ClientDetailPage() {
   const router = useRouter();
   const params = useParams();
+  const { t } = useI18n();
   const clientId = Number(params.id as string);
 
   // Fetch client and their cases from API
   const { data: client, isLoading: isLoadingClient, error: clientError } = useClient(clientId);
   const { data: clientCases, isLoading: isLoadingCases } = useClientCases(clientId);
+  const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessageToClient();
+  const [messageDialogOpen, setMessageDialogOpen] = React.useState(false);
+  const [messageText, setMessageText] = React.useState("");
 
   // Loading state
   if (isLoadingClient) {
@@ -100,18 +115,16 @@ export default function ClientDetailPage() {
   // Error or not found state
   if (clientError || !client) {
     return (
-      <div className="p-8 text-center animate-in fade-in duration-500">
-        <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-          <User className="text-slate-400 h-8 w-8" />
-        </div>
-        <h3 className="font-bold text-lg text-[#0F2942] mb-2">Client Not Found</h3>
-        <p className="text-slate-500 text-sm mb-6">
-          The client you&apos;re looking for doesn&apos;t exist.
-        </p>
-        <Button onClick={() => router.push("/clients")} variant="outline">
-          Back to Clients
-        </Button>
-      </div>
+      <EmptyState
+        icon={User}
+        title={t("clients.clientNotFound")}
+        description={t("clients.clientNotFoundDesc")}
+        variant="notFound"
+        action={{
+          label: t("clients.backToClients"),
+          onClick: () => router.push("/clients"),
+        }}
+      />
     );
   }
 
@@ -233,11 +246,76 @@ export default function ClientDetailPage() {
 
         {/* Message Button */}
         <Button
+          onClick={() => setMessageDialogOpen(true)}
           className="w-full bg-[#D97706] hover:bg-[#B45309] text-white px-6 py-4 rounded-xl font-bold flex items-center justify-center gap-3 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-base"
         >
           <MessageSquare className="h-5 w-5" />
           Send Message to Client
         </Button>
+
+        {/* Message Dialog */}
+        <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
+          <DialogContent size="default">
+            <DialogHeader icon={<MessageSquare className="h-5 w-5" />}>
+              <DialogTitle>Send Message to {client.name}</DialogTitle>
+            </DialogHeader>
+            <DialogBody>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-bold text-slate-700 mb-2 block">Message</label>
+                  <textarea
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    placeholder="Enter your message to the client..."
+                    className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/10 min-h-[120px] resize-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-bold text-slate-700 mb-2 block">Message Type</label>
+                  <select
+                    className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] bg-white"
+                    defaultValue="general"
+                  >
+                    <option value="general">General Update</option>
+                    <option value="case_update">Case Update</option>
+                    <option value="hearing_reminder">Hearing Reminder</option>
+                    <option value="document_request">Document Request</option>
+                  </select>
+                </div>
+              </div>
+            </DialogBody>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setMessageDialogOpen(false);
+                  setMessageText("");
+                }}
+                disabled={isSendingMessage}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  sendMessage(
+                    { id: clientId, message: messageText, type: "general" },
+                    {
+                      onSuccess: () => {
+                        setMessageDialogOpen(false);
+                        setMessageText("");
+                      },
+                    }
+                  );
+                }}
+                disabled={isSendingMessage || !messageText.trim()}
+                className="bg-[#D97706] hover:bg-[#B45309]"
+              >
+                {isSendingMessage ? "Sending..." : "Send Message"}
+              </Button>
+            </DialogFooter>
+            <DialogCloseIconButton />
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Associated Cases */}

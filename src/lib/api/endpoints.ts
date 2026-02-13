@@ -4,7 +4,7 @@
  * Used by: API modules (cases.ts, regulations.ts, etc.) to avoid hardcoding URLs.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export const endpoints = {
   // Authentication
@@ -72,6 +72,16 @@ export const endpoints = {
     update: (id: number) => `${API_BASE}/api/clients/${id}`,
     delete: (id: number) => `${API_BASE}/api/clients/${id}`,
     cases: (id: number) => `${API_BASE}/api/clients/${id}/cases`,
+    export: `${API_BASE}/api/clients/export`,
+    message: (id: number) => `${API_BASE}/api/clients/${id}/message`,
+  },
+
+  // Billing
+  billing: {
+    invoices: `${API_BASE}/api/billing/invoices`,
+    subscribe: `${API_BASE}/api/billing/subscribe`,
+    subscription: `${API_BASE}/api/billing/subscription`,
+    invoicePdf: (id: number) => `${API_BASE}/api/billing/invoices/${id}/pdf`,
   },
 
   // Alerts/Notifications

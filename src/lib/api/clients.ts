@@ -77,4 +77,30 @@ export const clientsApi = {
   async deleteClient(id: number): Promise<void> {
     await apiClient.delete(endpoints.clients.delete(id));
   },
+
+  /**
+   * Export clients to CSV
+   */
+  async exportClients(format: "csv" = "csv"): Promise<Blob> {
+    const response = await apiClient.get(endpoints.clients.export, {
+      params: { format },
+      responseType: "blob",
+    });
+    return response.data;
+  },
+
+  /**
+   * Send message to client
+   */
+  async sendMessageToClient(
+    id: number,
+    message: string,
+    type?: "case_update" | "hearing_reminder" | "document_request" | "general"
+  ): Promise<{ success: boolean; message: string }> {
+    const { data } = await apiClient.post(
+      endpoints.clients.message(id),
+      { message, type: type || "general" }
+    );
+    return data;
+  },
 };

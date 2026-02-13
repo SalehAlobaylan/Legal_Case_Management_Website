@@ -149,8 +149,8 @@ export default function ProfilePage() {
                     <h1 className="text-3xl font-serif font-bold text-[var(--color-text-primary)]">
                         {t("settings.myProfile")}
                     </h1>
-                    <p className="text-[var(--color-text-muted)] mt-2 text-sm font-medium tracking-wide">
-                        {isRTL ? "الملف المهني ولوحة الأداء" : "PROFESSIONAL PROFILE & PERFORMANCE DASHBOARD"}
+<p className="text-[var(--color-text-muted)] mt-2 text-sm font-medium tracking-wide">
+                        {isRTL ? t("settings.professionalProfile") : "PROFESSIONAL PROFILE & PERFORMANCE DASHBOARD"}
                     </p>
                 </div>
                 {!isEditing && (
@@ -238,9 +238,9 @@ export default function ProfilePage() {
                                                 <div className="w-8 h-8 rounded-full bg-surface-muted border border-border shadow-sm flex items-center justify-center shrink-0 group-hover:border-brand-primary/30 transition-colors">
                                                     <Building2 className="h-4 w-4 text-[var(--color-text-primary)]" />
                                                 </div>
-                                                <div className="text-sm">
-                                                    <p className="text-[var(--color-text-primary)] font-medium">{isRTL ? "مكتب الفيصل" : "Al-Faisal Law Firm"}</p>
-                                                    <p className="text-xs text-[var(--color-text-muted)] mt-0.5">ID: #{user?.organizationId || "1001"}</p>
+<div className="text-sm">
+                                                    <p className="text-[var(--color-text-primary)] font-medium">{user?.organization?.name || (isRTL ? "مكتب الفيصل" : "Al-Faisal Law Firm")}</p>
+                                                    <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{t("settings.id")}: #{user?.organizationId || "1001"}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-3 group">
@@ -261,11 +261,11 @@ export default function ProfilePage() {
                                                 </div>
                                                 <p className="text-sm text-[var(--color-text-primary)]">{user?.location || (isRTL ? "الرياض، المملكة العربية السعودية" : "Riyadh, Saudi Arabia")}</p>
                                             </div>
-                                            <div className="flex items-center gap-3 group">
+<div className="flex items-center gap-3 group">
                                                 <div className="w-8 h-8 rounded-full bg-surface-muted border border-border shadow-sm flex items-center justify-center shrink-0 group-hover:border-brand-primary/30 transition-colors">
                                                     <Briefcase className="h-4 w-4 text-[var(--color-text-primary)]" />
                                                 </div>
-                                                <p className="text-sm text-[var(--color-text-primary)]">{isRTL ? "القانون التجاري" : "Commercial Law"}</p>
+                                                <p className="text-sm text-[var(--color-text-primary)]">{user?.specialization || (isRTL ? t("settings.commercialLaw") : "Commercial Law")}</p>
                                             </div>
                                         </>
                                     )}
@@ -278,8 +278,8 @@ export default function ProfilePage() {
                 <div className="lg:col-span-9 space-y-8">
 
                     <div className="flex items-center gap-4">
-                        <h3 className="text-lg font-serif font-bold text-[var(--color-text-primary)] uppercase tracking-wider whitespace-nowrap">
-                            {isRTL ? "مؤشرات الأداء الرئيسية" : "Key Performance Indicators"}
+<h3 className="text-lg font-serif font-bold text-[var(--color-text-primary)] uppercase tracking-wider whitespace-nowrap">
+                            {t("settings.keyPerformanceIndicators")}
                         </h3>
                         <div className="h-px bg-gray-200 w-full" />
                     </div>
@@ -298,7 +298,7 @@ export default function ProfilePage() {
                                 </div>
                                 <div>
                                     <p className="text-3xl font-bold text-[var(--color-text-primary)] mb-1">{stats.winRate}%</p>
-                                    <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{isRTL ? "نسبة النجاح" : "Success Rate"}</p>
+                                    <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t("settings.successRate")}</p>
                                 </div>
                             </CardContent>
                         </Card>
@@ -316,7 +316,7 @@ export default function ProfilePage() {
                                 </div>
                                 <div>
                                     <p className="text-3xl font-bold text-[var(--color-text-primary)] mb-1">{stats.clientSatisfaction}%</p>
-                                    <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{isRTL ? "رضا العملاء" : "Client Satisfaction"}</p>
+                                    <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t("settings.clientSatisfaction")}</p>
                                 </div>
                             </CardContent>
                         </Card>
@@ -334,7 +334,7 @@ export default function ProfilePage() {
                                 </div>
                                 <div>
                                     <p className="text-3xl font-bold text-[var(--color-text-primary)] mb-1">{stats.thisMonthHours}</p>
-                                    <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{isRTL ? "ساعات الشهر" : "Monthly Hours"}</p>
+                                    <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t("settings.monthlyHours")}</p>
                                 </div>
                             </CardContent>
                         </Card>
@@ -352,7 +352,7 @@ export default function ProfilePage() {
                                 </div>
                                 <div>
                                     <p className="text-3xl font-bold text-[var(--color-text-primary)] mb-1">{stats.avgCaseDuration}<span className="text-lg opacity-70 ml-0.5">d</span></p>
-                                    <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{isRTL ? "متوسط المدة" : "Avg Case Duration"}</p>
+                                    <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t("settings.avgCaseDuration")}</p>
                                 </div>
                             </CardContent>
                         </Card>
@@ -361,8 +361,8 @@ export default function ProfilePage() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div className="space-y-6">
                             <div className="flex items-center gap-4">
-                                <h3 className="text-sm font-serif font-bold text-[var(--color-text-primary)] uppercase tracking-wider opacity-80 whitespace-nowrap">
-                                    {isRTL ? "توزيع القضايا" : "Caseload Distribution"}
+<h3 className="text-sm font-serif font-bold text-[var(--color-text-primary)] uppercase tracking-wider opacity-80 whitespace-nowrap">
+                                    {t("settings.caseloadDistribution")}
                                 </h3>
                                 <div className="h-px bg-gray-200 w-full" />
                             </div>
@@ -372,7 +372,7 @@ export default function ProfilePage() {
                                     <div className="flex items-center justify-between mb-8">
                                         <div>
                                             <p className="text-4xl font-light text-[var(--color-text-primary)]">{totalCasesLocal}</p>
-                                            <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide font-medium mt-1">{isRTL ? "إجمالي القضايا المسجلة" : "Total Registered Cases"}</p>
+                                            <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide font-medium mt-1">{t("settings.totalRegisteredCases")}</p>
                                         </div>
                                         <div className="h-14 w-14 rounded-full bg-[var(--color-warning-bg)] border-4 border-surface-card shadow-sm flex items-center justify-center text-brand-accent">
                                             <Scale className="h-7 w-7" />
@@ -382,7 +382,7 @@ export default function ProfilePage() {
                                     <div className="space-y-6">
                                         <div className="group">
                                             <div className="flex justify-between text-sm mb-2">
-                                                <span className="font-medium text-[var(--color-text-primary)]">{isRTL ? "نشطة وجارية" : "Active & In Progress"}</span>
+                                                <span className="font-medium text-[var(--color-text-primary)]">{isRTL ? "نشطة وجارية" : t("settings.activeInProgress")}</span>
                                                 <span className="font-mono text-[var(--color-text-primary)] group-hover:text-brand-accent transition-colors">{activeCasesLocal}</span>
                                             </div>
                                             <div className="h-2.5 w-full bg-surface-muted rounded-full overflow-hidden">
@@ -402,7 +402,7 @@ export default function ProfilePage() {
 
                                         <div className="group">
                                             <div className="flex justify-between text-sm mb-2">
-                                                <span className="font-medium text-[var(--color-text-primary)]">{isRTL ? "معلقة" : "Pending Action"}</span>
+                                                <span className="font-medium text-[var(--color-text-primary)]">{t("settings.pendingAction")}</span>
                                                 <span className="font-mono text-[var(--color-text-primary)] group-hover:text-brand-accent transition-colors">{pendingCasesLocal}</span>
                                             </div>
                                             <div className="h-2.5 w-full bg-surface-muted rounded-full overflow-hidden">

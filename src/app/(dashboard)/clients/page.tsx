@@ -29,9 +29,10 @@ import {
 } from "lucide-react";
 import { FilterPill, FilterPills } from "@/components/ui/filter-pills";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils/cn";
 import { ClientFormModal, type ClientFormData } from "@/components/features/clients/client-form-modal";
-import { useClients, useCreateClient } from "@/lib/hooks/use-clients";
+import { useClients, useCreateClient, useExportClients } from "@/lib/hooks/use-clients";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import type { Client } from "@/lib/types/client";
 
@@ -88,12 +89,13 @@ export default function ClientsPage() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data: clientsData, isLoading, error } = useClients({
+  const { data: clientsData, isLoading, error, refetch } = useClients({
     type: typeFilter !== "All" ? (typeFilter as "individual" | "company") : undefined,
     search: debouncedSearch || undefined,
   });
 
   const { mutate: createClient, isPending: isCreating } = useCreateClient();
+  const { mutate: exportClients, isPending: isExporting } = useExportClients();
 
   const clients = clientsData?.clients || [];
 
@@ -137,11 +139,15 @@ export default function ClientsPage() {
 
   if (error) {
     return (
-      <div className="py-16 text-center">
-        <p className="text-sm text-red-500">
-          {t("clients.unableToLoad")}
-        </p>
-      </div>
+      <EmptyState
+        icon={Users}
+        title={t("clients.unableToLoad")}
+        variant="error"
+        action={{
+          label: t("common.retry"),
+          onClick: () => refetch(),
+        }}
+      />
     );
   }
 
@@ -169,9 +175,11 @@ export default function ClientsPage() {
           <Button
             variant="outline"
             className="px-4 py-2.5 rounded-xl font-bold flex items-center gap-2"
+            onClick={() => exportClients("csv")}
+            disabled={isExporting}
           >
             <Download className="h-4 w-4" />
-            {t("common.export")}
+            {isExporting ? t("common.exporting") : t("common.export")}
           </Button>
           <Button
             onClick={() => setIsModalOpen(true)}
@@ -264,25 +272,17 @@ export default function ClientsPage() {
           </div>
         </div>
 
-        {/* Table */}
+        {/* Table or Empty State */}
         {clients.length === 0 ? (
-          <div className="p-16 text-center">
-            <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-              <Users className="text-slate-400 h-8 w-8" />
-            </div>
-            <h3 className="font-bold text-lg text-[#0F2942] mb-2">
-              {t("clients.noClients")}
-            </h3>
-            <p className="text-slate-500 text-sm mb-6">
-              {t("clients.noClientsDesc")}
-            </p>
-            <Button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-[#D97706] hover:bg-[#B45309] text-white px-6 py-2.5 rounded-xl font-bold"
-            >
-              {t("clients.addFirstClient")}
-            </Button>
-          </div>
+          <EmptyState
+            icon={Users}
+            title={t("clients.noClients")}
+            description={t("clients.noClientsDesc")}
+            action={{
+              label: t("clients.addFirstClient"),
+              onClick: () => setIsModalOpen(true),
+            }}
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">

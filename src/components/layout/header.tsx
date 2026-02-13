@@ -16,7 +16,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, Bell, Settings, ChevronDown, LogOut, User } from "lucide-react";
+import { Search, Bell, ChevronDown, LogOut, User, BarChart3, Settings } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useLogout } from "@/lib/hooks/use-auth";
 import { useWebSocket } from "@/lib/hooks/use-websocket";
@@ -95,7 +95,7 @@ export function Header({
     if (onSettingsClick) {
       onSettingsClick();
     } else {
-      router.push("/settings");
+      router.push("/profile");
     }
   };
 
@@ -207,7 +207,7 @@ export function Header({
             )}
           </button>
 
-          {/* Settings */}
+          {/* Analytics / Profile */}
           <button
             type="button"
             onClick={handleSettings}
@@ -218,10 +218,10 @@ export function Header({
               "transition-colors duration-200",
               "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D97706]"
             )}
-            aria-label={t("header.settings")}
-            title={t("header.settings")}
+            aria-label={t("nav.profile")}
+            title={t("nav.profile")}
           >
-            <Settings className="h-5 w-5" />
+            <BarChart3 className="h-5 w-5" />
           </button>
         </div>
 
@@ -259,7 +259,7 @@ export function Header({
             </div>
 
             {/* User Info - Hidden on small screens */}
-            <div className={`hidden lg:block ${isRTL ? 'text-right' : 'text-left'}`}>
+            <div className={`hidden md:block ${isRTL ? 'text-right' : 'text-left'}`}>
               <p className="text-sm font-bold text-white leading-none">
                 {userName}
               </p>

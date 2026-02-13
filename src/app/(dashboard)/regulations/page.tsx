@@ -20,9 +20,11 @@ import {
   Calendar,
   Bell,
   Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { FilterPill, FilterPills } from "@/components/ui/filter-pills";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils/cn";
 import { useRegulations } from "@/lib/hooks/use-regulations";
 import { useI18n } from "@/lib/hooks/use-i18n";
@@ -103,7 +105,7 @@ export default function RegulationsPage() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data: regulationsData, isLoading, error } = useRegulations({
+  const { data: regulationsData, isLoading, error, refetch } = useRegulations({
     category: activeFilter !== "All" ? activeFilter : undefined,
     search: debouncedSearch || undefined,
   });
@@ -140,6 +142,20 @@ export default function RegulationsPage() {
       <div className="flex h-64 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-[#D97706]" />
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <EmptyState
+        icon={AlertCircle}
+        title={t("regulations.unableToLoad")}
+        variant="error"
+        action={{
+          label: t("common.retry"),
+          onClick: () => refetch(),
+        }}
+      />
     );
   }
 
@@ -202,31 +218,25 @@ export default function RegulationsPage() {
         ))}
       </FilterPills>
 
-      {/* Regulations Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredRegulations.map((reg) => (
-          <RegulationCard
-            key={reg.id}
-            regulation={reg}
-            onClick={() => router.push(`/regulations/${reg.id}`)}
-            t={t}
-            isRTL={isRTL}
-            getStatusLabel={getStatusLabel}
-          />
-        ))}
-      </div>
-
-      {filteredRegulations.length === 0 && (
-        <div className="py-16 text-center">
-          <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-            <BookOpen className="h-7 w-7 text-slate-400" />
-          </div>
-          <h3 className="font-bold text-lg text-[#0F2942] mb-2">
-            {t("regulations.noRegulations")}
-          </h3>
-          <p className="text-slate-500 text-sm">
-            {t("regulations.noRegulationsDesc")}
-          </p>
+      {/* Regulations Grid or Empty State */}
+      {filteredRegulations.length === 0 ? (
+        <EmptyState
+          icon={BookOpen}
+          title={t("regulations.noRegulations")}
+          description={t("regulations.noRegulationsDesc")}
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredRegulations.map((reg) => (
+            <RegulationCard
+              key={reg.id}
+              regulation={reg}
+              onClick={() => router.push(`/regulations/${reg.id}`)}
+              t={t}
+              isRTL={isRTL}
+              getStatusLabel={getStatusLabel}
+            />
+          ))}
         </div>
       )}
     </div>

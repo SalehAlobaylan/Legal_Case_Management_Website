@@ -47,7 +47,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-auto scroll-smooth">
-          <div className="p-8 pb-32 space-y-12 animate-in fade-in duration-500 max-w-7xl mx-auto">
+          <div className="p-4 md:p-6 lg:p-8 pb-32 space-y-8 md:space-y-12 animate-in fade-in duration-500 max-w-7xl mx-auto">
             {children}
           </div>
         </main>

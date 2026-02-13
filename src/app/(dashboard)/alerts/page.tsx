@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { FilterPill, FilterPills } from "@/components/ui/filter-pills";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils/cn";
 import { useAlerts, useMarkAlertAsRead, useMarkAllAlertsAsRead } from "@/lib/hooks/use-alerts";
 import { useI18n } from "@/lib/hooks/use-i18n";
@@ -66,7 +67,7 @@ export default function AlertsPage() {
   const { t, isRTL } = useI18n();
   const [filter, setFilter] = React.useState<"all" | "unread">("all");
 
-  const { data: alertsData, isLoading, error } = useAlerts();
+  const { data: alertsData, isLoading, error, refetch } = useAlerts();
   const { mutate: markAsRead, isPending: isMarkingRead } = useMarkAlertAsRead();
   const { mutate: markAllAsRead, isPending: isMarkingAllRead } = useMarkAllAlertsAsRead();
 
@@ -92,10 +93,16 @@ export default function AlertsPage() {
 
   if (error) {
     return (
-      <div className="py-16 text-center">
-        <p className="text-sm text-red-500">
-          {t("alerts.unableToLoad")}
-        </p>
+      <div className="py-16">
+        <EmptyState
+          icon={AlertCircle}
+          title={t("alerts.unableToLoad")}
+          variant="error"
+          action={{
+            label: t("common.retry"),
+            onClick: () => refetch(),
+          }}
+        />
       </div>
     );
   }

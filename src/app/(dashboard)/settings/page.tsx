@@ -40,7 +40,7 @@ import { useI18n } from "@/lib/hooks/use-i18n";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 import { useTeamMembers } from "@/lib/hooks/use-team";
-import { useBillingInfo } from "@/lib/hooks/use-billing";
+import { useBillingInfo, useSubscribeToPlan, useCancelSubscription, useDownloadInvoicePDF } from "@/lib/hooks/use-billing";
 import { useUpdateProfile } from "@/lib/hooks/use-profile";
 
 // Mock data for login history (no API available yet)
@@ -74,9 +74,24 @@ export default function SettingsPage() {
   const visibleTabs = TABS.filter((tab) => !tab.adminOnly || role === "Admin");
 
   return (
-    <div className={`h-[calc(100vh-80px)] flex flex-col md:flex-row overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 -my-8 ${isRTL ? 'md:flex-row-reverse' : ''}`}>
+    <div className={`flex flex-col md:flex-row overflow-hidden ${isRTL ? 'md:flex-row-reverse' : ''}`}>
+      {/* Mobile Tab Selector */}
+      <div className="md:hidden bg-white border-b border-slate-200 px-4 py-3">
+        <select
+          value={activeTab}
+          onChange={(e) => setActiveTab(e.target.value as TabId)}
+          className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] bg-slate-50 font-medium text-[#0F2942]"
+        >
+          {visibleTabs.map((tab) => (
+            <option key={tab.id} value={tab.id}>
+              {tab.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {/* Sidebar */}
-      <div className={`w-full md:w-64 bg-white flex flex-col h-full ${isRTL ? 'border-l border-slate-200' : 'border-r border-slate-200'}`}>
+      <div className={`hidden md:flex w-full md:w-64 bg-white flex flex-col ${isRTL ? 'border-l border-slate-200' : 'border-r border-slate-200'}`}>
         <div className="p-6 border-b border-slate-100">
           <h2 className="text-xl font-bold text-[#0F2942] font-serif">{t("settings.title")}</h2>
           <p className="text-xs text-slate-500 mt-1">{t("settings.subtitle")}</p>
@@ -122,7 +137,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-y-auto bg-slate-50 p-8 pb-32">
+      <div className="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8 pb-32">
         <div className="max-w-3xl mx-auto">
           {/* Tab Header */}
           <div className="mb-8 flex justify-between items-center">
@@ -172,14 +187,14 @@ function ProfileTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }
   return (
     <div className="space-y-6">
       {/* Avatar Section */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-6">
-        <div className="w-20 h-20 rounded-full bg-[#0F2942] text-white flex items-center justify-center text-2xl font-bold ring-4 ring-slate-100">
+      <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4 md:gap-6">
+        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[#0F2942] text-white flex items-center justify-center text-xl md:text-2xl font-bold ring-4 ring-slate-100 flex-shrink-0">
           {initials}
         </div>
-        <div>
-          <h4 className="text-lg font-bold text-[#0F2942]">{user?.fullName || "Loading..."}</h4>
-          <p className="text-sm text-slate-500 mb-3">{user?.role || "User"}</p>
-          <button className="text-xs font-bold text-[#D97706] border border-[#D97706] px-3 py-1.5 rounded-lg hover:bg-orange-50 transition-colors">
+        <div className="min-w-0 flex-1">
+          <h4 className="text-base md:text-lg font-bold text-[#0F2942] truncate">{user?.fullName || "Loading..."}</h4>
+          <p className="text-sm text-slate-500 mb-2 md:mb-3">{user?.role || "User"}</p>
+          <button className="text-xs font-bold text-[#D97706] border border-[#D97706] px-3 py-1.5 rounded-lg hover:bg-orange-50 transition-colors whitespace-nowrap">
             {t("settings.changeAvatar")}
           </button>
         </div>
@@ -188,9 +203,9 @@ function ProfileTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }
       {/* Form Fields */}
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6"
+        className="bg-white p-4 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <FormField label={t("auth.fullName")} defaultValue={user?.fullName || ""} />
           <FormField label={t("auth.emailAddress")} type="email" defaultValue={user?.email || ""} disabled />
           <FormField label={t("auth.role")} defaultValue={user?.role || ""} disabled />
@@ -199,7 +214,7 @@ function ProfileTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }
 
         <div className="pt-4 border-t border-slate-100">
           <h5 className="font-bold text-[#0F2942] mb-4">{t("settings.regionalSettings")}</h5>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700">{t("settings.language")}</label>
               <select className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] bg-slate-50">
@@ -228,63 +243,88 @@ function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; i
   return (
     <div className="space-y-6">
       {/* Org Header */}
-      <div className="bg-[#0F2942] rounded-2xl p-6 text-white shadow-lg flex justify-between items-center">
+      <div className="bg-[#0F2942] rounded-2xl p-4 md:p-6 text-white shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h4 className="text-xl font-bold">Al-Faisal Law Firm</h4>
-          <p className="text-blue-200 text-sm mt-1">
-            {t("settings.licenseNo")}: <span className="font-mono bg-white/10 px-2 py-0.5 rounded">LC-99283</span> • {t("settings.validUntil")}
+          <h4 className="text-lg md:text-xl font-bold">Al-Faisal Law Firm</h4>
+          <p className="text-blue-200 text-xs md:text-sm mt-1">
+            {t("settings.licenseNo")}: <span className="font-mono bg-white/10 px-2 py-0.5 rounded text-xs">LC-99283</span> • {t("settings.validUntil")}
           </p>
         </div>
-        <span className="bg-green-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm">
+        <span className="bg-green-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm whitespace-nowrap">
           {t("settings.activeLicense")}
         </span>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3 md:gap-4">
         <StatBox title={t("settings.storageUsed")} value="4.2 GB" max="10 GB" progress={42} color="orange" />
         <StatBox title={t("settings.activeCases")} value="24" max={t("settings.unlimited")} progress={100} color="green" />
       </div>
 
-      {/* Team Members Table */}
+      {/* Team Members Table - Mobile Responsive */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+        <div className="p-4 md:p-6 border-b border-slate-100 flex justify-between items-center">
           <h4 className="font-bold text-[#0F2942]">{t("settings.teamMembers")}</h4>
           <button className="text-xs font-bold bg-[#D97706] text-white px-3 py-2 rounded-lg hover:bg-[#B45309] transition-colors flex items-center gap-2">
-            <Plus size={14} /> {t("settings.inviteMember")}
+            <Plus size={14} /> <span className="hidden sm:inline">{t("settings.inviteMember")}</span>
           </button>
         </div>
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-slate-500">
-            <tr>
-              <th className="px-6 py-4 font-bold">{t("settings.name")}</th>
-              <th className="px-6 py-4 font-bold">{t("settings.role")}</th>
-              <th className="px-6 py-4 font-bold">Status</th>
-              <th className={`px-6 py-4 font-bold ${isRTL ? 'text-left' : 'text-right'}`}>{t("settings.actions")}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {teamData?.members.map((member: any) => (
-              <tr key={member.id} className="hover:bg-slate-50 transition-colors">
-                <td className="px-6 py-4">
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-slate-50 text-slate-500">
+              <tr>
+                <th className="px-6 py-4 font-bold">{t("settings.name")}</th>
+                <th className="px-6 py-4 font-bold">{t("settings.role")}</th>
+                <th className="px-6 py-4 font-bold">Status</th>
+                <th className={`px-6 py-4 font-bold ${isRTL ? 'text-left' : 'text-right'}`}>{t("settings.actions")}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {teamData?.members.map((member: any) => (
+                <tr key={member.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="font-bold text-[#0F2942]">{member.fullName}</div>
+                    <div className="text-xs text-slate-400">{member.email}</div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <RoleBadge role={member.role} />
+                  </td>
+                  <td className="px-6 py-4">
+                    <StatusDot status={member.status} />
+                  </td>
+                  <td className={`px-6 py-4 ${isRTL ? 'text-left' : 'text-right'}`}>
+                    <button className="text-slate-400 hover:text-[#0F2942]">
+                      <MoreVertical size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-3 p-4">
+          {teamData?.members.map((member: any) => (
+            <div key={member.id} className="bg-slate-50 rounded-xl p-4 space-y-3">
+              <div className="flex justify-between items-start">
+                <div>
                   <div className="font-bold text-[#0F2942]">{member.fullName}</div>
                   <div className="text-xs text-slate-400">{member.email}</div>
-                </td>
-                <td className="px-6 py-4">
-                  <RoleBadge role={member.role} />
-                </td>
-                <td className="px-6 py-4">
-                  <StatusDot status={member.status} />
-                </td>
-                <td className={`px-6 py-4 ${isRTL ? 'text-left' : 'text-right'}`}>
-                  <button className="text-slate-400 hover:text-[#0F2942]">
-                    <MoreVertical size={16} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
+                <button className="text-slate-400 hover:text-[#0F2942]">
+                  <MoreVertical size={16} />
+                </button>
+              </div>
+              <div className="flex items-center gap-4">
+                <RoleBadge role={member.role} />
+                <StatusDot status={member.status} />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -323,17 +363,17 @@ function NotificationsTab({ t }: { t: (key: string) => string }) {
 function SecurityTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }) {
   return (
     <div className="space-y-6">
-      <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+      <div className="bg-white p-4 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
         {/* 2FA Status */}
-        <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
           <div className="bg-green-100 p-2 rounded-lg text-green-700">
-            <Shield size={24} />
+            <Shield size={20} />
           </div>
-          <div>
-            <h5 className="font-bold text-[#0F2942]">{t("settings.strongSecurity")}</h5>
-            <p className="text-xs text-slate-500">{t("settings.strongSecurityDesc")}</p>
+          <div className="flex-1 min-w-0">
+            <h5 className="font-bold text-[#0F2942] text-sm md:text-base">{t("settings.strongSecurity")}</h5>
+            <p className="text-xs md:text-sm text-slate-500">{t("settings.strongSecurityDesc")}</p>
           </div>
-          <button className={`${isRTL ? 'mr-auto' : 'ml-auto'} text-xs font-bold text-[#D97706] border border-[#D97706] px-3 py-1.5 rounded-lg hover:bg-orange-50 transition-colors`}>
+          <button className={`${isRTL ? 'ml-auto sm:mr-auto' : 'mr-auto sm:ml-auto'} text-xs font-bold text-[#D97706] border border-[#D97706] px-3 py-1.5 rounded-lg hover:bg-orange-50 transition-colors whitespace-nowrap`}>
             {t("settings.configure2FA")}
           </button>
         </div>
@@ -343,11 +383,11 @@ function SecurityTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean 
           <h5 className="font-bold text-[#0F2942]">{t("settings.changePassword")}</h5>
           <div className="grid grid-cols-1 gap-4">
             <input type="password" placeholder={t("settings.currentPassword")} className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-[#D97706]" />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <input type="password" placeholder={t("settings.newPassword")} className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-[#D97706]" />
               <input type="password" placeholder={t("auth.confirmPassword")} className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-[#D97706]" />
             </div>
-            <Button className="w-fit bg-slate-900 hover:bg-[#0F2942]">
+            <Button className="w-full sm:w-fit bg-slate-900 hover:bg-[#0F2942]">
               {t("settings.updatePassword")}
             </Button>
           </div>
@@ -358,19 +398,19 @@ function SecurityTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean 
           <h5 className="font-bold text-[#0F2942] mb-4">{t("settings.loginActivity")}</h5>
           <div className="space-y-3">
             {MOCK_LOGIN_HISTORY.map((log, idx) => (
-              <div key={idx} className="flex justify-between items-center text-sm p-3 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="bg-slate-100 p-2 rounded-full text-slate-600">
-                    {log.device.includes("iPhone") ? <Smartphone size={16} /> : <Zap size={16} />}
+              <div key={idx} className="flex flex-col sm:flex-row justify-start sm:justify-between items-start sm:items-center gap-2 text-sm p-3 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="bg-slate-100 p-2 rounded-full text-slate-600 flex-shrink-0">
+                    {log.device.includes("iPhone") ? <Smartphone size={14} /> : <Zap size={14} />}
                   </div>
-                  <div>
-                    <p className="font-bold text-[#0F2942]">{log.device}</p>
+                  <div className="min-w-0">
+                    <p className="font-bold text-[#0F2942] text-sm">{log.device}</p>
                     <p className="text-xs text-slate-500 flex items-center gap-1">
                       <MapPin size={10} /> {log.location} • {log.ip}
                     </p>
                   </div>
                 </div>
-                <span className={cn("text-xs font-bold", idx === 0 ? "text-green-600" : "text-slate-400")}>
+                <span className={cn("text-xs font-bold whitespace-nowrap", idx === 0 ? "text-green-600" : "text-slate-400")}>
                   {log.time === "now" ? t("settings.now") : log.time === "2hours" ? `2 ${t("settings.hoursAgo")}` : t("settings.yesterday")}
                 </span>
               </div>
@@ -388,13 +428,13 @@ function SecurityTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean 
 
 function IntegrationsTab({ t }: { t: (key: string) => string }) {
   return (
-    <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="bg-white p-4 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h5 className="font-bold text-[#0F2942] text-lg">{t("settings.connectedApps")}</h5>
-          <p className="text-sm text-slate-500 mt-1">{t("settings.connectedAppsDesc")}</p>
+          <h5 className="font-bold text-[#0F2942] text-base md:text-lg">{t("settings.connectedApps")}</h5>
+          <p className="text-xs md:text-sm text-slate-500 mt-1">{t("settings.connectedAppsDesc")}</p>
         </div>
-        <Button className="bg-[#D97706] hover:bg-[#B45309]">
+        <Button className="bg-[#D97706] hover:bg-[#B45309] w-full sm:w-auto">
           {t("settings.browseMarketplace")}
         </Button>
       </div>
@@ -436,70 +476,119 @@ function IntegrationsTab({ t }: { t: (key: string) => string }) {
 
 function BillingTab({ t, isRTL, billingData }: { t: (key: string) => string; isRTL: boolean; billingData?: any }) {
   const invoices = billingData?.invoices || [];
+  const { mutate: subscribeToPlan, isPending: isSubscribing } = useSubscribeToPlan();
+  const { mutate: cancelSubscription, isPending: isCancelling } = useCancelSubscription();
+  const { mutate: downloadInvoicePDF, isPending: isDownloading } = useDownloadInvoicePDF();
 
   return (
     <div className="space-y-6">
       {/* Plan Card */}
-      <div className="bg-gradient-to-br from-[#0F2942] to-[#1E3A56] rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
+      <div className="bg-gradient-to-br from-[#0F2942] to-[#1E3A56] rounded-2xl p-4 md:p-8 text-white shadow-xl relative overflow-hidden">
         <div className={`absolute top-0 ${isRTL ? 'left-0' : 'right-0'} p-32 bg-white/5 rounded-full blur-3xl ${isRTL ? '-ml-10' : '-mr-10'} -mt-10`} />
-        <div className="relative z-10 flex justify-between items-start">
+        <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <p className="text-blue-200 text-sm font-bold uppercase tracking-wider mb-2">{t("settings.currentPlan")}</p>
-            <h2 className="text-3xl font-bold font-serif mb-1">{billingData?.plan?.name || t("settings.enterprisePlan")}</h2>
-            <p className="text-blue-200">{t("settings.billedAnnually")} • {billingData?.nextBillingDate || t("settings.nextBilling")}</p>
+            <p className="text-blue-200 text-xs md:text-sm font-bold uppercase tracking-wider mb-2">{t("settings.currentPlan")}</p>
+            <h2 className="text-2xl md:text-3xl font-bold font-serif mb-1">{billingData?.plan?.name || t("settings.enterprisePlan")}</h2>
+            <p className="text-blue-200 text-xs md:text-sm">{t("settings.billedAnnually")} • {billingData?.nextBillingDate || t("settings.nextBilling")}</p>
           </div>
           <div className={isRTL ? 'text-left' : 'text-right'}>
-            <h2 className="text-3xl font-bold">
-              SAR {billingData?.plan?.price || 499}<span className="text-lg text-blue-300 font-normal">{t("settings.perMonth")}</span>
+            <h2 className="text-2xl md:text-3xl font-bold">
+              SAR {billingData?.plan?.price || 499}<span className="text-sm md:text-lg text-blue-300 font-normal">{t("settings.perMonth")}</span>
             </h2>
           </div>
         </div>
-        <div className="mt-8 flex gap-4">
-          <Button className="bg-[#D97706] hover:bg-[#B45309]">{t("settings.upgradePlan")}</Button>
-          <Button variant="ghost" className="bg-white/10 hover:bg-white/20 text-white">
-            {t("settings.cancelSubscription")}
+        <div className="mt-4 md:mt-8 flex flex-col sm:flex-row gap-3 md:gap-4">
+          <Button
+            onClick={() => subscribeToPlan({ planId: 1, billingCycle: "yearly" })}
+            disabled={isSubscribing}
+            className="bg-[#D97706] hover:bg-[#B45309] w-full sm:w-auto"
+          >
+            {isSubscribing ? "Processing..." : t("settings.upgradePlan")}
+          </Button>
+          <Button
+            onClick={() => cancelSubscription()}
+            disabled={isCancelling}
+            variant="ghost"
+            className="bg-white/10 hover:bg-white/20 text-white w-full sm:w-auto"
+          >
+            {isCancelling ? "Cancelling..." : t("settings.cancelSubscription")}
           </Button>
         </div>
       </div>
 
       {/* Invoice History */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+        <div className="p-4 md:p-6 border-b border-slate-100 flex justify-between items-center">
           <h4 className="font-bold text-[#0F2942]">{t("settings.invoiceHistory")}</h4>
           <button className="text-xs font-bold text-slate-500 hover:text-[#0F2942] flex items-center gap-1">
-            <Download size={14} /> {t("settings.downloadAll")}
+            <Download size={14} /> <span className="hidden sm:inline">{t("settings.downloadAll")}</span>
           </button>
         </div>
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-slate-500">
-            <tr>
-              <th className="px-6 py-4 font-bold">{t("settings.invoiceId")}</th>
-              <th className="px-6 py-4 font-bold">{t("settings.date")}</th>
-              <th className="px-6 py-4 font-bold">{t("settings.amount")}</th>
-              <th className="px-6 py-4 font-bold">Status</th>
-              <th className={`px-6 py-4 font-bold ${isRTL ? 'text-left' : 'text-right'}`}></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {invoices.map((inv: any) => (
-              <tr key={inv.id} className="hover:bg-slate-50 transition-colors">
-                <td className="px-6 py-4 font-medium text-[#0F2942]">{inv.id}</td>
-                <td className="px-6 py-4 text-slate-600">{new Date(inv.date).toLocaleDateString()}</td>
-                <td className="px-6 py-4 font-bold text-[#0F2942]">{inv.amount} SAR</td>
-                <td className="px-6 py-4">
-                  <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold flex items-center gap-1 w-fit">
-                    <CheckCircle size={10} /> {inv.status}
-                  </span>
-                </td>
-                <td className={`px-6 py-4 ${isRTL ? 'text-left' : 'text-right'}`}>
-                  <button className="text-[#D97706] hover:text-[#B45309] font-bold text-xs flex items-center gap-1 justify-end">
-                    <Download size={12} /> {t("settings.pdf")}
-                  </button>
-                </td>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-slate-50 text-slate-500">
+              <tr>
+                <th className="px-6 py-4 font-bold">{t("settings.invoiceId")}</th>
+                <th className="px-6 py-4 font-bold">{t("settings.date")}</th>
+                <th className="px-6 py-4 font-bold">{t("settings.amount")}</th>
+                <th className="px-6 py-4 font-bold">Status</th>
+                <th className={`px-6 py-4 font-bold ${isRTL ? 'text-left' : 'text-right'}`}></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {invoices.map((inv: any) => (
+                <tr key={inv.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-6 py-4 font-medium text-[#0F2942]">{inv.id}</td>
+                  <td className="px-6 py-4 text-slate-600">{new Date(inv.date).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 font-bold text-[#0F2942]">{inv.amount} SAR</td>
+                  <td className="px-6 py-4">
+                    <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold flex items-center gap-1 w-fit">
+                      <CheckCircle size={10} /> {inv.status}
+                    </span>
+                  </td>
+                  <td className={`px-6 py-4 ${isRTL ? 'text-left' : 'text-right'}`}>
+                    <button
+                      onClick={() => downloadInvoicePDF(inv.id)}
+                      disabled={isDownloading}
+                      className="text-[#D97706] hover:text-[#B45309] font-bold text-xs flex items-center gap-1 justify-end disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Download size={12} /> {isDownloading ? "Downloading..." : t("settings.pdf")}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-3 p-4">
+          {invoices.map((inv: any) => (
+            <div key={inv.id} className="bg-slate-50 rounded-xl p-4 space-y-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="font-bold text-[#0F2942]">{inv.id}</div>
+                  <div className="text-xs text-slate-500">{new Date(inv.date).toLocaleDateString()}</div>
+                </div>
+                <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
+                  <CheckCircle size={10} /> {inv.status}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="font-bold text-[#0F2942]">{inv.amount} SAR</div>
+                <button
+                  onClick={() => downloadInvoicePDF(inv.id)}
+                  disabled={isDownloading}
+                  className="text-[#D97706] hover:text-[#B45309] font-bold text-xs flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Download size={12} /> {isDownloading ? "..." : t("settings.pdf")}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -525,13 +614,13 @@ function FormField({ label, type = "text", defaultValue, disabled }: { label: st
 
 function StatBox({ title, value, max, progress, color }: { title: string; value: string; max: string; progress: number; color: "orange" | "green" }) {
   return (
-    <div className="bg-white p-4 rounded-xl border border-slate-200">
-      <h5 className="text-xs text-slate-400 uppercase font-bold tracking-wider">{title}</h5>
-      <div className="flex items-end gap-2 mt-2">
-        <span className="text-2xl font-bold text-[#0F2942]">{value}</span>
-        <span className="text-xs text-slate-500 mb-1">/ {max}</span>
+    <div className="bg-white p-3 md:p-4 rounded-xl border border-slate-200">
+      <h5 className="text-[10px] md:text-xs text-slate-400 uppercase font-bold tracking-wider">{title}</h5>
+      <div className="flex items-end gap-1 md:gap-2 mt-2">
+        <span className="text-xl md:text-2xl font-bold text-[#0F2942]">{value}</span>
+        <span className="text-[10px] md:text-xs text-slate-500 mb-0.5 md:mb-1">/ {max}</span>
       </div>
-      <div className="w-full bg-slate-100 h-2 rounded-full mt-2 overflow-hidden">
+      <div className="w-full bg-slate-100 h-1.5 md:h-2 rounded-full mt-2 overflow-hidden">
         <div className={cn("h-full", color === "orange" ? "bg-[#D97706]" : "bg-green-500")} style={{ width: `${progress}%` }} />
       </div>
     </div>
@@ -563,15 +652,15 @@ function StatusDot({ status }: { status: string }) {
 function NotificationToggle({ title, description, defaultChecked }: { title: string; description: string; defaultChecked: boolean }) {
   const [checked, setChecked] = React.useState(defaultChecked);
   return (
-    <div className="flex items-start justify-between pb-6 border-b border-slate-100 last:border-0 last:pb-0">
-      <div>
-        <h5 className="font-bold text-[#0F2942] text-lg">{title}</h5>
-        <p className="text-sm text-slate-500 mt-1">{description}</p>
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-6 border-b border-slate-100 last:border-0 last:pb-0">
+      <div className="min-w-0">
+        <h5 className="font-bold text-[#0F2942] text-base md:text-lg">{title}</h5>
+        <p className="text-xs md:text-sm text-slate-500 mt-1">{description}</p>
       </div>
       <button
         onClick={() => setChecked(!checked)}
         className={cn(
-          "relative w-12 h-6 rounded-full transition-colors",
+          "relative w-12 h-6 rounded-full transition-colors flex-shrink-0",
           checked ? "bg-[#D97706]" : "bg-slate-200"
         )}
       >
@@ -597,32 +686,32 @@ function IntegrationCard({ icon, name, description, iconBg = "bg-white border-sl
   const [enabled, setEnabled] = React.useState(false);
   return (
     <div className={cn(
-      "flex items-center justify-between p-4 border rounded-xl",
+      "flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 gap-4 border rounded-xl",
       connected ? "border-green-200 bg-green-50/50" : "border-slate-200 bg-white"
     )}>
-      <div className="flex items-center gap-4">
-        <div className={cn("w-12 h-12 rounded-lg border flex items-center justify-center p-2", iconBg)}>
+      <div className="flex items-center gap-3 md:gap-4 min-w-0">
+        <div className={cn("w-10 h-10 md:w-12 md:h-12 rounded-lg border flex items-center justify-center p-2 flex-shrink-0", iconBg)}>
           {icon}
         </div>
-        <div>
-          <h6 className="font-bold text-[#0F2942]">{name}</h6>
-          <p className="text-xs text-slate-500">{description}</p>
+        <div className="min-w-0">
+          <h6 className="font-bold text-[#0F2942] text-sm md:text-base truncate">{name}</h6>
+          <p className="text-xs text-slate-500 line-clamp-2">{description}</p>
         </div>
       </div>
       {connected ? (
-        <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1 text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-full">
-            <CheckCircle size={12} /> {connectedLabel || "Connected"}
+        <div className="flex items-center gap-2 md:gap-4 w-full sm:w-auto justify-between sm:justify-end">
+          <span className="flex items-center gap-1 text-[10px] md:text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-full">
+            <CheckCircle size={10} /> {connectedLabel || "Connected"}
           </span>
           <button className="text-slate-400 hover:text-slate-600">
-            <SettingsIcon size={18} />
+            <SettingsIcon size={16} />
           </button>
         </div>
       ) : hasToggle ? (
         <button
           onClick={() => setEnabled(!enabled)}
           className={cn(
-            "relative w-12 h-6 rounded-full transition-colors",
+            "relative w-12 h-6 rounded-full transition-colors self-end sm:self-auto",
             enabled ? "bg-[#D97706]" : "bg-slate-300"
           )}
         >
@@ -632,7 +721,7 @@ function IntegrationCard({ icon, name, description, iconBg = "bg-white border-sl
           )} />
         </button>
       ) : (
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className="w-full sm:w-auto self-end sm:self-auto">
           {connectLabel || "Connect"}
         </Button>
       )}
