@@ -239,7 +239,7 @@ export default function ProfilePage() {
                                                     <Building2 className="h-4 w-4 text-[var(--color-text-primary)]" />
                                                 </div>
 <div className="text-sm">
-                                                    <p className="text-[var(--color-text-primary)] font-medium">{user?.organization?.name || (isRTL ? "مكتب الفيصل" : "Al-Faisal Law Firm")}</p>
+                                                    <p className="text-[var(--color-text-primary)] font-medium">{isRTL ? "مكتب الفيصل" : "Al-Faisal Law Firm"}</p>
                                                     <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{t("settings.id")}: #{user?.organizationId || "1001"}</p>
                                                 </div>
                                             </div>
@@ -265,7 +265,7 @@ export default function ProfilePage() {
                                                 <div className="w-8 h-8 rounded-full bg-surface-muted border border-border shadow-sm flex items-center justify-center shrink-0 group-hover:border-brand-primary/30 transition-colors">
                                                     <Briefcase className="h-4 w-4 text-[var(--color-text-primary)]" />
                                                 </div>
-                                                <p className="text-sm text-[var(--color-text-primary)]">{user?.specialization || (isRTL ? t("settings.commercialLaw") : "Commercial Law")}</p>
+                                                <p className="text-sm text-[var(--color-text-primary)]">{isRTL ? t("settings.commercialLaw") : "Commercial Law"}</p>
                                             </div>
                                         </>
                                     )}
