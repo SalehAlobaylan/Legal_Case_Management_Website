@@ -309,6 +309,7 @@
         "noRegulations": "لم يتم العثور على أنظمة",
         "noRegulationsDesc": "جرب تعديل الفلاتر أو مصطلح البحث.",
         "versions": "الإصدارات",
+        "backToRegulations": "العودة إلى الأنظمة",
         "viewDetails": "عرض التفاصيل",
         "statuses": {
             "active": "ساري",
@@ -505,7 +506,19 @@
         "dismiss": "تجاهل",
         "verified": "تم التحقق",
         "aiGenerated": "مولّد بالذكاء الاصطناعي",
-        "manual": "يدوي"
+        "manual": "يدوي",
+        "highScorePromptTitle": "تم العثور على أنظمة شديدة الارتباط",
+        "highScorePromptDesc": "هل تريد الاشتراك في تحديثات هذه الأنظمة؟",
+        "subscribeSelected": "الاشتراك في المحدد",
+        "skipForNow": "تخطي الآن",
+        "selectedCount": "{{count}} محدد",
+        "alreadySubscribed": "مشترك بالفعل",
+        "notTrustedSource": "لا يمكن الاشتراك (رابط المصدر غير موثوق)",
+        "missingSource": "لا يمكن الاشتراك (رابط المصدر غير متوفر)",
+        "subscribeSuccessTitle": "تم إنشاء الاشتراكات",
+        "subscribeSuccessDesc": "تم الاشتراك في تحديثات {{count}} نظام.",
+        "subscribePartialTitle": "فشل بعض الاشتراكات",
+        "subscribePartialDesc": "تعذر الاشتراك في {{count}} نظام."
     },
     "header": {
         "searchPlaceholder": "البحث في القضايا والأنظمة والمستندات...",

@@ -8,7 +8,7 @@ export type AlertType = "case_update" | "ai_suggestion" | "regulation_update" | 
 
 export interface Alert {
   id: number;
-  userId: number;
+  userId: string | number;
   type: AlertType;
   title: string;
   message: string;

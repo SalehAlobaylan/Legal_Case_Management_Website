@@ -309,6 +309,7 @@
         "noRegulations": "No regulations found",
         "noRegulationsDesc": "Try adjusting your filters or search term.",
         "versions": "Versions",
+        "backToRegulations": "Back to Regulations",
         "viewDetails": "View Details",
         "statuses": {
             "active": "Active",
@@ -505,7 +506,19 @@
         "dismiss": "Dismiss",
         "verified": "Verified",
         "aiGenerated": "AI Generated",
-        "manual": "Manual"
+        "manual": "Manual",
+        "highScorePromptTitle": "Highly related regulations found",
+        "highScorePromptDesc": "Do you want to subscribe to updates for these regulations?",
+        "subscribeSelected": "Subscribe Selected",
+        "skipForNow": "Skip for now",
+        "selectedCount": "{{count}} selected",
+        "alreadySubscribed": "Already subscribed",
+        "notTrustedSource": "Not subscribable (source URL is not trusted)",
+        "missingSource": "Not subscribable (missing source URL)",
+        "subscribeSuccessTitle": "Subscriptions created",
+        "subscribeSuccessDesc": "Subscribed to {{count}} regulation updates.",
+        "subscribePartialTitle": "Some subscriptions failed",
+        "subscribePartialDesc": "{{count}} regulations could not be subscribed."
     },
     "header": {
         "searchPlaceholder": "Search cases, regulations, or documents...",
