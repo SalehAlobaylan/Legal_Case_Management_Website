@@ -109,6 +109,10 @@ export const endpoints = {
     team: `${API_BASE}/api/settings/team`,
     teamInvite: `${API_BASE}/api/settings/team/invite`,
     billing: `${API_BASE}/api/settings/billing`,
+    security: {
+      changePassword: `${API_BASE}/api/settings/security/password`,
+      loginActivity: `${API_BASE}/api/settings/security/activity`,
+    },
   },
 
   // AI Features

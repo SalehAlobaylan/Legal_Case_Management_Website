@@ -34,6 +34,7 @@ import {
   UploadCloud,
   Download,
   Settings as SettingsIcon,
+  Moon,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useI18n } from "@/lib/hooks/use-i18n";
@@ -42,13 +43,8 @@ import { cn } from "@/lib/utils/cn";
 import { useTeamMembers } from "@/lib/hooks/use-team";
 import { useBillingInfo, useSubscribeToPlan, useCancelSubscription, useDownloadInvoicePDF } from "@/lib/hooks/use-billing";
 import { useUpdateProfile } from "@/lib/hooks/use-profile";
-
-// Mock data for login history (no API available yet)
-const MOCK_LOGIN_HISTORY = [
-  { device: "MacBook Pro - Chrome", location: "Riyadh, SA", ip: "192.168.1.1", time: "now" },
-  { device: "iPhone 15 - Safari", location: "Riyadh, SA", ip: "192.168.1.2", time: "2hours" },
-  { device: "Windows PC - Edge", location: "Jeddah, SA", ip: "192.168.2.1", time: "yesterday" },
-];
+import { useNotificationSettings, useUpdateNotificationSettings } from "@/lib/hooks/use-notification-settings";
+import { useLoginActivity, useChangePassword } from "@/lib/hooks/use-security-settings";
 
 type TabId = "profile" | "org" | "notifications" | "security" | "integrations" | "billing";
 
@@ -335,23 +331,222 @@ function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; i
    ============================================================================= */
 
 function NotificationsTab({ t }: { t: (key: string) => string }) {
+  const { data: prefs, isLoading } = useNotificationSettings();
+  const { mutate: updateSettings, isPending: isSaving } = useUpdateNotificationSettings();
+  const [localPrefs, setLocalPrefs] = React.useState<Record<string, any>>({});
+  const [feedback, setFeedback] = React.useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  // Sync local state when server data loads
+  React.useEffect(() => {
+    if (prefs) {
+      setLocalPrefs({
+        emailAlerts: prefs.emailAlerts,
+        pushNotifications: prefs.pushNotifications,
+        aiSuggestions: prefs.aiSuggestions,
+        regulationUpdates: prefs.regulationUpdates,
+        caseUpdates: prefs.caseUpdates,
+        systemAlerts: prefs.systemAlerts,
+        quietHoursEnabled: prefs.quietHoursEnabled,
+        quietHoursStart: prefs.quietHoursStart,
+        quietHoursEnd: prefs.quietHoursEnd,
+        digestEnabled: prefs.digestEnabled,
+        digestFrequency: prefs.digestFrequency,
+      });
+    }
+  }, [prefs]);
+
+  const toggleLocal = (key: string) => {
+    setLocalPrefs((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const setLocal = (key: string, value: any) => {
+    setLocalPrefs((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleSave = () => {
+    setFeedback(null);
+    updateSettings(localPrefs, {
+      onSuccess: () => {
+        setFeedback({ type: "success", message: t("settings.settingsSaved") });
+        setTimeout(() => setFeedback(null), 3000);
+      },
+      onError: () => {
+        setFeedback({ type: "error", message: t("settings.settingsError") });
+        setTimeout(() => setFeedback(null), 4000);
+      },
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-[#D97706] rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
-      <NotificationToggle
-        title={t("settings.aiRecommendations")}
-        description={t("settings.aiRecommendationsDesc")}
-        defaultChecked={false}
-      />
-      <NotificationToggle
-        title={t("settings.regulationUpdates")}
-        description={t("settings.regulationUpdatesDesc")}
-        defaultChecked={true}
-      />
-      <NotificationToggle
-        title={t("settings.systemAlerts")}
-        description={t("settings.systemAlertsDesc")}
-        defaultChecked={true}
-      />
+    <div className="space-y-6">
+      {/* Feedback Banner */}
+      {feedback && (
+        <div
+          className={cn(
+            "p-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-all",
+            feedback.type === "success"
+              ? "bg-green-50 text-green-700 border border-green-200"
+              : "bg-red-50 text-red-700 border border-red-200"
+          )}
+        >
+          {feedback.type === "success" ? <CheckCircle size={16} /> : <Bell size={16} />}
+          {feedback.message}
+        </div>
+      )}
+
+      {/* 1. Notification Channels */}
+      <div className="bg-white p-4 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+        <div className="mb-4">
+          <h5 className="font-bold text-[#0F2942] text-lg flex items-center gap-2">
+            <Mail size={20} className="text-[#D97706]" />
+            {t("settings.notifChannels")}
+          </h5>
+          <p className="text-sm text-slate-500 mt-1">{t("settings.notifChannelsDesc")}</p>
+        </div>
+        <NotificationToggle
+          title={t("settings.emailAlertsTitle")}
+          description={t("settings.emailAlertsDesc")}
+          checked={localPrefs.emailAlerts ?? true}
+          onToggle={() => toggleLocal("emailAlerts")}
+        />
+        <NotificationToggle
+          title={t("settings.pushNotificationsTitle")}
+          description={t("settings.pushNotificationsDesc")}
+          checked={localPrefs.pushNotifications ?? true}
+          onToggle={() => toggleLocal("pushNotifications")}
+        />
+      </div>
+
+      {/* 2. Notification Categories */}
+      <div className="bg-white p-4 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+        <div className="mb-4">
+          <h5 className="font-bold text-[#0F2942] text-lg flex items-center gap-2">
+            <Bell size={20} className="text-[#D97706]" />
+            {t("settings.notifCategories")}
+          </h5>
+          <p className="text-sm text-slate-500 mt-1">{t("settings.notifCategoriesDesc")}</p>
+        </div>
+        <NotificationToggle
+          title={t("settings.aiRecommendations")}
+          description={t("settings.aiRecommendationsDesc")}
+          checked={localPrefs.aiSuggestions ?? true}
+          onToggle={() => toggleLocal("aiSuggestions")}
+        />
+        <NotificationToggle
+          title={t("settings.regulationUpdates")}
+          description={t("settings.regulationUpdatesDesc")}
+          checked={localPrefs.regulationUpdates ?? true}
+          onToggle={() => toggleLocal("regulationUpdates")}
+        />
+        <NotificationToggle
+          title={t("settings.caseUpdates")}
+          description={t("settings.caseUpdatesDesc")}
+          checked={localPrefs.caseUpdates ?? true}
+          onToggle={() => toggleLocal("caseUpdates")}
+        />
+        <NotificationToggle
+          title={t("settings.systemAlerts")}
+          description={t("settings.systemAlertsDesc")}
+          checked={localPrefs.systemAlerts ?? true}
+          onToggle={() => toggleLocal("systemAlerts")}
+        />
+      </div>
+
+      {/* 3. Quiet Hours */}
+      <div className="bg-white p-4 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div>
+          <h5 className="font-bold text-[#0F2942] text-lg flex items-center gap-2">
+            <Moon size={20} className="text-[#D97706]" />
+            {t("settings.quietHours")}
+          </h5>
+          <p className="text-sm text-slate-500 mt-1">{t("settings.quietHoursDesc")}</p>
+        </div>
+        <NotificationToggle
+          title={t("settings.quietHoursEnabled")}
+          description=""
+          checked={localPrefs.quietHoursEnabled ?? false}
+          onToggle={() => toggleLocal("quietHoursEnabled")}
+        />
+        {localPrefs.quietHoursEnabled && (
+          <div className="grid grid-cols-2 gap-4 pt-2 pl-2 animate-in fade-in duration-200">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">{t("settings.quietHoursStart")}</label>
+              <input
+                type="time"
+                value={localPrefs.quietHoursStart || "22:00"}
+                onChange={(e) => setLocal("quietHoursStart", e.target.value)}
+                className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] bg-slate-50"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">{t("settings.quietHoursEnd")}</label>
+              <input
+                type="time"
+                value={localPrefs.quietHoursEnd || "07:00"}
+                onChange={(e) => setLocal("quietHoursEnd", e.target.value)}
+                className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] bg-slate-50"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 4. Digest Settings */}
+      <div className="bg-white p-4 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div>
+          <h5 className="font-bold text-[#0F2942] text-lg flex items-center gap-2">
+            <SettingsIcon size={20} className="text-[#D97706]" />
+            {t("settings.digestSettings")}
+          </h5>
+          <p className="text-sm text-slate-500 mt-1">{t("settings.digestSettingsDesc")}</p>
+        </div>
+        <NotificationToggle
+          title={t("settings.digestEnabled")}
+          description=""
+          checked={localPrefs.digestEnabled ?? false}
+          onToggle={() => toggleLocal("digestEnabled")}
+        />
+        {localPrefs.digestEnabled && (
+          <div className="pt-2 pl-2 animate-in fade-in duration-200">
+            <label className="text-sm font-bold text-slate-700 block mb-2">{t("settings.digestFrequency")}</label>
+            <div className="flex gap-3">
+              {(["daily", "weekly"] as const).map((freq) => (
+                <button
+                  key={freq}
+                  onClick={() => setLocal("digestFrequency", freq)}
+                  className={cn(
+                    "px-4 py-2.5 rounded-xl text-sm font-medium border transition-all",
+                    localPrefs.digestFrequency === freq
+                      ? "bg-[#0F2942] text-white border-[#0F2942] shadow-md"
+                      : "bg-white text-slate-600 border-slate-200 hover:border-[#D97706] hover:text-[#D97706]"
+                  )}
+                >
+                  {t(`settings.digest${freq.charAt(0).toUpperCase() + freq.slice(1)}`)}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Save Button */}
+      <div className="flex justify-end pt-2">
+        <Button
+          onClick={handleSave}
+          disabled={isSaving}
+          className="bg-[#0F2942] hover:bg-[#1E3A56] px-8 py-3 text-sm font-bold"
+        >
+          {isSaving ? t("settings.saving") : t("settings.saveNotificationSettings")}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -361,10 +556,85 @@ function NotificationsTab({ t }: { t: (key: string) => string }) {
    ============================================================================= */
 
 function SecurityTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }) {
+  const { data: activityData, isLoading: activityLoading } = useLoginActivity(10);
+  const { mutate: changePassword, isPending: isChanging } = useChangePassword();
+
+  const [currentPassword, setCurrentPassword] = React.useState("");
+  const [newPassword, setNewPassword] = React.useState("");
+  const [confirmPassword, setConfirmPassword] = React.useState("");
+  const [feedback, setFeedback] = React.useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  // Password strength calculator
+  const getPasswordStrength = (pw: string) => {
+    if (!pw) return { level: 0, label: "", color: "" };
+    let score = 0;
+    if (pw.length >= 8) score++;
+    if (pw.length >= 12) score++;
+    if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+    if (score <= 1) return { level: 1, label: t("settings.passwordWeak"), color: "bg-red-500" };
+    if (score <= 2) return { level: 2, label: t("settings.passwordFair"), color: "bg-orange-400" };
+    if (score <= 3) return { level: 3, label: t("settings.passwordGood"), color: "bg-yellow-400" };
+    return { level: 4, label: t("settings.passwordStrong"), color: "bg-green-500" };
+  };
+
+  const strength = getPasswordStrength(newPassword);
+  const passwordsMatch = confirmPassword === "" || newPassword === confirmPassword;
+  const canSubmit = currentPassword.length > 0 && newPassword.length >= 8 && newPassword === confirmPassword && !isChanging;
+
+  const handleChangePassword = () => {
+    setFeedback(null);
+    changePassword(
+      { currentPassword, newPassword, confirmPassword },
+      {
+        onSuccess: () => {
+          setFeedback({ type: "success", message: t("settings.passwordUpdated") });
+          setCurrentPassword("");
+          setNewPassword("");
+          setConfirmPassword("");
+          setTimeout(() => setFeedback(null), 3000);
+        },
+        onError: () => {
+          setFeedback({ type: "error", message: t("settings.passwordError") });
+          setTimeout(() => setFeedback(null), 4000);
+        },
+      }
+    );
+  };
+
+  // Format relative time
+  const formatTime = (dateStr: string) => {
+    const now = new Date();
+    const date = new Date(dateStr);
+    const diffMs = now.getTime() - date.getTime();
+    const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+    if (diffHrs < 1) return t("settings.now");
+    if (diffHrs < 24) return `${diffHrs} ${t("settings.hoursAgo")}`;
+    if (diffHrs < 48) return t("settings.yesterday");
+    return date.toLocaleDateString();
+  };
+
   return (
     <div className="space-y-6">
-      <div className="bg-white p-4 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
-        {/* 2FA Status */}
+      {/* Feedback Banner */}
+      {feedback && (
+        <div
+          className={cn(
+            "p-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-all",
+            feedback.type === "success"
+              ? "bg-green-50 text-green-700 border border-green-200"
+              : "bg-red-50 text-red-700 border border-red-200"
+          )}
+        >
+          {feedback.type === "success" ? <CheckCircle size={16} /> : <Shield size={16} />}
+          {feedback.message}
+        </div>
+      )}
+
+      {/* 2FA Status */}
+      <div className="bg-white p-4 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
           <div className="bg-green-100 p-2 rounded-lg text-green-700">
             <Shield size={20} />
@@ -377,46 +647,125 @@ function SecurityTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean 
             {t("settings.configure2FA")}
           </button>
         </div>
+      </div>
 
-        {/* Change Password */}
-        <div className="space-y-4 pt-4 border-t border-slate-100">
-          <h5 className="font-bold text-[#0F2942]">{t("settings.changePassword")}</h5>
-          <div className="grid grid-cols-1 gap-4">
-            <input type="password" placeholder={t("settings.currentPassword")} className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-[#D97706]" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <input type="password" placeholder={t("settings.newPassword")} className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-[#D97706]" />
-              <input type="password" placeholder={t("auth.confirmPassword")} className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-[#D97706]" />
-            </div>
-            <Button className="w-full sm:w-fit bg-slate-900 hover:bg-[#0F2942]">
-              {t("settings.updatePassword")}
-            </Button>
-          </div>
+      {/* Change Password */}
+      <div className="bg-white p-4 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+        <div>
+          <h5 className="font-bold text-[#0F2942] text-lg flex items-center gap-2">
+            <Lock size={20} className="text-[#D97706]" />
+            {t("settings.changePassword")}
+          </h5>
+          <p className="text-sm text-slate-500 mt-1">{t("settings.changePasswordDesc")}</p>
         </div>
 
-        {/* Login Activity */}
-        <div className="pt-6 border-t border-slate-100">
-          <h5 className="font-bold text-[#0F2942] mb-4">{t("settings.loginActivity")}</h5>
+        <div className="grid grid-cols-1 gap-4">
+          <input
+            type="password"
+            placeholder={t("settings.currentPassword")}
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-[#D97706]"
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <input
+                type="password"
+                placeholder={t("settings.newPassword")}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-[#D97706]"
+              />
+              {newPassword.length > 0 && newPassword.length < 8 && (
+                <p className="text-xs text-red-500">{t("settings.passwordMinLength")}</p>
+              )}
+              {/* Strength Meter */}
+              {newPassword.length > 0 && (
+                <div className="space-y-1">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div
+                        key={i}
+                        className={cn(
+                          "h-1.5 flex-1 rounded-full transition-colors",
+                          i <= strength.level ? strength.color : "bg-slate-200"
+                        )}
+                      />
+                    ))}
+                  </div>
+                  <p className={cn("text-xs font-medium", strength.level <= 1 ? "text-red-500" : strength.level <= 2 ? "text-orange-500" : strength.level <= 3 ? "text-yellow-600" : "text-green-600")}>
+                    {t("settings.passwordStrength")}: {strength.label}
+                  </p>
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <input
+                type="password"
+                placeholder={t("auth.confirmPassword")}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className={cn(
+                  "w-full p-3 rounded-xl border bg-slate-50 focus:outline-none focus:border-[#D97706]",
+                  !passwordsMatch ? "border-red-300" : "border-slate-200"
+                )}
+              />
+              {!passwordsMatch && (
+                <p className="text-xs text-red-500">{t("settings.passwordsDoNotMatch")}</p>
+              )}
+            </div>
+          </div>
+          <Button
+            onClick={handleChangePassword}
+            disabled={!canSubmit}
+            className="w-full sm:w-fit bg-[#0F2942] hover:bg-[#1E3A56] disabled:opacity-50"
+          >
+            {isChanging ? t("settings.updatingPassword") : t("settings.updatePassword")}
+          </Button>
+        </div>
+      </div>
+
+      {/* Login Activity */}
+      <div className="bg-white p-4 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="mb-5">
+          <h5 className="font-bold text-[#0F2942] text-lg flex items-center gap-2">
+            <Smartphone size={20} className="text-[#D97706]" />
+            {t("settings.loginActivity")}
+          </h5>
+          <p className="text-sm text-slate-500 mt-1">{t("settings.loginActivityDesc")}</p>
+        </div>
+
+        {activityLoading ? (
+          <div className="flex items-center justify-center py-10">
+            <div className="w-6 h-6 border-4 border-slate-200 border-t-[#D97706] rounded-full animate-spin" />
+          </div>
+        ) : activityData?.activity && activityData.activity.length > 0 ? (
           <div className="space-y-3">
-            {MOCK_LOGIN_HISTORY.map((log, idx) => (
-              <div key={idx} className="flex flex-col sm:flex-row justify-start sm:justify-between items-start sm:items-center gap-2 text-sm p-3 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all">
+            {activityData.activity.map((log, idx) => (
+              <div key={log.id} className="flex flex-col sm:flex-row justify-start sm:justify-between items-start sm:items-center gap-2 text-sm p-3 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="bg-slate-100 p-2 rounded-full text-slate-600 flex-shrink-0">
-                    {log.device.includes("iPhone") ? <Smartphone size={14} /> : <Zap size={14} />}
+                    {log.device?.toLowerCase().includes("iphone") || log.device?.toLowerCase().includes("android") ? <Smartphone size={14} /> : <Zap size={14} />}
                   </div>
                   <div className="min-w-0">
-                    <p className="font-bold text-[#0F2942] text-sm">{log.device}</p>
+                    <p className="font-bold text-[#0F2942] text-sm">{log.device}{log.browser ? ` - ${log.browser}` : ""}</p>
                     <p className="text-xs text-slate-500 flex items-center gap-1">
-                      <MapPin size={10} /> {log.location} • {log.ip}
+                      <MapPin size={10} /> {log.location || "Unknown"} • {log.ip}
                     </p>
                   </div>
                 </div>
                 <span className={cn("text-xs font-bold whitespace-nowrap", idx === 0 ? "text-green-600" : "text-slate-400")}>
-                  {log.time === "now" ? t("settings.now") : log.time === "2hours" ? `2 ${t("settings.hoursAgo")}` : t("settings.yesterday")}
+                  {formatTime(log.loginAt)}
                 </span>
               </div>
             ))}
           </div>
-        </div>
+        ) : (
+          <div className="text-center py-8">
+            <Smartphone size={32} className="mx-auto text-slate-300 mb-2" />
+            <p className="text-sm text-slate-400">{t("settings.noLoginActivity")}</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -649,16 +998,15 @@ function StatusDot({ status }: { status: string }) {
   );
 }
 
-function NotificationToggle({ title, description, defaultChecked }: { title: string; description: string; defaultChecked: boolean }) {
-  const [checked, setChecked] = React.useState(defaultChecked);
+function NotificationToggle({ title, description, checked, onToggle }: { title: string; description: string; checked: boolean; onToggle: () => void }) {
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-6 border-b border-slate-100 last:border-0 last:pb-0">
       <div className="min-w-0">
         <h5 className="font-bold text-[#0F2942] text-base md:text-lg">{title}</h5>
-        <p className="text-xs md:text-sm text-slate-500 mt-1">{description}</p>
+        {description && <p className="text-xs md:text-sm text-slate-500 mt-1">{description}</p>}
       </div>
       <button
-        onClick={() => setChecked(!checked)}
+        onClick={onToggle}
         className={cn(
           "relative w-12 h-6 rounded-full transition-colors flex-shrink-0",
           checked ? "bg-[#D97706]" : "bg-slate-200"
