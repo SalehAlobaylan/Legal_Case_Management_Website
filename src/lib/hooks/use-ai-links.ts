@@ -10,6 +10,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
 import type { CaseRegulationLink } from "@/lib/types/case";
 
+export interface BulkSubscribeResponse {
+  created: number;
+  alreadySubscribed: number;
+  failed: Array<{
+    regulationId: number;
+    reason: string;
+  }>;
+}
+
 export function useAILinks(caseId: number) {
   return useQuery({
     queryKey: ["ai-links", caseId],
@@ -61,6 +70,25 @@ export function useDismissLink() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ai-links"] });
+    },
+  });
+}
+
+export function useBulkSubscribeRegulations() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: { caseId: number; regulationIds: number[] }) => {
+      const { data } = await apiClient.post<BulkSubscribeResponse>(
+        "/api/regulations/subscriptions/bulk",
+        input
+      );
+      return data;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["ai-links", variables.caseId] });
+      queryClient.invalidateQueries({ queryKey: ["ai-links"] });
+      queryClient.invalidateQueries({ queryKey: ["regulation-subscriptions"] });
     },
   });
 }

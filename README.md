@@ -63,6 +63,8 @@ A high-performance RESTful API handling business logic, authentication, and data
 - Cosine similarity scoring (0-100%) for relevance ranking
 - Lawyer verification/dismissal of AI suggestions
 - Hybrid linking: AI-generated and manual links
+- High-score subscription suggestion dialog with preselected regulations and user opt-out checkboxes
+- Bulk subscription submission directly from the case AI suggestions flow
 
 ### User Management
 
@@ -76,6 +78,7 @@ A high-performance RESTful API handling business logic, authentication, and data
 - WebSocket notifications for regulation updates
 - Automatic case-regulation link refresh notifications
 - Live synchronization across web and mobile clients
+- Invalidation for alerts, regulation detail, and regulation version history on update events
 
 ### Additional Features
 
@@ -84,6 +87,7 @@ A high-performance RESTful API handling business logic, authentication, and data
 - Offline caching for mobile app
 - Analytics dashboard with case statistics
 - OpenAPI/Swagger documentation
+- Regulation version detail page (`/regulations/[id]`) with timeline-style history view
 
 
 ---

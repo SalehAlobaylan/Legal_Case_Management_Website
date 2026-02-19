@@ -35,6 +35,7 @@ const MAX_RECONNECT_DELAY = 30000; // 30 seconds
 export function useWebSocket() {
   const socketRef = useRef<Socket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const scheduleReconnectRef = useRef<() => void>(() => {});
 
   const token = useAuthStore((state) => state.token);
   const queryClient = useQueryClient();
@@ -75,9 +76,11 @@ export function useWebSocket() {
 
       queryClient.invalidateQueries({ queryKey: ["regulations"] });
       queryClient.invalidateQueries({ queryKey: ["ai-links"] });
+      queryClient.invalidateQueries({ queryKey: ["alerts"] });
 
       if (data?.regulationId) {
         queryClient.invalidateQueries({ queryKey: ["regulation", data.regulationId] });
+        queryClient.invalidateQueries({ queryKey: ["regulation-versions", data.regulationId] });
       }
     });
 
@@ -240,7 +243,7 @@ export function useWebSocket() {
 
       // Auto-reconnect for non-intentional disconnects
       if (reason !== "io client disconnect" && reason !== "io server disconnect") {
-        scheduleReconnect();
+        scheduleReconnectRef.current();
       }
     });
 
@@ -248,7 +251,7 @@ export function useWebSocket() {
       console.error("[useWebSocket] Connection error:", error.message);
       setStatus("error");
       setError(error.message);
-      scheduleReconnect();
+      scheduleReconnectRef.current();
     });
 
     // Setup event handlers
@@ -274,6 +277,10 @@ export function useWebSocket() {
       connect();
     }, delay);
   }, [reconnectAttempts, getReconnectDelay, incrementReconnectAttempts, connect, setError]);
+
+  useEffect(() => {
+    scheduleReconnectRef.current = scheduleReconnect;
+  }, [scheduleReconnect]);
 
   // Disconnect
   const disconnect = useCallback(() => {
@@ -307,7 +314,6 @@ export function useWebSocket() {
 
   // Return socket for advanced usage
   return {
-    socket: socketRef.current,
     disconnect,
     reconnect: connect,
   };

@@ -17,7 +17,7 @@ import {
   Sparkles,
   CheckCircle,
   Search,
-  X,
+  Bell,
   UploadCloud,
   Eye,
   Download,
@@ -28,15 +28,31 @@ import {
   Loader2,
 } from "lucide-react";
 import { useCase } from "@/lib/hooks/use-cases";
-import { useAILinks, useGenerateAILinks, useVerifyLink, useDismissLink } from "@/lib/hooks/use-ai-links";
+import {
+  useAILinks,
+  useGenerateAILinks,
+  useVerifyLink,
+  useDismissLink,
+  useBulkSubscribeRegulations,
+} from "@/lib/hooks/use-ai-links";
 import { useDocuments, useUploadDocument, useDeleteDocument, getDocumentDownloadUrl } from "@/lib/hooks/use-documents";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils/cn";
 import type { Document } from "@/lib/types/document";
 import type { CaseRegulationLink } from "@/lib/types/case";
+import { useToast } from "@/components/ui/use-toast";
 
 interface CaseDetailPageProps {
   params: Promise<{
@@ -44,12 +60,40 @@ interface CaseDetailPageProps {
   }>;
 }
 
+interface SubscriptionCandidate {
+  regulationId: number;
+  title: string;
+  regulationNumber?: string;
+  score: number;
+  sourceUrl?: string;
+  alreadySubscribed: boolean;
+  isTrustedSource: boolean;
+}
+
+const HIGH_SCORE_THRESHOLD = 0.8;
+const TRUSTED_SOURCE_DOMAINS = [
+  "laws.boe.gov.sa",
+  "laws.moj.gov.sa",
+  "boe.gov.sa",
+  "moj.gov.sa",
+];
+
 export default function CaseDetailPage({ params }: CaseDetailPageProps) {
   const router = useRouter();
   const resolvedParams = React.use(params);
   const caseId = Number(resolvedParams.id);
   const [activeTab, setActiveTab] = React.useState<"details" | "documents">("details");
-  const { t, isRTL } = useI18n();
+  const [showSubscribeDialog, setShowSubscribeDialog] = React.useState(false);
+  const [subscriptionCandidates, setSubscriptionCandidates] = React.useState<
+    SubscriptionCandidate[]
+  >([]);
+  const [selectedRegulationIds, setSelectedRegulationIds] = React.useState<
+    number[]
+  >([]);
+  const [promptAfterGenerate, setPromptAfterGenerate] = React.useState(false);
+  const shownCandidateBatchKeysRef = React.useRef<Set<string>>(new Set());
+  const { toast } = useToast();
+  const { t } = useI18n();
 
   // Fetch case data
   const { data: case_, isLoading } = useCase(caseId);
@@ -64,8 +108,43 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
   const { mutate: generateLinks, isPending: isGenerating } = useGenerateAILinks(caseId);
   const verifyLink = useVerifyLink();
   const dismissLink = useDismissLink();
+  const bulkSubscribe = useBulkSubscribeRegulations();
   const uploadDocument = useUploadDocument(caseId);
   const deleteDocument = useDeleteDocument();
+
+  React.useEffect(() => {
+    if (!promptAfterGenerate || !aiLinks) {
+      return;
+    }
+
+    const candidates = buildSubscriptionCandidates(aiLinks);
+    const selectableCandidates = candidates.filter(
+      (candidate) => !candidate.alreadySubscribed && candidate.isTrustedSource
+    );
+
+    if (selectableCandidates.length === 0) {
+      setPromptAfterGenerate(false);
+      return;
+    }
+
+    const batchKey = selectableCandidates
+      .map((candidate) => candidate.regulationId)
+      .sort((a, b) => a - b)
+      .join(",");
+
+    if (shownCandidateBatchKeysRef.current.has(batchKey)) {
+      setPromptAfterGenerate(false);
+      return;
+    }
+
+    shownCandidateBatchKeysRef.current.add(batchKey);
+    setSubscriptionCandidates(candidates);
+    setSelectedRegulationIds(
+      selectableCandidates.map((candidate) => candidate.regulationId)
+    );
+    setShowSubscribeDialog(true);
+    setPromptAfterGenerate(false);
+  }, [promptAfterGenerate, aiLinks]);
 
   const handleVerifyLink = (linkId: number) => {
     verifyLink.mutate(linkId);
@@ -73,6 +152,61 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
 
   const handleDismissLink = (linkId: number) => {
     dismissLink.mutate(linkId);
+  };
+
+  const handleGenerateSuggestions = () => {
+    setPromptAfterGenerate(true);
+    generateLinks(undefined, {
+      onError: () => {
+        setPromptAfterGenerate(false);
+      },
+    });
+  };
+
+  const handleToggleRegulationSelection = (regulationId: number) => {
+    setSelectedRegulationIds((prev) =>
+      prev.includes(regulationId)
+        ? prev.filter((id) => id !== regulationId)
+        : [...prev, regulationId]
+    );
+  };
+
+  const handleSubscribeSelected = () => {
+    if (selectedRegulationIds.length === 0) {
+      return;
+    }
+
+    bulkSubscribe.mutate(
+      {
+        caseId,
+        regulationIds: selectedRegulationIds,
+      },
+      {
+        onSuccess: (result) => {
+          if (result.created > 0) {
+            toast({
+              title: t("ai.subscribeSuccessTitle"),
+              description: t("ai.subscribeSuccessDesc", {
+                count: result.created,
+              }),
+            });
+          }
+
+          if (result.failed.length > 0) {
+            toast({
+              title: t("ai.subscribePartialTitle"),
+              description: t("ai.subscribePartialDesc", {
+                count: result.failed.length,
+              }),
+              variant: "destructive",
+            });
+          }
+
+          setShowSubscribeDialog(false);
+          setSelectedRegulationIds([]);
+        },
+      }
+    );
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -215,7 +349,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => generateLinks()}
+              onClick={handleGenerateSuggestions}
               disabled={isGenerating}
               className="text-xs"
             >
@@ -242,7 +376,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
               </p>
               <Button
                 size="sm"
-                onClick={() => generateLinks()}
+                onClick={handleGenerateSuggestions}
                 disabled={isGenerating}
                 className="bg-[#D97706] hover:bg-[#B45309] text-white"
               >
@@ -286,8 +420,205 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
           </div>
         </div>
       </div>
+
+      <Dialog open={showSubscribeDialog} onOpenChange={setShowSubscribeDialog}>
+        <DialogContent size="lg">
+          <DialogHeader icon={<Bell className="h-5 w-5" />}>
+            <DialogTitle>{t("ai.highScorePromptTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("ai.highScorePromptDesc")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogBody className="space-y-3 max-h-[420px]">
+            {subscriptionCandidates.map((candidate) => {
+              const canSelect =
+                !candidate.alreadySubscribed && candidate.isTrustedSource;
+              const isSelected = selectedRegulationIds.includes(
+                candidate.regulationId
+              );
+
+              return (
+                <label
+                  key={candidate.regulationId}
+                  className={cn(
+                    "flex items-start gap-3 rounded-xl border p-3",
+                    canSelect
+                      ? "cursor-pointer border-slate-200 hover:border-[#D97706]/40"
+                      : "border-slate-200 bg-slate-50 opacity-80 cursor-not-allowed"
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    disabled={!canSelect || bulkSubscribe.isPending}
+                    onChange={() =>
+                      handleToggleRegulationSelection(candidate.regulationId)
+                    }
+                    className="mt-1 h-4 w-4 rounded border-slate-300 text-[#D97706] focus:ring-[#D97706]"
+                  />
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-semibold text-sm text-[#0F2942] truncate">
+                        {candidate.title}
+                      </p>
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-[#0F2942]/10 text-[#0F2942] shrink-0">
+                        {Math.round(candidate.score * 100)}%
+                      </span>
+                    </div>
+                    {candidate.regulationNumber && (
+                      <p className="text-xs text-slate-500 mt-1">
+                        {candidate.regulationNumber}
+                      </p>
+                    )}
+                    {candidate.alreadySubscribed && (
+                      <p className="text-xs text-green-700 mt-1">
+                        {t("ai.alreadySubscribed")}
+                      </p>
+                    )}
+                    {!candidate.alreadySubscribed && !candidate.isTrustedSource && (
+                      <p className="text-xs text-amber-700 mt-1">
+                        {candidate.sourceUrl
+                          ? t("ai.notTrustedSource")
+                          : t("ai.missingSource")}
+                      </p>
+                    )}
+                  </div>
+                </label>
+              );
+            })}
+          </DialogBody>
+
+          <DialogFooter className="items-center justify-between">
+            <p className="text-xs text-slate-500">
+              {t("ai.selectedCount", { count: selectedRegulationIds.length })}
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowSubscribeDialog(false)}
+                disabled={bulkSubscribe.isPending}
+              >
+                {t("ai.skipForNow")}
+              </Button>
+              <Button
+                onClick={handleSubscribeSelected}
+                disabled={
+                  selectedRegulationIds.length === 0 || bulkSubscribe.isPending
+                }
+                className="bg-[#D97706] hover:bg-[#B45309] text-white"
+              >
+                {bulkSubscribe.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  t("ai.subscribeSelected")
+                )}
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
+}
+
+function normalizeSimilarityScore(link: CaseRegulationLink): number {
+  const rawScore =
+    link.similarity_score ??
+    link.similarityScore ??
+    0;
+  const score =
+    typeof rawScore === "number" ? rawScore : Number.parseFloat(rawScore);
+  if (Number.isNaN(score)) {
+    return 0;
+  }
+  if (score > 1) {
+    return Math.max(0, Math.min(1, score / 100));
+  }
+  return Math.max(0, Math.min(1, score));
+}
+
+function getLinkRegulationId(link: CaseRegulationLink): number | null {
+  const id = link.regulation_id ?? link.regulationId;
+  return Number.isInteger(id) && (id as number) > 0 ? (id as number) : null;
+}
+
+function getLinkRegulationTitle(link: CaseRegulationLink): string {
+  return (
+    link.regulation?.title ||
+    (getLinkRegulationId(link)
+      ? `Regulation #${getLinkRegulationId(link)}`
+      : "Regulation")
+  );
+}
+
+function getLinkSourceUrl(link: CaseRegulationLink): string | undefined {
+  return (
+    link.regulation?.source_url ||
+    link.regulation?.sourceUrl ||
+    undefined
+  );
+}
+
+function isTrustedSourceUrl(sourceUrl?: string): boolean {
+  if (!sourceUrl) {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(sourceUrl);
+    if (parsed.protocol !== "https:") {
+      return false;
+    }
+
+    const host = parsed.hostname.toLowerCase();
+    return TRUSTED_SOURCE_DOMAINS.some(
+      (domain) => host === domain || host.endsWith(`.${domain}`)
+    );
+  } catch {
+    return false;
+  }
+}
+
+function isLinkSubscribed(link: CaseRegulationLink): boolean {
+  return Boolean(link.isSubscribed || link.is_subscribed);
+}
+
+function buildSubscriptionCandidates(
+  links: CaseRegulationLink[]
+): SubscriptionCandidate[] {
+  const candidatesByRegulationId = new Map<number, SubscriptionCandidate>();
+
+  for (const link of links) {
+    const regulationId = getLinkRegulationId(link);
+    if (!regulationId) {
+      continue;
+    }
+
+    const score = normalizeSimilarityScore(link);
+    if (score < HIGH_SCORE_THRESHOLD) {
+      continue;
+    }
+
+    const sourceUrl = getLinkSourceUrl(link);
+    const existing = candidatesByRegulationId.get(regulationId);
+
+    if (!existing || score > existing.score) {
+      candidatesByRegulationId.set(regulationId, {
+        regulationId,
+        title: getLinkRegulationTitle(link),
+        regulationNumber:
+          link.regulation?.regulation_number || link.regulation?.regulationNumber,
+        score,
+        sourceUrl,
+        alreadySubscribed: isLinkSubscribed(link),
+        isTrustedSource: isTrustedSourceUrl(sourceUrl),
+      });
+    }
+  }
+
+  return [...candidatesByRegulationId.values()].sort((a, b) => b.score - a.score);
 }
 
 /* =============================================================================
@@ -536,7 +867,7 @@ interface SuggestionCardProps {
 }
 
 function SuggestionCard({ link, onVerify, onDismiss, isVerifying, isDismissing }: SuggestionCardProps) {
-  const confidence = Math.round((link.similarity_score || 0) * 100);
+  const confidence = Math.round(normalizeSimilarityScore(link) * 100);
   const isVerified = link.verified;
 
   const confidenceColor =
@@ -573,11 +904,11 @@ function SuggestionCard({ link, onVerify, onDismiss, isVerifying, isDismissing }
         </div>
 
         <h4 className="font-bold text-[#0F2942] text-base mb-2">
-          {link.regulation?.title || `Regulation #${link.regulation_id}`}
+          {getLinkRegulationTitle(link)}
         </h4>
-        {link.regulation?.regulation_number && (
+        {(link.regulation?.regulation_number || link.regulation?.regulationNumber) && (
           <p className="text-xs text-slate-500 mb-2">
-            {link.regulation.regulation_number}
+            {link.regulation?.regulation_number || link.regulation?.regulationNumber}
           </p>
         )}
         <p className="text-sm text-slate-600 leading-relaxed italic border-l-4 border-[#D97706]/30 pl-3 mb-4 bg-slate-50 py-2 pr-2 rounded-r-lg">

@@ -53,20 +53,29 @@ export interface CreateCaseInput {
 export interface CaseRegulationLink {
   id: number;
   case_id: number;
+  caseId?: number;
   regulation_id: number;
-  similarity_score: number;
+  regulationId?: number;
+  similarity_score: number | string;
+  similarityScore?: number | string;
   method: "ai" | "manual" | "hybrid";
   verified: boolean;
+  isSubscribed?: boolean;
+  is_subscribed?: boolean;
   regulation?: Regulation;
   created_at: string;
+  createdAt?: string;
 }
 
 export interface Regulation {
   id: number;
   title: string;
   regulation_number?: string;
+  regulationNumber?: string;
   category?: string;
   jurisdiction?: string;
   status: string;
+  source_url?: string;
+  sourceUrl?: string;
   created_at: string;
 }
