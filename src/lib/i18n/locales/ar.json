@@ -274,6 +274,17 @@
         "noAiSuggestions": "لا توجد اقتراحات ذكاء اصطناعي بعد",
         "noAiSuggestionsDesc": "انقر على \"تحديث\" لإنشاء مطابقات الأنظمة",
         "foundMatches": "تم العثور على {{count}} مطابقة محتملة",
+        "docExtractionProgressTitle": "استخراج محتوى المستندات جارٍ",
+        "docExtractionProgressDesc": "{{ready}} جاهز، {{pending}} قيد المعالجة، {{failed}} فشل، {{unsupported}} غير مدعوم.",
+        "docExtractionQueuedTitle": "تمت جدولة المستندات للاستخراج",
+        "docExtractionQueuedDesc": "تمت جدولة {{count}} مستند/مستندات لإثراء إنشاء الاقتراحات القادم.",
+        "docExtractionStatus": {
+            "pending": "الذكاء الاصطناعي: انتظار",
+            "processing": "الذكاء الاصطناعي: معالجة",
+            "ready": "الذكاء الاصطناعي: جاهز",
+            "failed": "الذكاء الاصطناعي: فشل",
+            "unsupported": "الذكاء الاصطناعي: غير مدعوم"
+        },
         "suggestions": "الاقتراحات",
         "caseDescription": "وصف القضية",
         "noDescription": "لم يتم تقديم وصف.",

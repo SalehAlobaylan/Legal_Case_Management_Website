@@ -274,6 +274,17 @@
         "noAiSuggestions": "No AI suggestions yet",
         "noAiSuggestionsDesc": "Click \"Refresh\" to generate regulation matches",
         "foundMatches": "Found {{count}} potential regulation matches",
+        "docExtractionProgressTitle": "Document extraction in progress",
+        "docExtractionProgressDesc": "{{ready}} ready, {{pending}} pending, {{failed}} failed, {{unsupported}} unsupported.",
+        "docExtractionQueuedTitle": "Documents queued for extraction",
+        "docExtractionQueuedDesc": "{{count}} document(s) queued to enrich the next AI generation.",
+        "docExtractionStatus": {
+            "pending": "AI Pending",
+            "processing": "AI Processing",
+            "ready": "AI Ready",
+            "failed": "AI Failed",
+            "unsupported": "AI Unsupported"
+        },
         "suggestions": "Suggestions",
         "caseDescription": "Case Description",
         "noDescription": "No description provided.",

@@ -157,6 +157,32 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
   const handleGenerateSuggestions = () => {
     setPromptAfterGenerate(true);
     generateLinks(undefined, {
+      onSuccess: (result) => {
+        const meta = result.generationMeta;
+        if (!meta) {
+          return;
+        }
+
+        const warningCount = meta.docsPending + meta.docsFailed + meta.docsUnsupported;
+        if (warningCount > 0) {
+          toast({
+            title: t("cases.docExtractionProgressTitle"),
+            description: t("cases.docExtractionProgressDesc", {
+              ready: meta.docsReady,
+              pending: meta.docsPending,
+              failed: meta.docsFailed,
+              unsupported: meta.docsUnsupported,
+            }),
+          });
+        } else if (meta.docsQueued > 0) {
+          toast({
+            title: t("cases.docExtractionQueuedTitle"),
+            description: t("cases.docExtractionQueuedDesc", {
+              count: meta.docsQueued,
+            }),
+          });
+        }
+      },
       onError: () => {
         setPromptAfterGenerate(false);
       },
@@ -727,6 +753,36 @@ function DocumentsTab({ documents, isLoading, onUpload, onDelete, isUploading }:
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  const getExtractionStyle = (status?: Document["extractionStatus"]) => {
+    switch (status) {
+      case "ready":
+        return "bg-green-100 text-green-700 border-green-200";
+      case "processing":
+        return "bg-blue-100 text-blue-700 border-blue-200";
+      case "failed":
+        return "bg-red-100 text-red-700 border-red-200";
+      case "unsupported":
+        return "bg-amber-100 text-amber-700 border-amber-200";
+      default:
+        return "bg-slate-100 text-slate-600 border-slate-200";
+    }
+  };
+
+  const getExtractionLabel = (status?: Document["extractionStatus"]) => {
+    switch (status) {
+      case "ready":
+        return t("cases.docExtractionStatus.ready");
+      case "processing":
+        return t("cases.docExtractionStatus.processing");
+      case "failed":
+        return t("cases.docExtractionStatus.failed");
+      case "unsupported":
+        return t("cases.docExtractionStatus.unsupported");
+      default:
+        return t("cases.docExtractionStatus.pending");
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Hidden file input */}
@@ -801,7 +857,17 @@ function DocumentsTab({ documents, isLoading, onUpload, onDelete, isUploading }:
                         <div className="p-2 bg-slate-50 rounded-lg">
                           {getFileIcon(doc.mimeType)}
                         </div>
-                        <p className="font-bold text-[#0F2942] text-sm">{doc.fileName}</p>
+                        <div>
+                          <p className="font-bold text-[#0F2942] text-sm">{doc.fileName}</p>
+                          <span
+                            className={cn(
+                              "mt-1 inline-flex rounded border px-1.5 py-0.5 text-[10px] font-bold",
+                              getExtractionStyle(doc.extractionStatus)
+                            )}
+                          >
+                            {getExtractionLabel(doc.extractionStatus)}
+                          </span>
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -869,6 +935,12 @@ interface SuggestionCardProps {
 function SuggestionCard({ link, onVerify, onDismiss, isVerifying, isDismissing }: SuggestionCardProps) {
   const confidence = Math.round(normalizeSimilarityScore(link) * 100);
   const isVerified = link.verified;
+  const evidence = (link.evidence_sources || link.evidenceSources || []).filter(
+    (item) => item && typeof item === "object"
+  );
+  const documentEvidence = evidence
+    .filter((item) => item.source === "document")
+    .slice(0, 2);
 
   const confidenceColor =
     confidence > 90
@@ -914,6 +986,18 @@ function SuggestionCard({ link, onVerify, onDismiss, isVerifying, isDismissing }
         <p className="text-sm text-slate-600 leading-relaxed italic border-l-4 border-[#D97706]/30 pl-3 mb-4 bg-slate-50 py-2 pr-2 rounded-r-lg">
           Matched via {link.method || "AI"} analysis
         </p>
+        {documentEvidence.length > 0 && (
+          <div className="mb-4 flex flex-wrap gap-2">
+            {documentEvidence.map((item, index) => (
+              <span
+                key={`${item.fragment_id || index}`}
+                className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-bold text-slate-600"
+              >
+                {item.document_name || `Document #${item.document_id || "?"}`}
+              </span>
+            ))}
+          </div>
+        )}
 
         {!isVerified && (
           <div className="flex gap-3 pt-2">

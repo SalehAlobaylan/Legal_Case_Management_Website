@@ -14,6 +14,10 @@ export interface Document {
   uploadedBy: number;
   uploadedByName?: string;
   createdAt: string;
+  extractionStatus?: "pending" | "processing" | "ready" | "failed" | "unsupported";
+  extractionMethod?: string | null;
+  extractionErrorCode?: string | null;
+  extractionWarnings?: string[];
 }
 
 export interface UploadProgress {
