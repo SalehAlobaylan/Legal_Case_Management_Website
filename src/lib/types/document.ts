@@ -18,6 +18,27 @@ export interface Document {
   extractionMethod?: string | null;
   extractionErrorCode?: string | null;
   extractionWarnings?: string[];
+  insightsStatus?: "pending" | "processing" | "ready" | "failed" | "unsupported";
+  insightsUpdatedAt?: string | null;
+  hasInsights?: boolean;
+}
+
+export interface DocumentInsightHighlight {
+  snippet: string;
+  score: number;
+  sentenceStart: number;
+  sentenceEnd: number;
+}
+
+export interface DocumentInsights {
+  documentId: number;
+  status: "pending" | "processing" | "ready" | "failed" | "unsupported";
+  summary: string | null;
+  highlights: DocumentInsightHighlight[];
+  method: string | null;
+  errorCode: string | null;
+  warnings: string[];
+  updatedAt: string | null;
 }
 
 export interface UploadProgress {

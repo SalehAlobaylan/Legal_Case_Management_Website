@@ -13,6 +13,8 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Edit2,
   Sparkles,
   CheckCircle,
@@ -26,6 +28,8 @@ import {
   FileText,
   Image as ImageIcon,
   Loader2,
+  Brain,
+  RotateCcw,
 } from "lucide-react";
 import { useCase } from "@/lib/hooks/use-cases";
 import {
@@ -35,7 +39,14 @@ import {
   useDismissLink,
   useBulkSubscribeRegulations,
 } from "@/lib/hooks/use-ai-links";
-import { useDocuments, useUploadDocument, useDeleteDocument, getDocumentDownloadUrl } from "@/lib/hooks/use-documents";
+import {
+  useDocuments,
+  useUploadDocument,
+  useDeleteDocument,
+  getDocumentDownloadUrl,
+  useDocumentInsights,
+  useRefreshDocumentInsights,
+} from "@/lib/hooks/use-documents";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -345,6 +356,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
             <DetailsTab case_={case_} />
           ) : (
             <DocumentsTab
+              caseId={caseId}
               documents={documents || []}
               isLoading={isLoadingDocuments}
               onUpload={handleFileUpload}
@@ -723,6 +735,7 @@ function DetailsTab({ case_ }: DetailsTabProps) {
    ============================================================================= */
 
 interface DocumentsTabProps {
+  caseId: number;
   documents: Document[];
   isLoading: boolean;
   onUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -730,7 +743,214 @@ interface DocumentsTabProps {
   isUploading: boolean;
 }
 
-function DocumentsTab({ documents, isLoading, onUpload, onDelete, isUploading }: DocumentsTabProps) {
+interface DocumentRowProps {
+  doc: Document;
+  caseId: number;
+  onDelete: (docId: number) => void;
+  formatFileSize: (bytes: number) => string;
+  getFileIcon: (mimeType: string) => React.ReactNode;
+  getExtractionStyle: (status?: Document["extractionStatus"]) => string;
+  getExtractionLabel: (status?: Document["extractionStatus"]) => string;
+}
+
+function DocumentRow({
+  doc,
+  caseId,
+  onDelete,
+  formatFileSize,
+  getFileIcon,
+  getExtractionStyle,
+  getExtractionLabel,
+}: DocumentRowProps) {
+  const { t } = useI18n();
+  const [isExpanded, setIsExpanded] = React.useState(false);
+  const { data: insights, isLoading: isLoadingInsights } = useDocumentInsights(
+    doc.id,
+    isExpanded
+  );
+  const refreshInsights = useRefreshDocumentInsights(caseId);
+
+  const insightStatus = insights?.status || doc.insightsStatus || "pending";
+  const insightStatusStyle = getInsightsStyle(insightStatus);
+  const insightStatusLabel = getInsightsLabel(t, insightStatus);
+  const highlights = insights?.highlights || [];
+
+  return (
+    <>
+      <tr className="hover:bg-slate-50 transition-colors group">
+        <td className="px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-slate-50 rounded-lg">{getFileIcon(doc.mimeType)}</div>
+            <div>
+              <p className="font-bold text-[#0F2942] text-sm">{doc.fileName}</p>
+              <span
+                className={cn(
+                  "mt-1 inline-flex rounded border px-1.5 py-0.5 text-[10px] font-bold",
+                  getExtractionStyle(doc.extractionStatus)
+                )}
+              >
+                {getExtractionLabel(doc.extractionStatus)}
+              </span>
+            </div>
+          </div>
+        </td>
+        <td className="px-6 py-4">
+          <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-bold border border-slate-200">
+            {doc.mimeType?.split("/")[1]?.toUpperCase() || "FILE"}
+          </span>
+        </td>
+        <td className="px-6 py-4 text-sm text-slate-600">
+          {doc.createdAt ? new Date(doc.createdAt).toLocaleDateString() : "Unknown"}
+        </td>
+        <td className="px-6 py-4 text-sm text-slate-600">{formatFileSize(doc.fileSize)}</td>
+        <td className="px-6 py-4 text-right">
+          <div className="flex items-center justify-end gap-2">
+            <button
+              onClick={() => setIsExpanded((current) => !current)}
+              className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-xs font-bold text-slate-600 hover:bg-slate-100"
+              title={t("cases.docInsightsToggle")}
+            >
+              <Brain className="h-3.5 w-3.5" />
+              {insightStatusLabel}
+              {isExpanded ? (
+                <ChevronUp className="h-3.5 w-3.5" />
+              ) : (
+                <ChevronDown className="h-3.5 w-3.5" />
+              )}
+            </button>
+            <a
+              href={getDocumentDownloadUrl(doc.id)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-1.5 hover:bg-slate-100 rounded text-slate-500 hover:text-[#0F2942]"
+              title="Preview"
+            >
+              <Eye className="h-4 w-4" />
+            </a>
+            <a
+              href={getDocumentDownloadUrl(doc.id)}
+              download
+              className="p-1.5 hover:bg-slate-100 rounded text-slate-500 hover:text-[#0F2942]"
+              title="Download"
+            >
+              <Download className="h-4 w-4" />
+            </a>
+            <button
+              onClick={() => onDelete(doc.id)}
+              className="p-1.5 hover:bg-red-50 rounded text-slate-400 hover:text-red-500"
+              title="Delete"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        </td>
+      </tr>
+      {isExpanded && (
+        <tr className="bg-slate-50/60">
+          <td colSpan={5} className="px-6 py-4">
+            <div className="rounded-xl border border-slate-200 bg-white p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      "inline-flex rounded border px-2 py-1 text-[10px] font-bold uppercase",
+                      insightStatusStyle
+                    )}
+                  >
+                    {insightStatusLabel}
+                  </span>
+                  <p className="text-xs text-slate-500">{t("cases.docInsightsTitle")}</p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs"
+                  onClick={() => refreshInsights.mutate(doc.id)}
+                  disabled={refreshInsights.isPending}
+                >
+                  {refreshInsights.isPending ? (
+                    <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <RotateCcw className="mr-1 h-3.5 w-3.5" />
+                  )}
+                  {t("cases.docInsightsRefresh")}
+                </Button>
+              </div>
+
+              {isLoadingInsights && !insights ? (
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {t("common.loading")}
+                </div>
+              ) : insightStatus === "pending" || insightStatus === "processing" ? (
+                <p className="text-sm text-slate-600">
+                  {t("cases.docInsightsPendingDesc")}
+                </p>
+              ) : insightStatus === "ready" ? (
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase text-slate-500">
+                      {t("cases.docInsightsSummary")}
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-slate-700">
+                      {insights?.summary || t("cases.docInsightsNoSummary")}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold uppercase text-slate-500">
+                      {t("cases.docInsightsHighlights")}
+                    </p>
+                    {highlights.length === 0 ? (
+                      <p className="mt-1 text-sm text-slate-500">
+                        {t("cases.docInsightsNoHighlights")}
+                      </p>
+                    ) : (
+                      <div className="mt-2 space-y-2">
+                        {highlights.map((highlight, index) => (
+                          <div
+                            key={`${doc.id}-${index}`}
+                            className="rounded-lg border border-slate-200 bg-slate-50 p-3"
+                          >
+                            <div className="mb-1 text-[10px] font-bold uppercase text-slate-500">
+                              {t("cases.docInsightsScore", {
+                                score: Math.round((highlight.score || 0) * 100),
+                              })}
+                            </div>
+                            <p className="text-sm text-slate-700">{highlight.snippet}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm text-red-600">{t("cases.docInsightsFailedDesc")}</p>
+                  {insights?.warnings?.length ? (
+                    <ul className="list-disc pl-5 text-xs text-slate-500">
+                      {insights.warnings.map((warning, index) => (
+                        <li key={`${doc.id}-warn-${index}`}>{warning}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              )}
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
+  );
+}
+
+function DocumentsTab({
+  caseId,
+  documents,
+  isLoading,
+  onUpload,
+  onDelete,
+  isUploading,
+}: DocumentsTabProps) {
   const { t } = useI18n();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -851,65 +1071,16 @@ function DocumentsTab({ documents, isLoading, onUpload, onDelete, isUploading }:
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {documents.map((doc) => (
-                  <tr key={doc.id} className="hover:bg-slate-50 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-slate-50 rounded-lg">
-                          {getFileIcon(doc.mimeType)}
-                        </div>
-                        <div>
-                          <p className="font-bold text-[#0F2942] text-sm">{doc.fileName}</p>
-                          <span
-                            className={cn(
-                              "mt-1 inline-flex rounded border px-1.5 py-0.5 text-[10px] font-bold",
-                              getExtractionStyle(doc.extractionStatus)
-                            )}
-                          >
-                            {getExtractionLabel(doc.extractionStatus)}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-bold border border-slate-200">
-                        {doc.mimeType?.split("/")[1]?.toUpperCase() || "FILE"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">
-                      {doc.createdAt ? new Date(doc.createdAt).toLocaleDateString() : "Unknown"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">
-                      {formatFileSize(doc.fileSize)}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <a
-                          href={getDocumentDownloadUrl(doc.id)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-1.5 hover:bg-slate-100 rounded text-slate-500 hover:text-[#0F2942]"
-                          title="Preview"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </a>
-                        <a
-                          href={getDocumentDownloadUrl(doc.id)}
-                          download
-                          className="p-1.5 hover:bg-slate-100 rounded text-slate-500 hover:text-[#0F2942]"
-                          title="Download"
-                        >
-                          <Download className="h-4 w-4" />
-                        </a>
-                        <button
-                          onClick={() => onDelete(doc.id)}
-                          className="p-1.5 hover:bg-red-50 rounded text-slate-400 hover:text-red-500"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                  <DocumentRow
+                    key={doc.id}
+                    doc={doc}
+                    caseId={caseId}
+                    onDelete={onDelete}
+                    formatFileSize={formatFileSize}
+                    getFileIcon={getFileIcon}
+                    getExtractionStyle={getExtractionStyle}
+                    getExtractionLabel={getExtractionLabel}
+                  />
                 ))}
               </tbody>
             </table>
@@ -918,6 +1089,39 @@ function DocumentsTab({ documents, isLoading, onUpload, onDelete, isUploading }:
       )}
     </div>
   );
+}
+
+function getInsightsStyle(status?: Document["insightsStatus"]) {
+  switch (status) {
+    case "ready":
+      return "bg-emerald-100 text-emerald-700 border-emerald-200";
+    case "processing":
+      return "bg-blue-100 text-blue-700 border-blue-200";
+    case "failed":
+      return "bg-red-100 text-red-700 border-red-200";
+    case "unsupported":
+      return "bg-amber-100 text-amber-700 border-amber-200";
+    default:
+      return "bg-slate-100 text-slate-600 border-slate-200";
+  }
+}
+
+function getInsightsLabel(
+  t: ReturnType<typeof useI18n>["t"],
+  status?: Document["insightsStatus"]
+) {
+  switch (status) {
+    case "ready":
+      return t("cases.docInsightsStatus.ready");
+    case "processing":
+      return t("cases.docInsightsStatus.processing");
+    case "failed":
+      return t("cases.docInsightsStatus.failed");
+    case "unsupported":
+      return t("cases.docInsightsStatus.unsupported");
+    default:
+      return t("cases.docInsightsStatus.pending");
+  }
 }
 
 /* =============================================================================

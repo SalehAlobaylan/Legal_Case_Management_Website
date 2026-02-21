@@ -62,6 +62,10 @@ export const endpoints = {
     upload: (caseId: number) => `${API_BASE}/api/cases/${caseId}/documents`,
     download: (docId: number) => `${API_BASE}/api/documents/${docId}/download`,
     delete: (docId: number) => `${API_BASE}/api/documents/${docId}`,
+    insights: (docId: number) => `${API_BASE}/api/documents/${docId}/insights`,
+    refreshInsights: (docId: number) =>
+      `${API_BASE}/api/documents/${docId}/insights/refresh`,
+    insightsHealth: `${API_BASE}/api/documents/insights/health`,
   },
 
   // Clients

@@ -8,6 +8,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { documentsApi } from "@/lib/api/documents";
+import type { DocumentInsights } from "@/lib/types/document";
 
 /**
  * Hook for fetching documents for a case
@@ -54,4 +55,39 @@ export function useDeleteDocument() {
  */
 export function getDocumentDownloadUrl(docId: number): string {
   return documentsApi.getDownloadUrl(docId);
+}
+
+/**
+ * Hook for fetching case-focused AI insights for a document
+ */
+export function useDocumentInsights(docId: number, enabled: boolean = true) {
+  return useQuery({
+    queryKey: ["document-insights", docId],
+    queryFn: () => documentsApi.getDocumentInsights(docId),
+    enabled: Boolean(docId) && enabled,
+    refetchInterval: (query) => {
+      const state = query.state.data as DocumentInsights | undefined;
+      if (!state) {
+        return 10000;
+      }
+      return state.status === "pending" || state.status === "processing"
+        ? 10000
+        : false;
+    },
+  });
+}
+
+/**
+ * Hook for forcing document insights regeneration
+ */
+export function useRefreshDocumentInsights(caseId: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (docId: number) => documentsApi.refreshDocumentInsights(docId),
+    onSuccess: (data) => {
+      queryClient.setQueryData(["document-insights", data.documentId], data);
+      queryClient.invalidateQueries({ queryKey: ["documents", caseId] });
+    },
+  });
 }

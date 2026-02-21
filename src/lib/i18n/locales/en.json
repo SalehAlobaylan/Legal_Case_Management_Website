@@ -285,6 +285,23 @@
             "failed": "AI Failed",
             "unsupported": "AI Unsupported"
         },
+        "docInsightsTitle": "Case-focused document insights",
+        "docInsightsToggle": "Toggle document insights",
+        "docInsightsRefresh": "Refresh insights",
+        "docInsightsPendingDesc": "Insights are being prepared. Please check again shortly.",
+        "docInsightsSummary": "Summary",
+        "docInsightsNoSummary": "No summary is available yet.",
+        "docInsightsHighlights": "Related highlights",
+        "docInsightsNoHighlights": "No related highlights were found for this case.",
+        "docInsightsScore": "Relevance {{score}}%",
+        "docInsightsFailedDesc": "Insights could not be generated for this document.",
+        "docInsightsStatus": {
+            "pending": "Insights Pending",
+            "processing": "Insights Processing",
+            "ready": "Insights Ready",
+            "failed": "Insights Failed",
+            "unsupported": "Insights Unsupported"
+        },
         "suggestions": "Suggestions",
         "caseDescription": "Case Description",
         "noDescription": "No description provided.",

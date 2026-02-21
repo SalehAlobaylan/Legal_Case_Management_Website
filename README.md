@@ -65,6 +65,9 @@ A high-performance RESTful API handling business logic, authentication, and data
 - Hybrid linking: AI-generated and manual links
 - High-score subscription suggestion dialog with preselected regulations and user opt-out checkboxes
 - Bulk subscription submission directly from the case AI suggestions flow
+- Documents tab now includes inline AI insights per attachment (summary + related highlights)
+- Insights status badges and refresh action for each case document
+- Automatic refresh behavior when insights are still processing
 
 ### User Management
 

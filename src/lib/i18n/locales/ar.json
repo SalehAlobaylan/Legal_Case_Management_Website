@@ -285,6 +285,23 @@
             "failed": "الذكاء الاصطناعي: فشل",
             "unsupported": "الذكاء الاصطناعي: غير مدعوم"
         },
+        "docInsightsTitle": "رؤى المستند المرتبطة بالقضية",
+        "docInsightsToggle": "إظهار/إخفاء رؤى المستند",
+        "docInsightsRefresh": "تحديث الرؤى",
+        "docInsightsPendingDesc": "يتم الآن تجهيز الرؤى. يرجى المحاولة بعد قليل.",
+        "docInsightsSummary": "الملخص",
+        "docInsightsNoSummary": "لا يوجد ملخص متاح حالياً.",
+        "docInsightsHighlights": "المقتطفات المرتبطة",
+        "docInsightsNoHighlights": "لم يتم العثور على مقتطفات مرتبطة لهذه القضية.",
+        "docInsightsScore": "درجة الارتباط {{score}}%",
+        "docInsightsFailedDesc": "تعذر إنشاء الرؤى لهذا المستند.",
+        "docInsightsStatus": {
+            "pending": "الرؤى: انتظار",
+            "processing": "الرؤى: معالجة",
+            "ready": "الرؤى: جاهزة",
+            "failed": "الرؤى: فشل",
+            "unsupported": "الرؤى: غير مدعومة"
+        },
         "suggestions": "الاقتراحات",
         "caseDescription": "وصف القضية",
         "noDescription": "لم يتم تقديم وصف.",
