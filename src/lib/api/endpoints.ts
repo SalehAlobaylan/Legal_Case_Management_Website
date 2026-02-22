@@ -110,8 +110,15 @@ export const endpoints = {
   settings: {
     notifications: `${API_BASE}/api/settings/notifications`,
     organization: `${API_BASE}/api/settings/organization`,
+    organizationLeave: `${API_BASE}/api/settings/organization/leave`,
     team: `${API_BASE}/api/settings/team`,
     teamInvite: `${API_BASE}/api/settings/team/invite`,
+    teamInvitations: `${API_BASE}/api/settings/team/invitations`,
+    teamAcceptInvitation: `${API_BASE}/api/settings/team/invitations/accept`,
+    teamUpdateRole: (memberId: string) =>
+      `${API_BASE}/api/settings/team/members/${memberId}/role`,
+    teamRemoveMember: (memberId: string) =>
+      `${API_BASE}/api/settings/team/members/${memberId}`,
     billing: `${API_BASE}/api/settings/billing`,
     security: {
       changePassword: `${API_BASE}/api/settings/security/password`,

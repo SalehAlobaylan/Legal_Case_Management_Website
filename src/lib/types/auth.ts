@@ -7,7 +7,7 @@
 export type UserRole = "admin" | "senior_lawyer" | "lawyer" | "paralegal" | "clerk";
 
 export interface User {
-  id: number;
+  id: string;
   email: string;
   fullName: string;
   role: UserRole;
@@ -35,6 +35,15 @@ export interface Organization {
   updatedAt: string;
 }
 
+export type RegisterInputPersonal = {
+  registrationType?: "personal";
+  email: string;
+  password: string;
+  confirmPassword: string;
+  fullName: string;
+  role?: UserRole;
+};
+
 export type RegisterInputJoin = {
   registrationType: "join";
   email: string;
@@ -56,7 +65,7 @@ export type RegisterInputCreate = {
   role?: UserRole;
 };
 
-export type RegisterInput = RegisterInputJoin | RegisterInputCreate;
+export type RegisterInput = RegisterInputPersonal | RegisterInputJoin | RegisterInputCreate;
 
 export interface AuthResponse {
   user: User;

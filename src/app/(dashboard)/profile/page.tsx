@@ -240,7 +240,7 @@ export default function ProfilePage() {
                                                 </div>
 <div className="text-sm">
                                                     <p className="text-[var(--color-text-primary)] font-medium">{isRTL ? "مكتب الفيصل" : "Al-Faisal Law Firm"}</p>
-                                                    <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{t("settings.id")}: #{user?.organizationId || "1001"}</p>
+                                                    <p className="text-xs text-[var(--color-text-muted)] mt-0.5">ID: #{user?.organizationId || "1001"}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-3 group">

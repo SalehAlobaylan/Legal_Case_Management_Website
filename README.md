@@ -75,6 +75,13 @@ A high-performance RESTful API handling business logic, authentication, and data
 - Role-based access control: Admin, Senior Lawyer, Lawyer, Paralegal, Clerk
 - Multi-tenant organization support
 - Secure password hashing with bcrypt
+- Personal-first account onboarding with optional organization creation
+- Invitation-code based organization join flow from Settings
+- Team administration in Settings:
+  - Invite member by email + role
+  - Change member role
+  - Remove member from organization
+  - Leave organization (user moved to personal workspace)
 
 ### Real-Time Updates
 
@@ -129,6 +136,26 @@ NEXT_PUBLIC_AI_SERVICE_URL=http://localhost:8000
 | POST   | /api/auth/register | Register new user |
 | POST   | /api/auth/login    | User login        |
 | GET    | /api/auth/me       | Get current user  |
+
+#### Updated Registration Modes
+- `personal` (default): creates personal workspace without asking org details.
+- `create`: creates an organization and sets user as admin.
+
+From the web app:
+- `/register` now supports:
+  - **Personal** account creation
+  - **Create New Organization**
+- Joining an organization is done after login from:
+  - `/settings` -> Organization tab -> Join by invitation code.
+
+#### Team Management APIs used by the frontend
+- `GET /api/settings/team`
+- `POST /api/settings/team/invite`
+- `POST /api/settings/team/invitations/accept`
+- `PUT /api/settings/team/members/:memberId/role`
+- `DELETE /api/settings/team/members/:memberId`
+- `POST /api/settings/organization/leave`
+- `POST /api/organizations` (create org and switch user context)
 
 ### Cases
 
