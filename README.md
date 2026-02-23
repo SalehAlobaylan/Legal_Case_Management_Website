@@ -273,6 +273,49 @@ docker-compose up -d
 
 ---
 
+## Testing
+
+### Unit Tests (Jest + React Testing Library)
+
+```bash
+npm test              # Run all unit tests
+npm run test:watch    # Watch mode
+npm run test:coverage # Generate coverage report
+```
+
+### E2E Tests (Playwright)
+
+```bash
+npm run test:e2e      # Run E2E tests (requires backend running)
+npm run test:e2e:ui   # Run with Playwright UI
+```
+
+#### E2E Test Coverage
+
+| File | Tests | Coverage |
+|------|-------|----------|
+| `auth.spec.ts` | 7 | Registration, login, protected routes |
+| `cases.spec.ts` | 10 | Case CRUD, 5 case types |
+| `case-details.spec.ts` | 9 | Case details, documents, AI suggestions |
+| `clients.spec.ts` | 10 | Client CRUD, search, filter, export |
+| `client-details.spec.ts` | 8 | Client details, case association |
+| `documents.spec.ts` | 11 | Upload, download, delete, insights |
+| `ai-features.spec.ts` | 12 | AI links, regulation suggestions |
+| `settings.spec.ts` | 18 | Profile, org, notifications, security, billing |
+| `additional-features.spec.ts` | 14 | Filters, dashboard, language, navigation |
+| `user-journey.spec.ts` | 10 | Complete user flows, responsive |
+
+#### E2E Environment
+
+For full-stack E2E tests, create `.env.e2e`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3000
+NEXT_PUBLIC_WS_URL=http://localhost:3000
+```
+
+---
+
 ## License
 
 This project is developed as part of a graduation project for managing legal cases in the Saudi Arabian legal system.
