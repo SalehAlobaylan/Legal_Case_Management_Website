@@ -2,6 +2,11 @@
 
 An AI-powered legal case management platform designed for Saudi legal practitioners. The system leverages semantic similarity to automatically link legal cases with relevant regulations from Saudi Arabian law.
 
+### Brief Outcome (Regulation Upgrade)
+- Regulations list now consumes backend-only data and reflects latest updates.
+- Regulation detail page supports version timeline + side-by-side compare.
+- Discover flow integrates backend MOJ source sync for latest regulation ingestion.
+
 ---
 
 ## System Architecture
@@ -68,6 +73,9 @@ A high-performance RESTful API handling business logic, authentication, and data
 - Documents tab now includes inline AI insights per attachment (summary + related highlights)
 - Insights status badges and refresh action for each case document
 - Automatic refresh behavior when insights are still processing
+- Regulations page now uses backend-only data (no mock fallback)
+- "Discover New" triggers MOJ source sync via backend admin endpoint
+- Regulation detail page supports side-by-side version comparison
 
 ### User Management
 
@@ -98,6 +106,7 @@ A high-performance RESTful API handling business logic, authentication, and data
 - Analytics dashboard with case statistics
 - OpenAPI/Swagger documentation
 - Regulation version detail page (`/regulations/[id]`) with timeline-style history view
+- Version comparison UX with selectable left/right versions and visual diff blocks
 
 
 ---

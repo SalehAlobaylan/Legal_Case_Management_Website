@@ -44,8 +44,11 @@ export const endpoints = {
     list: `${API_BASE}/api/regulations`,
     detail: (id: number) => `${API_BASE}/api/regulations/${id}`,
     versions: (id: number) => `${API_BASE}/api/regulations/${id}/versions`,
+    compare: (id: number) => `${API_BASE}/api/regulations/${id}/compare`,
     search: `${API_BASE}/api/regulations/search`,
     subscribe: `${API_BASE}/api/regulations/subscribe`,
+    sourceSync: `${API_BASE}/api/regulations/source/moj/sync`,
+    sourceHealth: `${API_BASE}/api/regulations/source/moj/health`,
   },
 
   // AI Links

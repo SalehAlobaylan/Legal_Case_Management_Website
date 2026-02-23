@@ -6,7 +6,12 @@
 
 import { apiClient } from "./client";
 import { endpoints } from "./endpoints";
-import type { Regulation, RegulationVersion } from "@/lib/types/regulation";
+import type {
+  MojSourceSyncHealth,
+  Regulation,
+  RegulationComparison,
+  RegulationVersion,
+} from "@/lib/types/regulation";
 
 export interface RegulationFilters {
   status?: string;
@@ -63,6 +68,24 @@ export const regulationsApi = {
   },
 
   /**
+   * Compare two regulation versions
+   */
+  async compareRegulationVersions(
+    id: number,
+    fromVersion: number,
+    toVersion: number
+  ): Promise<RegulationComparison> {
+    const params = new URLSearchParams({
+      fromVersion: String(fromVersion),
+      toVersion: String(toVersion),
+    });
+    const { data } = await apiClient.get<{ comparison: RegulationComparison }>(
+      `${endpoints.regulations.compare(id)}?${params.toString()}`
+    );
+    return data.comparison;
+  },
+
+  /**
    * Search regulations (full-text + semantic)
    */
   async searchRegulations(query: string, topK = 10): Promise<Regulation[]> {
@@ -78,5 +101,25 @@ export const regulationsApi = {
    */
   async subscribeToRegulation(input: SubscribeInput): Promise<void> {
     await apiClient.post(endpoints.regulations.subscribe, input);
+  },
+
+  /**
+   * Trigger MOJ source sync (admin)
+   */
+  async syncMojSource(input?: {
+    maxPages?: number;
+    extractContent?: boolean;
+  }): Promise<void> {
+    await apiClient.post(endpoints.regulations.sourceSync, input || {});
+  },
+
+  /**
+   * Get MOJ source sync health (admin)
+   */
+  async getMojSourceHealth(): Promise<MojSourceSyncHealth> {
+    const { data } = await apiClient.get<{ health: MojSourceSyncHealth }>(
+      endpoints.regulations.sourceHealth
+    );
+    return data.health;
   },
 };

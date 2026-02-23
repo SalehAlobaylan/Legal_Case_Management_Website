@@ -16,9 +16,10 @@ export interface Regulation {
   title: string;
   regulationNumber?: string;
   category?: string;
-  jurisdiction: string;
+  jurisdiction?: string;
   status: RegulationStatus;
-  currentVersionId?: number;
+  sourceUrl?: string;
+  versionsCount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -33,6 +34,38 @@ export interface RegulationVersion {
   contentHash: string;
   metadata?: Record<string, unknown>;
   createdAt: string;
+}
+
+export interface RegulationDiffBlock {
+  type: "equal" | "insert" | "delete";
+  leftSegment: string;
+  rightSegment: string;
+}
+
+export interface RegulationComparison {
+  regulationId: number;
+  fromVersion: number;
+  toVersion: number;
+  leftText: string;
+  rightText: string;
+  diffBlocks: RegulationDiffBlock[];
+  summary: {
+    addedLines: number;
+    deletedLines: number;
+    changed: boolean;
+  };
+}
+
+export interface MojSourceSyncHealth {
+  hasRun: boolean;
+  lastRunAt: string | null;
+  lastStatus: string | null;
+  minutesSinceLastRun: number | null;
+  scannedLastRun: number;
+  versionsCreatedLastRun: number;
+  failedLastRun: number;
+  trackedRegulations: number;
+  trackedWithVersions: number;
 }
 
 export interface RegulationSubscription {
@@ -68,11 +101,9 @@ export const REGULATION_STATUS_CONFIG = {
 };
 
 export const REGULATION_CATEGORIES = [
-  { value: "labor", label: { ar: "العمل", en: "Labor" } },
-  { value: "commercial", label: { ar: "التجاري", en: "Commercial" } },
-  { value: "civil", label: { ar: "المدني", en: "Civil" } },
-  { value: "criminal", label: { ar: "الجنائي", en: "Criminal" } },
-  { value: "administrative", label: { ar: "الإداري", en: "Administrative" } },
-  { value: "family", label: { ar: "الأحوال الشخصية", en: "Family" } },
-  { value: "digital", label: { ar: "الرقمي", en: "Digital" } },
+  { value: "labor_law", label: { ar: "العمل", en: "Labor" } },
+  { value: "commercial_law", label: { ar: "التجاري", en: "Commercial" } },
+  { value: "civil_law", label: { ar: "المدني", en: "Civil" } },
+  { value: "criminal_law", label: { ar: "الجنائي", en: "Criminal" } },
+  { value: "procedural_law", label: { ar: "الإجراءات", en: "Procedural" } },
 ] as const;
