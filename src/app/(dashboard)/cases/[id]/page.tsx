@@ -254,7 +254,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
   };
 
   const handleDeleteDocument = (docId: number) => {
-    if (confirm("Are you sure you want to delete this document?")) {
+    if (confirm(t("documents.confirmDelete"))) {
       deleteDocument.mutate(docId);
     }
   };
@@ -436,6 +436,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
                   onDismiss={() => handleDismissLink(link.id)}
                   isVerifying={verifyLink.isPending}
                   isDismissing={dismissLink.isPending}
+                  t={t}
                 />
               ))}
             </>
@@ -800,7 +801,7 @@ function DocumentRow({
           </span>
         </td>
         <td className="px-6 py-4 text-sm text-slate-600">
-          {doc.createdAt ? new Date(doc.createdAt).toLocaleDateString() : "Unknown"}
+          {doc.createdAt ? new Date(doc.createdAt).toLocaleDateString() : t("common.unknown")}
         </td>
         <td className="px-6 py-4 text-sm text-slate-600">{formatFileSize(doc.fileSize)}</td>
         <td className="px-6 py-4 text-right">
@@ -823,7 +824,7 @@ function DocumentRow({
               target="_blank"
               rel="noopener noreferrer"
               className="p-1.5 hover:bg-slate-100 rounded text-slate-500 hover:text-[#0F2942]"
-              title="Preview"
+              title={t("common.preview")}
             >
               <Eye className="h-4 w-4" />
             </a>
@@ -831,14 +832,14 @@ function DocumentRow({
               href={getDocumentDownloadUrl(doc.id)}
               download
               className="p-1.5 hover:bg-slate-100 rounded text-slate-500 hover:text-[#0F2942]"
-              title="Download"
+              title={t("common.download")}
             >
               <Download className="h-4 w-4" />
             </a>
             <button
               onClick={() => onDelete(doc.id)}
               className="p-1.5 hover:bg-red-50 rounded text-slate-400 hover:text-red-500"
-              title="Delete"
+              title={t("common.delete")}
             >
               <Trash2 className="h-4 w-4" />
             </button>
@@ -1134,9 +1135,10 @@ interface SuggestionCardProps {
   onDismiss: () => void;
   isVerifying: boolean;
   isDismissing: boolean;
+  t: ReturnType<typeof useI18n>["t"];
 }
 
-function SuggestionCard({ link, onVerify, onDismiss, isVerifying, isDismissing }: SuggestionCardProps) {
+function SuggestionCard({ link, onVerify, onDismiss, isVerifying, isDismissing, t }: SuggestionCardProps) {
   const confidence = Math.round(normalizeSimilarityScore(link) * 100);
   const isVerified = link.verified;
   const evidence = (link.evidence_sources || link.evidenceSources || []).filter(
@@ -1170,7 +1172,7 @@ function SuggestionCard({ link, onVerify, onDismiss, isVerifying, isDismissing }
               confidenceColor
             )}
           >
-            {confidence}% Confidence
+            {confidence}{t("ai.confidencePercent")}
           </span>
           {isVerified && (
             <div className="bg-green-100 p-1 rounded-full">

@@ -33,7 +33,45 @@
         "inactive": "Inactive",
         "pending": "Pending",
         "actions": "Actions",
-        "connect": "Connect"
+        "connect": "Connect",
+        "loadMore": "Load More",
+        "notAvailable": "N/A",
+        "unknown": "Unknown",
+        "notProvided": "Not provided",
+        "days": "days",
+        "preview": "Preview",
+        "dismiss": "Dismiss",
+        "processing": "Processing...",
+        "downloading": "Downloading...",
+        "creating": "Creating...",
+        "inviting": "Inviting...",
+        "joining": "Joining...",
+        "leaving": "Leaving...",
+        "cancelling": "Cancelling...",
+        "saving": "Saving...",
+        "uploading": "Uploading...",
+        "updating": "Updating..."
+    },
+    "table": {
+        "name": "Name",
+        "type": "Type",
+        "date": "Date",
+        "size": "Size",
+        "status": "Status"
+    },
+    "roles": {
+        "admin": "Administrator",
+        "seniorLawyer": "Senior Lawyer",
+        "lawyer": "Lawyer",
+        "paralegal": "Paralegal",
+        "clerk": "Clerk",
+        "attorneyAtLaw": "Attorney at Law"
+    },
+    "time": {
+        "justNow": "Just now",
+        "minutesAgo": "{{count}}m ago",
+        "hoursAgo": "{{count}}h ago",
+        "daysAgo": "{{count}}d ago"
     },
     "auth": {
         "login": "Login",
@@ -92,6 +130,15 @@
         "oauthFailed": "Google Sign-In failed. Please try again.",
         "oauthAccountExists": "An account with this Google account already exists",
         "oauthOnlyAccount": "This account uses Google Sign-In. Please sign in with Google."
+    },
+    "clients": {
+        "loadingDetails": "Loading client details...",
+        "backToDirectory": "Back to Client Directory",
+        "types": {
+            "corporate": "Corporate",
+            "individual": "Individual"
+        },
+"statusActive": "Active"
     },
     "nav": {
         "home": "Home",
@@ -258,6 +305,7 @@
         "searchCases": "Search cases...",
         "type": "Type",
         "unableToLoad": "Unable to load cases. Please try again.",
+        "loadingCases": "Loading cases...",
         "noResultsFound": "No cases found",
         "adjustFilters": "Try adjusting your filters or search term.",
         "backToDashboard": "Back to Dashboard",
@@ -358,7 +406,7 @@
             "digital": "Digital"
         }
     },
-    "clients": {
+"clients": {
         "title": "Client Directory",
         "subtitle": "Manage client relationships and contact information.",
         "newClient": "New Client",
@@ -367,11 +415,15 @@
         "inactive": "Inactive",
         "totalCases": "Total Cases",
         "clientName": "Client Name",
+        "clientId": "ID",
         "type": "Type",
         "contact": "Contact",
         "cases": "Cases",
         "case": "case",
         "casesPlural": "cases",
+        "backToDirectory": "Back to Client Directory",
+        "associatedCases": "Associated Cases",
+        "viewAllCases": "View All Cases",
         "noClients": "No clients found",
         "noClientsDesc": "Try adjusting your filters or add a new client.",
         "addFirstClient": "Add Your First Client",
@@ -381,9 +433,20 @@
         "clientNotFound": "Client not found",
         "clientNotFoundDesc": "The client you're looking for doesn't exist or may have been removed.",
         "creating": "Creating...",
+        "sendMessageToClient": "Send Message to Client",
+        "sendMessageTo": "Send Message to",
+        "sendMessage": "Send Message",
+        "sending": "Sending...",
+        "message": "Message",
+        "messagePlaceholder": "Enter your message to the client...",
+        "messageType": "Message Type",
+        "messageTypeGeneral": "General Update",
+        "messageTypeCaseUpdate": "Case Update",
+        "messageTypeHearingReminder": "Hearing Reminder",
+        "messageTypeDocumentRequest": "Document Request",
         "types": {
             "individual": "Individual",
-            "company": "Corporate"
+            "corporate": "Corporate"
         }
     },
     "alerts": {
@@ -444,6 +507,14 @@
         "recentActivityLog": "Recent Activity Log",
         "viewFullLog": "VIEW FULL LOG",
         "noRecentActivity": "No recent activity",
+        "productivity": "Productivity",
+        "all": "All",
+        "cases": "Cases",
+        "documents": "Documents",
+        "regulations": "Regulations",
+        "clients": "Clients",
+        "loadMore": "Load More",
+        "total": "total",
         "notifications": "Notifications",
         "security": "Security",
         "integrations": "Integrations",
@@ -550,7 +621,28 @@
             "light": "Light",
             "dark": "Dark",
             "system": "System"
-        }
+        },
+        "userLabel": "User",
+        "personalWorkspace": "Personal workspace",
+        "teamWorkspace": "Team workspace",
+        "createOrganization": "Create Organization",
+        "orgNamePlaceholder": "Organization name",
+        "joinByCode": "Join by Invitation Code",
+        "pasteCodePlaceholder": "Paste invitation code",
+        "emailPlaceholder": "user@email.com",
+        "createAndSwitch": "Create & Switch",
+        "joinOrganization": "Join Organization",
+        "invitationCodeLabel": "Invitation code:",
+        "leaveOrganization": "Leave Organization",
+        "removeMember": "Remove",
+        "members": "member(s)"
+    },
+    "profile": {
+        "initialsFallback": "FA",
+        "defaultOrganization": "Al-Faisal Law Firm",
+        "activeInProgress": "Active & In Progress",
+        "closedAdjudicated": "Closed & Adjudicated",
+        "totalReviews": "Total reviews"
     },
     "documents": {
         "title": "Documents",
@@ -561,7 +653,9 @@
         "dragDrop": "Drag and drop a file here, or click to browse",
         "allowedTypes": "Allowed: {{types}} • Max size: {{size}}",
         "chooseFile": "Choose File",
-        "uploading": "Uploading..."
+        "uploading": "Uploading...",
+        "confirmDelete": "Are you sure you want to delete this document?",
+        "uploadHint": "PDF, DOC, or images up to 10MB"
     },
     "ai": {
         "suggestions": "AI Suggestions",
@@ -586,7 +680,10 @@
         "subscribeSuccessTitle": "Subscriptions created",
         "subscribeSuccessDesc": "Subscribed to {{count}} regulation updates.",
         "subscribePartialTitle": "Some subscriptions failed",
-        "subscribePartialDesc": "{{count}} regulations could not be subscribed."
+        "subscribePartialDesc": "{{count}} regulations could not be subscribed.",
+        "confidencePercent": "% Confidence",
+        "matchedViaAi": "Matched via AI analysis",
+        "linkToCase": "Link to Case"
     },
     "header": {
         "searchPlaceholder": "Search cases, regulations, or documents...",

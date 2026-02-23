@@ -125,7 +125,7 @@ export default function SettingsPage() {
               {t("settings.currentRole")}
             </p>
             <div className="text-xs font-bold text-[#0F2942]">
-              {user?.role || "lawyer"}
+              {user?.role ? t(`roles.${user.role === 'senior_lawyer' ? 'seniorLawyer' : user.role}`) : t("roles.lawyer")}
             </div>
           </div>
         </div>
@@ -187,8 +187,8 @@ function ProfileTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }
           {initials}
         </div>
         <div className="min-w-0 flex-1">
-          <h4 className="text-base md:text-lg font-bold text-[#0F2942] truncate">{user?.fullName || "Loading..."}</h4>
-          <p className="text-sm text-slate-500 mb-2 md:mb-3">{user?.role || "User"}</p>
+          <h4 className="text-base md:text-lg font-bold text-[#0F2942] truncate">{user?.fullName || t("common.loading")}</h4>
+          <p className="text-sm text-slate-500 mb-2 md:mb-3">{user?.role ? t(`roles.${user.role === 'senior_lawyer' ? 'seniorLawyer' : user.role}`) : t("settings.userLabel")}</p>
           <button className="text-xs font-bold text-[#D97706] border border-[#D97706] px-3 py-1.5 rounded-lg hover:bg-orange-50 transition-colors whitespace-nowrap">
             {t("settings.changeAvatar")}
           </button>
@@ -257,20 +257,20 @@ function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; i
   return (
     <div className="space-y-6">
       <div className="bg-[#0F2942] rounded-2xl p-4 md:p-6 text-white shadow-lg">
-        <h4 className="text-lg md:text-xl font-bold">{org?.name || "Organization"}</h4>
+        <h4 className="text-lg md:text-xl font-bold">{org?.name || t("settings.organization")}</h4>
         <p className="text-blue-200 text-xs md:text-sm mt-1">
-          {isPersonalWorkspace ? "Personal workspace" : "Team workspace"} • {members.length} member(s)
+          {isPersonalWorkspace ? t("settings.personalWorkspace") : t("settings.teamWorkspace")} • {members.length} {t("settings.members")}
         </p>
       </div>
 
       {isPersonalWorkspace && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-            <h4 className="font-bold text-[#0F2942]">Create Organization</h4>
+            <h4 className="font-bold text-[#0F2942]">{t("settings.createOrganization")}</h4>
             <input
               value={newOrgName}
               onChange={(e) => setNewOrgName(e.target.value)}
-              placeholder="Organization name"
+              placeholder={t("settings.orgNamePlaceholder")}
               className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706]"
             />
             <Button
@@ -278,16 +278,16 @@ function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; i
               disabled={!newOrgName.trim() || createOrg.isPending}
               onClick={() => createOrg.mutate({ name: newOrgName.trim() })}
             >
-              {createOrg.isPending ? "Creating..." : "Create & Switch"}
+              {createOrg.isPending ? t("common.creating") : t("settings.createAndSwitch")}
             </Button>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-            <h4 className="font-bold text-[#0F2942]">Join by Invitation Code</h4>
+            <h4 className="font-bold text-[#0F2942]">{t("settings.joinByCode")}</h4>
             <input
               value={joinCode}
               onChange={(e) => setJoinCode(e.target.value)}
-              placeholder="Paste invitation code"
+              placeholder={t("settings.pasteCodePlaceholder")}
               className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706]"
             />
             <Button
@@ -295,7 +295,7 @@ function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; i
               disabled={!joinCode.trim() || acceptInvite.isPending}
               onClick={() => acceptInvite.mutate(joinCode.trim())}
             >
-              {acceptInvite.isPending ? "Joining..." : "Join Organization"}
+              {acceptInvite.isPending ? t("common.joining") : t("settings.joinOrganization")}
             </Button>
           </div>
         </div>
@@ -308,7 +308,7 @@ function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; i
             <input
               value={inviteEmail}
               onChange={(e) => setInviteEmail(e.target.value)}
-              placeholder="user@email.com"
+              placeholder={t("settings.emailPlaceholder")}
               className="md:col-span-2 p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706]"
             />
             <select
@@ -316,11 +316,11 @@ function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; i
               onChange={(e) => setInviteRole(e.target.value)}
               className="p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706]"
             >
-              <option value="admin">admin</option>
-              <option value="senior_lawyer">senior_lawyer</option>
-              <option value="lawyer">lawyer</option>
-              <option value="paralegal">paralegal</option>
-              <option value="clerk">clerk</option>
+              <option value="admin">{t("roles.admin")}</option>
+              <option value="senior_lawyer">{t("roles.seniorLawyer")}</option>
+              <option value="lawyer">{t("roles.lawyer")}</option>
+              <option value="paralegal">{t("roles.paralegal")}</option>
+              <option value="clerk">{t("roles.clerk")}</option>
             </select>
           </div>
           <Button
@@ -339,11 +339,11 @@ function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; i
             }
           >
             <Plus size={14} className="mr-2" />
-            {inviteMember.isPending ? "Inviting..." : "Create Invite"}
+            {inviteMember.isPending ? t("common.inviting") : t("settings.inviteMember")}
           </Button>
           {lastCode && (
             <p className="text-xs text-slate-600">
-              Invitation code: <code className="bg-slate-100 px-1 py-0.5 rounded">{lastCode}</code>
+              {t("settings.invitationCodeLabel")} <code className="bg-slate-100 px-1 py-0.5 rounded">{lastCode}</code>
             </p>
           )}
         </div>
@@ -359,7 +359,7 @@ function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; i
               disabled={leaveOrg.isPending}
               onClick={() => leaveOrg.mutate()}
             >
-              {leaveOrg.isPending ? "Leaving..." : "Leave Organization"}
+              {leaveOrg.isPending ? t("common.leaving") : t("settings.leaveOrganization")}
             </Button>
           )}
         </div>
@@ -370,7 +370,7 @@ function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; i
               <tr>
                 <th className="px-6 py-4 font-bold">{t("settings.name")}</th>
                 <th className="px-6 py-4 font-bold">{t("settings.role")}</th>
-                <th className="px-6 py-4 font-bold">Status</th>
+                <th className="px-6 py-4 font-bold">{t("table.status")}</th>
                 <th className={`px-6 py-4 font-bold ${isRTL ? "text-left" : "text-right"}`}>{t("settings.actions")}</th>
               </tr>
             </thead>
@@ -400,11 +400,11 @@ function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; i
                             })
                           }
                         >
-                          <option value="admin">admin</option>
-                          <option value="senior_lawyer">senior_lawyer</option>
-                          <option value="lawyer">lawyer</option>
-                          <option value="paralegal">paralegal</option>
-                          <option value="clerk">clerk</option>
+                          <option value="admin">{t("roles.admin")}</option>
+                          <option value="senior_lawyer">{t("roles.seniorLawyer")}</option>
+                          <option value="lawyer">{t("roles.lawyer")}</option>
+                          <option value="paralegal">{t("roles.paralegal")}</option>
+                          <option value="clerk">{t("roles.clerk")}</option>
                         </select>
                         <Button
                           size="sm"
@@ -412,7 +412,7 @@ function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; i
                           className="border-red-200 text-red-700 hover:bg-red-50"
                           onClick={() => removeMember.mutate(member.id)}
                         >
-                          Remove
+                          {t("settings.removeMember")}
                         </Button>
                       </>
                     )}
@@ -968,7 +968,7 @@ function BillingTab({ t, isRTL, billingData }: { t: (key: string) => string; isR
             disabled={isSubscribing}
             className="bg-[#D97706] hover:bg-[#B45309] w-full sm:w-auto"
           >
-            {isSubscribing ? "Processing..." : t("settings.upgradePlan")}
+            {isSubscribing ? t("common.processing") : t("settings.upgradePlan")}
           </Button>
           <Button
             onClick={() => cancelSubscription()}
@@ -976,7 +976,7 @@ function BillingTab({ t, isRTL, billingData }: { t: (key: string) => string; isR
             variant="ghost"
             className="bg-white/10 hover:bg-white/20 text-white w-full sm:w-auto"
           >
-            {isCancelling ? "Cancelling..." : t("settings.cancelSubscription")}
+            {isCancelling ? t("common.cancelling") : t("settings.cancelSubscription")}
           </Button>
         </div>
       </div>
@@ -998,7 +998,7 @@ function BillingTab({ t, isRTL, billingData }: { t: (key: string) => string; isR
                 <th className="px-6 py-4 font-bold">{t("settings.invoiceId")}</th>
                 <th className="px-6 py-4 font-bold">{t("settings.date")}</th>
                 <th className="px-6 py-4 font-bold">{t("settings.amount")}</th>
-                <th className="px-6 py-4 font-bold">Status</th>
+                <th className="px-6 py-4 font-bold">{t("table.status")}</th>
                 <th className={`px-6 py-4 font-bold ${isRTL ? 'text-left' : 'text-right'}`}></th>
               </tr>
             </thead>
@@ -1019,7 +1019,7 @@ function BillingTab({ t, isRTL, billingData }: { t: (key: string) => string; isR
                       disabled={isDownloading}
                       className="text-[#D97706] hover:text-[#B45309] font-bold text-xs flex items-center gap-1 justify-end disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Download size={12} /> {isDownloading ? "Downloading..." : t("settings.pdf")}
+                      <Download size={12} /> {isDownloading ? t("common.downloading") : t("settings.pdf")}
                     </button>
                   </td>
                 </tr>
@@ -1048,7 +1048,7 @@ function BillingTab({ t, isRTL, billingData }: { t: (key: string) => string; isR
                   disabled={isDownloading}
                   className="text-[#D97706] hover:text-[#B45309] font-bold text-xs flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Download size={12} /> {isDownloading ? "..." : t("settings.pdf")}
+                  <Download size={12} /> {isDownloading ? t("common.downloading") : t("settings.pdf")}
                 </button>
               </div>
             </div>

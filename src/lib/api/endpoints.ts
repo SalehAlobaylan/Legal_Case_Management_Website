@@ -105,7 +105,6 @@ export const endpoints = {
     updatePassword: `${API_BASE}/api/profile/password`,
     stats: `${API_BASE}/api/profile/stats`,
     activities: `${API_BASE}/api/profile/activities`,
-    hearings: `${API_BASE}/api/profile/hearings`,
     avatar: `${API_BASE}/api/profile/avatar`,
   },
 

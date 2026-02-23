@@ -33,7 +33,45 @@
         "inactive": "غير نشط",
         "pending": "معلق",
         "actions": "الإجراءات",
-        "connect": "ربط"
+        "connect": "ربط",
+        "loadMore": "المزيد",
+        "notAvailable": "غ/م",
+        "unknown": "غير معروف",
+        "notProvided": "غير متوفر",
+        "days": "أيام",
+        "preview": "معاينة",
+        "dismiss": "تجاهل",
+        "processing": "جارِ المعالجة...",
+        "downloading": "جارِ التنزيل...",
+        "creating": "جارِ الإنشاء...",
+        "inviting": "جارِ الدعوة...",
+        "joining": "جارِ الانضمام...",
+        "leaving": "جارِ المغادرة...",
+        "cancelling": "جارِ الإلغاء...",
+        "saving": "جارِ الحفظ...",
+        "uploading": "جارِ الرفع...",
+        "updating": "جارِ التحديث..."
+    },
+    "table": {
+        "name": "الاسم",
+        "type": "النوع",
+        "date": "التاريخ",
+        "size": "الحجم",
+        "status": "الحالة"
+    },
+    "roles": {
+        "admin": "مدير",
+        "seniorLawyer": "محامٍ أول",
+        "lawyer": "محامٍ",
+        "paralegal": "مساعد قانوني",
+        "clerk": "كاتب محكمة",
+        "attorneyAtLaw": "محامٍ"
+    },
+    "time": {
+        "justNow": "الآن",
+        "minutesAgo": "منذ {{count}} دقيقة",
+        "hoursAgo": "منذ {{count}} ساعة",
+        "daysAgo": "منذ {{count}} يوم"
     },
     "auth": {
         "login": "تسجيل الدخول",
@@ -92,6 +130,15 @@
         "oauthFailed": "فشل تسجيل الدخول بجوجل. يرجى المحاولة مرة أخرى.",
         "oauthAccountExists": "حساب بهذا البريد الإلكتروني موجود بالفعل",
         "oauthOnlyAccount": "هذا الحساب يستخدم تسجيل الدخول بجوجل. يرجى تسجيل الدخول باستخدام جوجل."
+    },
+    "clients": {
+        "loadingDetails": "جارِ تحميل تفاصيل العميل...",
+        "backToDirectory": "العودة إلى دليل العملاء",
+        "types": {
+            "corporate": "شركة",
+            "individual": "فرد"
+        },
+"statusActive": "نشط"
     },
     "nav": {
         "home": "الرئيسية",
@@ -258,6 +305,7 @@
         "searchCases": "البحث في القضايا...",
         "type": "النوع",
         "unableToLoad": "تعذر تحميل القضايا. يرجى المحاولة مرة أخرى.",
+        "loadingCases": "جارٍ تحميل القضايا...",
         "noResultsFound": "لم يتم العثور على قضايا",
         "adjustFilters": "جرب تعديل الفلاتر أو مصطلح البحث.",
         "backToDashboard": "العودة للوحة التحكم",
@@ -367,11 +415,14 @@
         "inactive": "غير نشط",
         "totalCases": "إجمالي القضايا",
         "clientName": "اسم العميل",
+        "clientId": "المعرف",
         "type": "النوع",
         "contact": "الاتصال",
         "cases": "القضايا",
         "case": "قضية",
         "casesPlural": "قضايا",
+        "backToDirectory": "العودة إلى دليل العملاء",
+        "associatedCases": "القضايا المرتبطة",
         "noClients": "لم يتم العثور على عملاء",
         "noClientsDesc": "جرب تعديل الفلاتر أو أضف عميلاً جديداً.",
         "addFirstClient": "أضف أول عميل",
@@ -381,9 +432,21 @@
         "clientNotFound": "العميل غير موجود",
         "clientNotFoundDesc": "العميل الذي تبحث عنه غير موجود أو ربما تم حذفه.",
         "creating": "جاري الإنشاء...",
+        "sendMessageToClient": "إرسال رسالة للعميل",
+        "sendMessageTo": "إرسال رسالة إلى",
+        "sendMessage": "إرسال الرسالة",
+        "sending": "جارٍ الإرسال...",
+        "message": "الرسالة",
+        "messagePlaceholder": "أدخل رسالتك للعميل...",
+        "messageType": "نوع الرسالة",
+        "messageTypeGeneral": "تحديث عام",
+        "messageTypeCaseUpdate": "تحديث القضية",
+        "messageTypeHearingReminder": "تذكير جلسة الاستماع",
+        "messageTypeDocumentRequest": "طلب مستند",
         "types": {
             "individual": "فرد",
-            "company": "شركة"
+            "company": "شركة",
+            "corporate": "شركة"
         }
     },
     "alerts": {
@@ -444,6 +507,14 @@
         "recentActivityLog": "سجل النشاط الأخير",
         "viewFullLog": "عرض السجل الكامل",
         "noRecentActivity": "لا يوجد نشاط حديث",
+        "productivity": "الإنتاجية",
+        "all": "الكل",
+        "cases": "القضايا",
+        "documents": "المستندات",
+        "regulations": "اللوائح",
+        "clients": "العملاء",
+        "loadMore": "المزيد",
+        "total": "إجمالي",
         "notifications": "التنبيهات",
         "security": "الأمان",
         "integrations": "الربط التقني",
@@ -550,7 +621,28 @@
             "light": "فاتح",
             "dark": "داكن",
             "system": "النظام"
-        }
+        },
+        "userLabel": "مستخدم",
+        "personalWorkspace": "مساحة عمل شخصية",
+        "teamWorkspace": "مساحة عمل الفريق",
+        "createOrganization": "إنشاء منظمة",
+        "orgNamePlaceholder": "اسم المنظمة",
+        "joinByCode": "الانضمام برمز الدعوة",
+        "pasteCodePlaceholder": "الصق رمز الدعوة",
+        "emailPlaceholder": "user@email.com",
+        "createAndSwitch": "إنشاء والتبديل",
+        "joinOrganization": "الانضمام للمنظمة",
+        "invitationCodeLabel": "رمز الدعوة:",
+        "leaveOrganization": "مغادرة المنظمة",
+        "removeMember": "إزالة",
+        "members": "عضو(أعضاء)"
+    },
+    "profile": {
+        "initialsFallback": "ف.ع",
+        "defaultOrganization": "مكتب الفيصل للمحاماة",
+        "activeInProgress": "نشط وجارٍ",
+        "closedAdjudicated": "مغلق ومحكوم",
+        "totalReviews": "إجمالي المراجعات"
     },
     "documents": {
         "title": "المستندات",
@@ -561,7 +653,9 @@
         "dragDrop": "اسحب وأفلت ملفاً هنا، أو انقر للتصفح",
         "allowedTypes": "الأنواع المسموحة: {{types}} • الحد الأقصى: {{size}}",
         "chooseFile": "اختر ملف",
-        "uploading": "جاري الرفع..."
+        "uploading": "جارِ الرفع...",
+        "confirmDelete": "هل أنت متأكد من حذف هذا المستند؟",
+        "uploadHint": "PDF أو DOC أو صور حتى 10 ميجابايت"
     },
     "ai": {
         "suggestions": "توصيات الذكاء الاصطناعي",
@@ -586,7 +680,10 @@
         "subscribeSuccessTitle": "تم إنشاء الاشتراكات",
         "subscribeSuccessDesc": "تم الاشتراك في تحديثات {{count}} نظام.",
         "subscribePartialTitle": "فشل بعض الاشتراكات",
-        "subscribePartialDesc": "تعذر الاشتراك في {{count}} نظام."
+        "subscribePartialDesc": "تعذر الاشتراك في {{count}} نظام.",
+        "confidencePercent": "% ثقة",
+        "matchedViaAi": "تم المطابقة عبر تحليل الذكاء الاصطناعي",
+        "linkToCase": "ربط بالقضية"
     },
     "header": {
         "searchPlaceholder": "البحث في القضايا والأنظمة والمستندات...",
