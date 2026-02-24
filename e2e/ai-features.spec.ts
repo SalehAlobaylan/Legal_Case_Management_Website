@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("AI Regulation Links", () => {
   test.beforeEach(async ({ page }) => {
-    const uniqueEmail = `ailinks+${Date.now()}@example.com";
+    const uniqueEmail = `ailinks+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("AI Links User");
@@ -117,7 +117,7 @@ test.describe("AI Regulation Links", () => {
 
 test.describe("AI Features", () => {
   test.beforeEach(async ({ page }) => {
-    const uniqueEmail = `aifeatures+${Date.now()}@example.com";
+    const uniqueEmail = `aifeatures+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("AI Features User");

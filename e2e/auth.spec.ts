@@ -33,7 +33,7 @@ test.describe("Authentication Flow", () => {
   });
 
   test("should register a new user with organization", async ({ page }) => {
-    const uniqueEmail = `org+${Date.now()}@example.com";
+    const uniqueEmail = `org+${Date.now()}@example.com`;
 
     await page.goto("/register");
 

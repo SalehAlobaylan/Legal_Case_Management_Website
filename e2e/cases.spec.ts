@@ -128,7 +128,7 @@ test.describe("Cases Management", () => {
 
 test.describe("Case Types", () => {
   test.beforeEach(async ({ page }) => {
-    const uniqueEmail = `casetypes+${Date.now()}@example.com";
+    const uniqueEmail = `casetypes+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("Case Types User");

@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Documents", () => {
   test.beforeEach(async ({ page }) => {
-    const uniqueEmail = `docs+${Date.now()}@example.com";
+    const uniqueEmail = `docs+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("Documents User");
@@ -153,7 +153,7 @@ test.describe("Documents", () => {
 
 test.describe("Document Insights", () => {
   test.beforeEach(async ({ page }) => {
-    const uniqueEmail = `insights+${Date.now()}@example.com";
+    const uniqueEmail = `insights+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("Insights User");

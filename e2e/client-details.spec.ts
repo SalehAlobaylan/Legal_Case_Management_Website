@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Client Details", () => {
   test.beforeEach(async ({ page }) => {
-    const uniqueEmail = `clientdetail+${Date.now()}@example.com";
+    const uniqueEmail = `clientdetail+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("Client Detail User");
@@ -102,7 +102,7 @@ test.describe("Client Details", () => {
 
 test.describe("Client-Case Association", () => {
   test.beforeEach(async ({ page }) => {
-    const uniqueEmail = `clientcase+${Date.now()}@example.com";
+    const uniqueEmail = `clientcase+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("Client Case User");

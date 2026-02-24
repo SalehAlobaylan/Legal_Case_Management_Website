@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Complete User Journey", () => {
   test("full registration to case management flow", async ({ page }) => {
-    const uniqueEmail = `journey+${Date.now()}@example.com";
+    const uniqueEmail = `journey+${Date.now()}@example.com`;
 
     await page.goto("/");
     await expect(page).toHaveTitle(/Legal|Silah/i);
@@ -64,7 +64,7 @@ test.describe("Complete User Journey", () => {
   });
 
   test("login after registration flow", async ({ page }) => {
-    const uniqueEmail = `loginflow+${Date.now()}@example.com";
+    const uniqueEmail = `loginflow+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("Login Flow User");
@@ -88,7 +88,7 @@ test.describe("Complete User Journey", () => {
 
 test.describe("Organization Registration Flow", () => {
   test("create organization and manage team", async ({ page }) => {
-    const uniqueEmail = `org+${Date.now()}@example.com";
+    const uniqueEmail = `org+${Date.now()}@example.com`;
 
     await page.goto("/register");
 
@@ -113,7 +113,7 @@ test.describe("Organization Registration Flow", () => {
 
 test.describe("Data Management Flow", () => {
   test.beforeEach(async ({ page }) => {
-    const uniqueEmail = `data+${Date.now()}@example.com";
+    const uniqueEmail = `data+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("Data Management User");
@@ -176,7 +176,7 @@ test.describe("Data Management Flow", () => {
 
 test.describe("Error Handling", () => {
   test("should handle duplicate email registration", async ({ page }) => {
-    const uniqueEmail = `duplicate+${Date.now()}@example.com";
+    const uniqueEmail = `duplicate+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("First User");
@@ -200,7 +200,7 @@ test.describe("Error Handling", () => {
   });
 
   test("should handle wrong password login", async ({ page }) => {
-    const uniqueEmail = `wrongpass+${Date.now()}@example.com";
+    const uniqueEmail = `wrongpass+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("Wrong Pass User");
@@ -224,7 +224,7 @@ test.describe("Error Handling", () => {
 test.describe("Responsive Design", () => {
   test("should work on mobile viewport", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
-    const uniqueEmail = `mobile+${Date.now()}@example.com";
+    const uniqueEmail = `mobile+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("Mobile User");
@@ -242,7 +242,7 @@ test.describe("Responsive Design", () => {
 
   test("should work on tablet viewport", async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 });
-    const uniqueEmail = `tablet+${Date.now()}@example.com";
+    const uniqueEmail = `tablet+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("Tablet User");

@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Regulations", () => {
   test.beforeEach(async ({ page }) => {
-    const uniqueEmail = `regs+${Date.now()}@example.com";
+    const uniqueEmail = `regs+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("Regs User");
@@ -61,7 +61,7 @@ test.describe("Regulations", () => {
 
 test.describe("Alerts", () => {
   test.beforeEach(async ({ page }) => {
-    const uniqueEmail = `alerts+${Date.now()}@example.com";
+    const uniqueEmail = `alerts+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("Alerts User");
@@ -120,7 +120,7 @@ test.describe("Alerts", () => {
 
 test.describe("Profile", () => {
   test.beforeEach(async ({ page }) => {
-    const uniqueEmail = `profile+${Date.now()}@example.com";
+    const uniqueEmail = `profile+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("Profile User");
@@ -149,7 +149,7 @@ test.describe("Profile", () => {
 
 test.describe("Settings", () => {
   test.beforeEach(async ({ page }) => {
-    const uniqueEmail = `settings+${Date.now()}@example.com";
+    const uniqueEmail = `settings+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("Settings User");

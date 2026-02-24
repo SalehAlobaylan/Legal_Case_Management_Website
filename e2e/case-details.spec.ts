@@ -122,7 +122,7 @@ test.describe("Case Details", () => {
 
 test.describe("Case Editing", () => {
   test.beforeEach(async ({ page }) => {
-    const uniqueEmail = `caseedit+${Date.now()}@example.com";
+    const uniqueEmail = `caseedit+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("Case Edit User");

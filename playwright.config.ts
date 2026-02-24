@@ -1,7 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
+import { loadEnvConfig } from "@next/env";
 
 const isCI = !!process.env.CI;
 const useExistingServers = isCI || process.env.PLAYWRIGHT_USE_EXISTING_SERVERS === "true";
+
+loadEnvConfig(process.cwd());
 
 export default defineConfig({
   testDir: "./e2e",

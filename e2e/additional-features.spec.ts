@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Case Filters", () => {
   test.beforeEach(async ({ page }) => {
-    const uniqueEmail = `filters+${Date.now()}@example.com";
+    const uniqueEmail = `filters+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("Filters User");
@@ -84,7 +84,7 @@ test.describe("Case Filters", () => {
 
 test.describe("Dashboard Statistics", () => {
   test.beforeEach(async ({ page }) => {
-    const uniqueEmail = `stats+${Date.now()}@example.com";
+    const uniqueEmail = `stats+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("Stats User");
@@ -141,7 +141,7 @@ test.describe("Dashboard Statistics", () => {
 
 test.describe("Language and RTL", () => {
   test.beforeEach(async ({ page }) => {
-    const uniqueEmail = `lang+${Date.now()}@example.com";
+    const uniqueEmail = `lang+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("Language User");
@@ -192,7 +192,7 @@ test.describe("Language and RTL", () => {
 
 test.describe("Navigation", () => {
   test.beforeEach(async ({ page }) => {
-    const uniqueEmail = `nav+${Date.now()}@example.com";
+    const uniqueEmail = `nav+${Date.now()}@example.com`;
 
     await page.goto("/register");
     await page.getByLabel(/full name|الاسم الكامل/i).fill("Navigation User");
