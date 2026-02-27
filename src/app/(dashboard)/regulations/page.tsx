@@ -26,75 +26,36 @@ import { FilterPill, FilterPills } from "@/components/ui/filter-pills";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils/cn";
-import { useRegulations } from "@/lib/hooks/use-regulations";
+import { useRegulations, useSyncMojSource } from "@/lib/hooks/use-regulations";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { formatDate } from "@/lib/utils/format";
 import { Filter } from "lucide-react";
-
-// Mock regulations matching target mockup
-const MOCK_REGULATIONS = [
-  {
-    id: 1,
-    title: "Labor Law",
-    category: "labor",
-    status: "active",
-    updatedAt: "2024-11-15",
-    regulationNumber: "LL-2024",
-    description: "Governs the relationship between employers and employees in the Kingdom.",
-    versions: 4,
-    subscribed: true,
-  },
-  {
-    id: 2,
-    title: "Civil Transactions Law",
-    category: "civil",
-    status: "active",
-    updatedAt: "2023-12-16",
-    regulationNumber: "CTL-2023",
-    description: "Codifies the general rules of contract, tort, and property rights.",
-    versions: 1,
-    subscribed: false,
-  },
-  {
-    id: 3,
-    title: "Commercial Courts Law",
-    category: "commercial",
-    status: "amended",
-    updatedAt: "2024-01-20",
-    regulationNumber: "CCL-2024",
-    description: "Procedures and regulations for commercial disputes and court proceedings.",
-    versions: 2,
-    subscribed: true,
-  },
-  {
-    id: 4,
-    title: "Personal Data Protection Law",
-    category: "digital",
-    status: "in_progress",
-    updatedAt: "2024-09-01",
-    regulationNumber: "PDPL-2024",
-    description: "Regulates the collection, processing, and storage of personal data.",
-    versions: 2,
-    subscribed: false,
-  },
-];
+import { useToast } from "@/components/ui/use-toast";
 
 export default function RegulationsPage() {
   const router = useRouter();
   const { t, isRTL } = useI18n();
+  const { toast } = useToast();
   const [activeFilter, setActiveFilter] = React.useState("All");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
 
-  const CATEGORIES = ["All", "labor", "commercial", "civil", "digital", "criminal"];
+  const CATEGORIES = [
+    "All",
+    "labor_law",
+    "commercial_law",
+    "civil_law",
+    "criminal_law",
+    "procedural_law",
+  ];
 
   const CATEGORY_LABELS: Record<string, string> = {
     All: t("common.all"),
-    labor: t("regulations.categories.labor"),
-    commercial: t("regulations.categories.commercial"),
-    civil: t("regulations.categories.civil"),
-    digital: t("regulations.categories.digital"),
-    criminal: t("regulations.categories.criminal"),
+    labor_law: t("regulations.categories.labor"),
+    commercial_law: t("regulations.categories.commercial"),
+    civil_law: t("regulations.categories.civil"),
+    criminal_law: t("regulations.categories.criminal"),
+    procedural_law: t("regulations.categories.administrative"),
   };
 
   // Debounce search
@@ -109,11 +70,9 @@ export default function RegulationsPage() {
     category: activeFilter !== "All" ? activeFilter : undefined,
     search: debouncedSearch || undefined,
   });
+  const syncMojSource = useSyncMojSource();
 
-  // Use mock data if API fails or returns nothing
-  const regulations = (regulationsData?.regulations && regulationsData.regulations.length > 0)
-    ? regulationsData.regulations
-    : MOCK_REGULATIONS;
+  const regulations = regulationsData?.regulations || [];
 
   // Apply local filtering to mock data
   const filteredRegulations = regulations.filter((reg) => {
@@ -192,8 +151,35 @@ export default function RegulationsPage() {
           </div>
 
           {/* Discover New Button */}
-          <Button className="bg-[#D97706] hover:bg-[#B45309] text-white px-4 py-2.5 h-auto rounded-xl text-sm font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center gap-2">
-            <Globe className="h-4 w-4" />
+          <Button
+            className="bg-[#D97706] hover:bg-[#B45309] text-white px-4 py-2.5 h-auto rounded-xl text-sm font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center gap-2"
+            onClick={() =>
+              syncMojSource.mutate(
+                { extractContent: true },
+                {
+                  onSuccess: () => {
+                    refetch();
+                    toast({
+                      title: t("common.success"),
+                      description: t("regulations.syncSuccess"),
+                    });
+                  },
+                  onError: () => {
+                    toast({
+                      title: t("common.error"),
+                      description: t("regulations.syncFailed"),
+                    });
+                  },
+                }
+              )
+            }
+            disabled={syncMojSource.isPending}
+          >
+            {syncMojSource.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Globe className="h-4 w-4" />
+            )}
             {t("regulations.discoverNew")}
           </Button>
 
@@ -256,7 +242,7 @@ interface RegulationCardProps {
     updatedAt: string;
     regulationNumber?: string;
     description?: string;
-    versions?: number;
+    versionsCount?: number;
     subscribed?: boolean;
   };
   onClick: () => void;
@@ -266,7 +252,7 @@ interface RegulationCardProps {
 }
 
 function RegulationCard({ regulation, onClick, t, isRTL, getStatusLabel }: RegulationCardProps) {
-  const { title, status, updatedAt, description, versions, subscribed } = regulation;
+  const { title, status, updatedAt, description, versionsCount, subscribed } = regulation;
 
   const statusColors: Record<string, string> = {
     active: "bg-green-50 text-green-700",
@@ -332,9 +318,9 @@ function RegulationCard({ regulation, onClick, t, isRTL, getStatusLabel }: Regul
           <Calendar className="h-3.5 w-3.5" />
           {formatDate(updatedAt)}
         </div>
-        {versions && (
+        {typeof versionsCount === "number" && versionsCount > 0 && (
           <div className="flex items-center gap-1 text-xs font-bold text-[#D97706] hover:underline">
-            {versions} {t("regulations.versions")}
+            {versionsCount} {t("regulations.versions")}
             <ChevronRight className={`h-3.5 w-3.5 group-hover:translate-x-1 transition-transform ${isRTL ? 'rotate-180' : ''}`} />
           </div>
         )}

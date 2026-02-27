@@ -8,9 +8,8 @@ import { useState, useEffect } from "react";
 import { useRegister } from "@/lib/hooks/use-auth";
 import { useGoogleSignIn } from "@/lib/hooks/use-oauth";
 import { useI18n } from "@/lib/hooks/use-i18n";
-import { Check, ArrowLeft, ArrowRight, Building2, Users } from "lucide-react";
+import { Check, ArrowLeft, ArrowRight, Building2, User } from "lucide-react";
 import { LanguageToggle } from "@/components/layout/language-toggle";
-import { Organization } from "@/lib/types/auth";
 import Image from "next/image";
 
 const registerSchema = z.object({
@@ -18,11 +17,10 @@ const registerSchema = z.object({
     email: z.string().email("Invalid email address"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string().min(8, "Please confirm your password"),
-    registrationType: z.enum(["create", "join"]),
+    registrationType: z.enum(["personal", "create"]),
     organizationName: z.string().optional(),
-    organizationId: z.string().optional(),
     subscriptionTier: z.string().optional(),
-    role: z.string(),
+    role: z.string().optional(),
     termsAccepted: z.boolean().refine(val => val === true, "You must accept the terms and conditions"),
 }).refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -35,14 +33,6 @@ const registerSchema = z.object({
 }, {
     message: "Organization name is required",
     path: ["organizationName"],
-}).refine((data) => {
-    if (data.registrationType === "join") {
-        return data.organizationId && data.organizationId !== "";
-    }
-    return true;
-}, {
-    message: "Please select an organization",
-    path: ["organizationId"],
 });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
@@ -51,43 +41,20 @@ export default function RegisterPage() {
     const { mutate: registerUser, isPending, error } = useRegister();
     const { signInWithGoogle } = useGoogleSignIn();
     const { t, isRTL } = useI18n();
-    const [registrationType, setRegistrationType] = useState<"create" | "join">("create");
-    const [organizations, setOrganizations] = useState<Organization[]>([]);
-    const [isLoadingOrgs, setIsLoadingOrgs] = useState(false);
+    const [registrationType, setRegistrationType] = useState<"personal" | "create">("personal");
 
 const {
         register,
         handleSubmit,
         setValue,
-        watch,
         formState: { errors },
     } = useForm<RegisterFormData>({
         resolver: zodResolver(registerSchema),
         defaultValues: {
-            role: "lawyer",
-            registrationType: "create",
+            registrationType: "personal",
             subscriptionTier: "free",
         },
     });
-
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-
-    useEffect(() => {
-        const fetchOrganizations = async () => {
-            setIsLoadingOrgs(true);
-            try {
-                const response = await fetch(`${API_BASE}/api/organizations`);
-                const data = await response.json();
-                setOrganizations(data.organizations || []);
-            } catch (err) {
-                console.error("Failed to fetch organizations:", err);
-            } finally {
-                setIsLoadingOrgs(false);
-            }
-        };
-
-        fetchOrganizations();
-    }, [API_BASE]);
 
     useEffect(() => {
         setValue("registrationType", registrationType);
@@ -107,13 +74,11 @@ const {
             });
         } else {
             registerUser({
-                registrationType: "join",
+                registrationType: "personal",
                 fullName: data.fullName,
                 email: data.email,
                 password: data.password,
                 confirmPassword: data.confirmPassword,
-                organizationId: parseInt(data.organizationId || "0"),
-                role: data.role as "lawyer" | "senior_lawyer" | "paralegal" | "clerk" | "admin" | undefined,
             });
         }
     };
@@ -301,6 +266,19 @@ const {
                                 <div className="grid grid-cols-2 gap-3">
                                     <button
                                         type="button"
+                                        onClick={() => setRegistrationType("personal")}
+                                        className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${registrationType === "personal"
+                                                ? "border-[#D97706] bg-[#D97706]/5 text-[#D97706]"
+                                                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                                            }`}
+                                    >
+                                        <User size={24} />
+                                        <span className="text-sm font-semibold">
+                                            {isRTL ? 'حساب شخصي' : 'Personal'}
+                                        </span>
+                                    </button>
+                                    <button
+                                        type="button"
                                         onClick={() => setRegistrationType("create")}
                                         className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${registrationType === "create"
                                                 ? "border-[#D97706] bg-[#D97706]/5 text-[#D97706]"
@@ -310,19 +288,6 @@ const {
                                         <Building2 size={24} />
                                         <span className="text-sm font-semibold">
                                             {isRTL ? 'إنشاء منظمة جديدة' : 'Create New'}
-                                        </span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setRegistrationType("join")}
-                                        className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${registrationType === "join"
-                                                ? "border-[#D97706] bg-[#D97706]/5 text-[#D97706]"
-                                                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
-                                            }`}
-                                    >
-                                        <Users size={24} />
-                                        <span className="text-sm font-semibold">
-                                            {isRTL ? 'الانضمام لمنظمة' : 'Join Existing'}
                                         </span>
                                     </button>
                                 </div>
@@ -365,40 +330,14 @@ const {
                                     </div>
                                 </div>
                             ) : (
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                                        {isRTL ? 'اختر المنظمة' : 'Select Organization'}
-                                    </label>
-                                    <select
-                                        className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/20 bg-white transition-all"
-                                        {...register("organizationId")}
-                                        disabled={isLoadingOrgs}
-                                    >
-                                        <option value="">
-                                            {isLoadingOrgs
-                                                ? (isRTL ? 'جاري التحميل...' : 'Loading...')
-                                                : (isRTL ? '-- اختر منظمة --' : '-- Select an organization --')
-                                            }
-                                        </option>
-                                        {organizations.map((org) => (
-                                            <option key={org.id} value={org.id}>
-                                                {org.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {errors.organizationId && (
-                                        <p className="text-sm text-red-500 font-medium mt-2 animate-in slide-in-from-top-1">
-                                            {errors.organizationId.message}
-                                        </p>
-                                    )}
-                                    {organizations.length === 0 && !isLoadingOrgs && (
-                                        <p className="text-xs text-slate-500 mt-2">
-                                            {isRTL ? 'لا توجد منظمات متاحة حالياً' : 'No organizations available'}
-                                        </p>
-                                    )}
+                                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                                    {isRTL
+                                        ? "سيتم إنشاء مساحة عمل شخصية تلقائيًا. يمكنك الانضمام إلى منظمة لاحقًا باستخدام كود الدعوة من صفحة الإعدادات."
+                                        : "A personal workspace will be created automatically. You can join an organization later using an invitation code from Settings."}
                                 </div>
                             )}
 
+                            {registrationType === "create" && (
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">{t("auth.role")}</label>
                                 <select
@@ -412,6 +351,7 @@ const {
                                     <option value="admin">{t("auth.admin")}</option>
                                 </select>
                             </div>
+                            )}
 
 <div className="flex items-start gap-3 pt-1">
                                 <input

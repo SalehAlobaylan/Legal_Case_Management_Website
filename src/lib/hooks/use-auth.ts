@@ -32,13 +32,17 @@ interface RegisterInputJoin extends RegisterInputBase {
   registrationType: "join";
 }
 
+interface RegisterInputPersonal extends RegisterInputBase {
+  registrationType?: "personal";
+}
+
 interface RegisterInputCreate extends RegisterInputBase {
   organizationName: string;
   subscriptionTier?: string;
   registrationType: "create";
 }
 
-type RegisterInput = RegisterInputJoin | RegisterInputCreate;
+type RegisterInput = RegisterInputJoin | RegisterInputCreate | RegisterInputPersonal;
 
 interface AuthResponse<User = unknown> {
   user: User;
@@ -108,5 +112,4 @@ export function useLogout() {
     router.push("/login");
   };
 }
-
 

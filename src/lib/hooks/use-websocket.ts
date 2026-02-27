@@ -81,6 +81,7 @@ export function useWebSocket() {
       if (data?.regulationId) {
         queryClient.invalidateQueries({ queryKey: ["regulation", data.regulationId] });
         queryClient.invalidateQueries({ queryKey: ["regulation-versions", data.regulationId] });
+        queryClient.invalidateQueries({ queryKey: ["regulation-compare", data.regulationId] });
       }
     });
 

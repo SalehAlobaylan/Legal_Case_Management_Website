@@ -23,8 +23,6 @@ import {
   CreditCard,
   CheckCircle,
   Plus,
-  MoreVertical,
-  RefreshCw,
   Smartphone,
   MapPin,
   Zap,
@@ -40,7 +38,15 @@ import { useAuthStore } from "@/lib/store/auth-store";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
-import { useTeamMembers } from "@/lib/hooks/use-team";
+import {
+  useAcceptTeamInvitation,
+  useCreateOrganizationAndSwitch,
+  useInviteTeamMember,
+  useLeaveOrganization,
+  useRemoveTeamMember,
+  useTeamMembers,
+  useUpdateTeamMemberRole,
+} from "@/lib/hooks/use-team";
 import { useBillingInfo, useSubscribeToPlan, useCancelSubscription, useDownloadInvoicePDF } from "@/lib/hooks/use-billing";
 import { useUpdateProfile } from "@/lib/hooks/use-profile";
 import { useNotificationSettings, useUpdateNotificationSettings } from "@/lib/hooks/use-notification-settings";
@@ -50,7 +56,6 @@ type TabId = "profile" | "org" | "notifications" | "security" | "integrations" |
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = React.useState<TabId>("profile");
-  const [role, setRole] = React.useState<"Admin" | "Lawyer">("Admin");
   const { user } = useAuthStore();
   const { t, isRTL } = useI18n();
 
@@ -67,7 +72,8 @@ export default function SettingsPage() {
     { id: "billing" as TabId, label: t("settings.billing"), icon: <CreditCard size={18} />, adminOnly: true },
   ];
 
-  const visibleTabs = TABS.filter((tab) => !tab.adminOnly || role === "Admin");
+  const isAdmin = user?.role === "admin";
+  const visibleTabs = TABS.filter((tab) => !tab.adminOnly || isAdmin);
 
   return (
     <div className={`flex flex-col md:flex-row overflow-hidden ${isRTL ? 'md:flex-row-reverse' : ''}`}>
@@ -113,20 +119,13 @@ export default function SettingsPage() {
           ))}
         </nav>
 
-        {/* RBAC Simulator */}
         <div className="p-4 border-t border-slate-100">
           <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">
-              {t("settings.rbacSimulator")}
+              {t("settings.currentRole")}
             </p>
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-600">{t("settings.currentRole")}:</span>
-              <button
-                onClick={() => setRole(role === "Admin" ? "Lawyer" : "Admin")}
-                className="text-xs font-bold text-[#D97706] hover:underline flex items-center gap-1"
-              >
-                <RefreshCw size={10} /> {role}
-              </button>
+            <div className="text-xs font-bold text-[#0F2942]">
+              {user?.role ? t(`roles.${user.role === 'senior_lawyer' ? 'seniorLawyer' : user.role}`) : t("roles.lawyer")}
             </div>
           </div>
         </div>
@@ -188,8 +187,8 @@ function ProfileTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }
           {initials}
         </div>
         <div className="min-w-0 flex-1">
-          <h4 className="text-base md:text-lg font-bold text-[#0F2942] truncate">{user?.fullName || "Loading..."}</h4>
-          <p className="text-sm text-slate-500 mb-2 md:mb-3">{user?.role || "User"}</p>
+          <h4 className="text-base md:text-lg font-bold text-[#0F2942] truncate">{user?.fullName || t("common.loading")}</h4>
+          <p className="text-sm text-slate-500 mb-2 md:mb-3">{user?.role ? t(`roles.${user.role === 'senior_lawyer' ? 'seniorLawyer' : user.role}`) : t("settings.userLabel")}</p>
           <button className="text-xs font-bold text-[#D97706] border border-[#D97706] px-3 py-1.5 rounded-lg hover:bg-orange-50 transition-colors whitespace-nowrap">
             {t("settings.changeAvatar")}
           </button>
@@ -235,50 +234,148 @@ function ProfileTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }
    ORGANIZATION TAB
    ============================================================================= */
 
-function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; isRTL: boolean; teamData?: { members: any[]; total: number } }) {
+function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; isRTL: boolean; teamData?: { members: any[]; total: number; organization?: { id: number; name: string; isPersonal: boolean; contactInfo?: string | null } } }) {
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === "admin";
+  const [inviteEmail, setInviteEmail] = React.useState("");
+  const [inviteRole, setInviteRole] = React.useState("lawyer");
+  const [joinCode, setJoinCode] = React.useState("");
+  const [newOrgName, setNewOrgName] = React.useState("");
+  const [lastCode, setLastCode] = React.useState<string | null>(null);
+
+  const inviteMember = useInviteTeamMember();
+  const acceptInvite = useAcceptTeamInvitation();
+  const updateRole = useUpdateTeamMemberRole();
+  const removeMember = useRemoveTeamMember();
+  const leaveOrg = useLeaveOrganization();
+  const createOrg = useCreateOrganizationAndSwitch();
+
+  const org = teamData?.organization;
+  const members = teamData?.members || [];
+  const isPersonalWorkspace = Boolean(org?.isPersonal);
+
   return (
     <div className="space-y-6">
-      {/* Org Header */}
-      <div className="bg-[#0F2942] rounded-2xl p-4 md:p-6 text-white shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h4 className="text-lg md:text-xl font-bold">Al-Faisal Law Firm</h4>
-          <p className="text-blue-200 text-xs md:text-sm mt-1">
-            {t("settings.licenseNo")}: <span className="font-mono bg-white/10 px-2 py-0.5 rounded text-xs">LC-99283</span> • {t("settings.validUntil")}
-          </p>
+      <div className="bg-[#0F2942] rounded-2xl p-4 md:p-6 text-white shadow-lg">
+        <h4 className="text-lg md:text-xl font-bold">{org?.name || t("settings.organization")}</h4>
+        <p className="text-blue-200 text-xs md:text-sm mt-1">
+          {isPersonalWorkspace ? t("settings.personalWorkspace") : t("settings.teamWorkspace")} • {members.length} {t("settings.members")}
+        </p>
+      </div>
+
+      {isPersonalWorkspace && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+            <h4 className="font-bold text-[#0F2942]">{t("settings.createOrganization")}</h4>
+            <input
+              value={newOrgName}
+              onChange={(e) => setNewOrgName(e.target.value)}
+              placeholder={t("settings.orgNamePlaceholder")}
+              className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706]"
+            />
+            <Button
+              className="bg-[#0F2942] hover:bg-[#1E3A56]"
+              disabled={!newOrgName.trim() || createOrg.isPending}
+              onClick={() => createOrg.mutate({ name: newOrgName.trim() })}
+            >
+              {createOrg.isPending ? t("common.creating") : t("settings.createAndSwitch")}
+            </Button>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+            <h4 className="font-bold text-[#0F2942]">{t("settings.joinByCode")}</h4>
+            <input
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value)}
+              placeholder={t("settings.pasteCodePlaceholder")}
+              className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706]"
+            />
+            <Button
+              className="bg-[#D97706] hover:bg-[#B45309]"
+              disabled={!joinCode.trim() || acceptInvite.isPending}
+              onClick={() => acceptInvite.mutate(joinCode.trim())}
+            >
+              {acceptInvite.isPending ? t("common.joining") : t("settings.joinOrganization")}
+            </Button>
+          </div>
         </div>
-        <span className="bg-green-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm whitespace-nowrap">
-          {t("settings.activeLicense")}
-        </span>
-      </div>
+      )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-3 md:gap-4">
-        <StatBox title={t("settings.storageUsed")} value="4.2 GB" max="10 GB" progress={42} color="orange" />
-        <StatBox title={t("settings.activeCases")} value="24" max={t("settings.unlimited")} progress={100} color="green" />
-      </div>
+      {isAdmin && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+          <h4 className="font-bold text-[#0F2942]">{t("settings.inviteMember")}</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <input
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              placeholder={t("settings.emailPlaceholder")}
+              className="md:col-span-2 p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706]"
+            />
+            <select
+              value={inviteRole}
+              onChange={(e) => setInviteRole(e.target.value)}
+              className="p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706]"
+            >
+              <option value="admin">{t("roles.admin")}</option>
+              <option value="senior_lawyer">{t("roles.seniorLawyer")}</option>
+              <option value="lawyer">{t("roles.lawyer")}</option>
+              <option value="paralegal">{t("roles.paralegal")}</option>
+              <option value="clerk">{t("roles.clerk")}</option>
+            </select>
+          </div>
+          <Button
+            className="bg-[#D97706] hover:bg-[#B45309]"
+            disabled={!inviteEmail.trim() || inviteMember.isPending}
+            onClick={() =>
+              inviteMember.mutate(
+                { email: inviteEmail.trim(), role: inviteRole },
+                {
+                  onSuccess: (data) => {
+                    setLastCode(data.invitationCode || null);
+                    setInviteEmail("");
+                  },
+                }
+              )
+            }
+          >
+            <Plus size={14} className="mr-2" />
+            {inviteMember.isPending ? t("common.inviting") : t("settings.inviteMember")}
+          </Button>
+          {lastCode && (
+            <p className="text-xs text-slate-600">
+              {t("settings.invitationCodeLabel")} <code className="bg-slate-100 px-1 py-0.5 rounded">{lastCode}</code>
+            </p>
+          )}
+        </div>
+      )}
 
-      {/* Team Members Table - Mobile Responsive */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="p-4 md:p-6 border-b border-slate-100 flex justify-between items-center">
           <h4 className="font-bold text-[#0F2942]">{t("settings.teamMembers")}</h4>
-          <button className="text-xs font-bold bg-[#D97706] text-white px-3 py-2 rounded-lg hover:bg-[#B45309] transition-colors flex items-center gap-2">
-            <Plus size={14} /> <span className="hidden sm:inline">{t("settings.inviteMember")}</span>
-          </button>
+          {!isPersonalWorkspace && (
+            <Button
+              variant="outline"
+              className="border-red-200 text-red-700 hover:bg-red-50"
+              disabled={leaveOrg.isPending}
+              onClick={() => leaveOrg.mutate()}
+            >
+              {leaveOrg.isPending ? t("common.leaving") : t("settings.leaveOrganization")}
+            </Button>
+          )}
         </div>
 
-        {/* Desktop Table View */}
         <div className="hidden md:block">
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 text-slate-500">
               <tr>
                 <th className="px-6 py-4 font-bold">{t("settings.name")}</th>
                 <th className="px-6 py-4 font-bold">{t("settings.role")}</th>
-                <th className="px-6 py-4 font-bold">Status</th>
-                <th className={`px-6 py-4 font-bold ${isRTL ? 'text-left' : 'text-right'}`}>{t("settings.actions")}</th>
+                <th className="px-6 py-4 font-bold">{t("table.status")}</th>
+                <th className={`px-6 py-4 font-bold ${isRTL ? "text-left" : "text-right"}`}>{t("settings.actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {teamData?.members.map((member: any) => (
+              {members.map((member: any) => (
                 <tr key={member.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="font-bold text-[#0F2942]">{member.fullName}</div>
@@ -290,10 +387,35 @@ function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; i
                   <td className="px-6 py-4">
                     <StatusDot status={member.status} />
                   </td>
-                  <td className={`px-6 py-4 ${isRTL ? 'text-left' : 'text-right'}`}>
-                    <button className="text-slate-400 hover:text-[#0F2942]">
-                      <MoreVertical size={16} />
-                    </button>
+                  <td className={`px-6 py-4 ${isRTL ? "text-left" : "text-right"} space-x-2`}>
+                    {isAdmin && user?.id !== member.id && (
+                      <>
+                        <select
+                          defaultValue={member.role}
+                          className="border border-slate-200 rounded px-2 py-1 text-xs"
+                          onChange={(e) =>
+                            updateRole.mutate({
+                              memberId: member.id,
+                              role: e.target.value,
+                            })
+                          }
+                        >
+                          <option value="admin">{t("roles.admin")}</option>
+                          <option value="senior_lawyer">{t("roles.seniorLawyer")}</option>
+                          <option value="lawyer">{t("roles.lawyer")}</option>
+                          <option value="paralegal">{t("roles.paralegal")}</option>
+                          <option value="clerk">{t("roles.clerk")}</option>
+                        </select>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-red-200 text-red-700 hover:bg-red-50"
+                          onClick={() => removeMember.mutate(member.id)}
+                        >
+                          {t("settings.removeMember")}
+                        </Button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -301,18 +423,12 @@ function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; i
           </table>
         </div>
 
-        {/* Mobile Card View */}
         <div className="md:hidden space-y-3 p-4">
-          {teamData?.members.map((member: any) => (
+          {members.map((member: any) => (
             <div key={member.id} className="bg-slate-50 rounded-xl p-4 space-y-3">
-              <div className="flex justify-between items-start">
-                <div>
-                  <div className="font-bold text-[#0F2942]">{member.fullName}</div>
-                  <div className="text-xs text-slate-400">{member.email}</div>
-                </div>
-                <button className="text-slate-400 hover:text-[#0F2942]">
-                  <MoreVertical size={16} />
-                </button>
+              <div>
+                <div className="font-bold text-[#0F2942]">{member.fullName}</div>
+                <div className="text-xs text-slate-400">{member.email}</div>
               </div>
               <div className="flex items-center gap-4">
                 <RoleBadge role={member.role} />
@@ -852,7 +968,7 @@ function BillingTab({ t, isRTL, billingData }: { t: (key: string) => string; isR
             disabled={isSubscribing}
             className="bg-[#D97706] hover:bg-[#B45309] w-full sm:w-auto"
           >
-            {isSubscribing ? "Processing..." : t("settings.upgradePlan")}
+            {isSubscribing ? t("common.processing") : t("settings.upgradePlan")}
           </Button>
           <Button
             onClick={() => cancelSubscription()}
@@ -860,7 +976,7 @@ function BillingTab({ t, isRTL, billingData }: { t: (key: string) => string; isR
             variant="ghost"
             className="bg-white/10 hover:bg-white/20 text-white w-full sm:w-auto"
           >
-            {isCancelling ? "Cancelling..." : t("settings.cancelSubscription")}
+            {isCancelling ? t("common.cancelling") : t("settings.cancelSubscription")}
           </Button>
         </div>
       </div>
@@ -882,7 +998,7 @@ function BillingTab({ t, isRTL, billingData }: { t: (key: string) => string; isR
                 <th className="px-6 py-4 font-bold">{t("settings.invoiceId")}</th>
                 <th className="px-6 py-4 font-bold">{t("settings.date")}</th>
                 <th className="px-6 py-4 font-bold">{t("settings.amount")}</th>
-                <th className="px-6 py-4 font-bold">Status</th>
+                <th className="px-6 py-4 font-bold">{t("table.status")}</th>
                 <th className={`px-6 py-4 font-bold ${isRTL ? 'text-left' : 'text-right'}`}></th>
               </tr>
             </thead>
@@ -903,7 +1019,7 @@ function BillingTab({ t, isRTL, billingData }: { t: (key: string) => string; isR
                       disabled={isDownloading}
                       className="text-[#D97706] hover:text-[#B45309] font-bold text-xs flex items-center gap-1 justify-end disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Download size={12} /> {isDownloading ? "Downloading..." : t("settings.pdf")}
+                      <Download size={12} /> {isDownloading ? t("common.downloading") : t("settings.pdf")}
                     </button>
                   </td>
                 </tr>
@@ -932,7 +1048,7 @@ function BillingTab({ t, isRTL, billingData }: { t: (key: string) => string; isR
                   disabled={isDownloading}
                   className="text-[#D97706] hover:text-[#B45309] font-bold text-xs flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Download size={12} /> {isDownloading ? "..." : t("settings.pdf")}
+                  <Download size={12} /> {isDownloading ? t("common.downloading") : t("settings.pdf")}
                 </button>
               </div>
             </div>
@@ -978,21 +1094,24 @@ function StatBox({ title, value, max, progress, color }: { title: string; value:
 
 function RoleBadge({ role }: { role: string }) {
   const styles: Record<string, string> = {
-    Admin: "bg-purple-50 text-purple-700 border-purple-100",
-    Lawyer: "bg-blue-50 text-blue-700 border-blue-100",
-    Paralegal: "bg-slate-100 text-slate-600 border-slate-200",
+    admin: "bg-purple-50 text-purple-700 border-purple-100",
+    senior_lawyer: "bg-indigo-50 text-indigo-700 border-indigo-100",
+    lawyer: "bg-blue-50 text-blue-700 border-blue-100",
+    paralegal: "bg-green-50 text-green-700 border-green-100",
+    clerk: "bg-slate-100 text-slate-600 border-slate-200",
   };
   return (
-    <span className={cn("px-2 py-1 rounded text-xs font-bold border", styles[role] || styles.Paralegal)}>
+    <span className={cn("px-2 py-1 rounded text-xs font-bold border", styles[role] || styles.clerk)}>
       {role}
     </span>
   );
 }
 
 function StatusDot({ status }: { status: string }) {
+  const normalized = status?.toLowerCase();
   return (
     <div className="flex items-center gap-2">
-      <div className={cn("w-2 h-2 rounded-full", status === "Active" ? "bg-green-500" : "bg-amber-500")} />
+      <div className={cn("w-2 h-2 rounded-full", normalized === "active" ? "bg-green-500" : "bg-amber-500")} />
       <span className="text-slate-600 font-medium">{status}</span>
     </div>
   );

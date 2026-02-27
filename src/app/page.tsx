@@ -9,10 +9,7 @@ import {
   Bell,
   LayoutDashboard,
   ChevronRight,
-  Play,
-  Quote,
   Check,
-  Shield,
   Zap,
   Users,
   FileText,
@@ -43,30 +40,6 @@ const FeatureCard = ({
     </div>
     <h3 className="text-xl font-bold text-[#0F2942] mb-3">{title}</h3>
     <p className="text-slate-500 leading-relaxed text-sm">{desc}</p>
-  </div>
-);
-
-const TestimonialCard = ({
-  quote,
-  author,
-  role
-}: {
-  quote: string;
-  author: string;
-  role: string;
-}) => (
-  <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-100 relative">
-    <Quote className="absolute top-6 right-6 text-slate-200" size={32} />
-    <p className="text-slate-600 italic mb-6 relative z-10 leading-relaxed">&quot;{quote}&quot;</p>
-    <div className="flex items-center gap-3">
-      <div className="w-10 h-10 rounded-full bg-[#0F2942] flex items-center justify-center text-white font-bold text-xs">
-        {author.charAt(0)}
-      </div>
-      <div>
-        <h4 className="font-bold text-[#0F2942] text-sm">{author}</h4>
-        <p className="text-xs text-slate-400">{role}</p>
-      </div>
-    </div>
   </div>
 );
 
@@ -331,13 +304,13 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* Stats Section */}
+      {/* Capabilities Section */}
       <div className="bg-[#1E3A56] py-16 px-6 md:px-8 relative z-20">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
-          <StatCard value="500+" label={t("landing.statsLawyers")} />
-          <StatCard value="10,000+" label={t("landing.statsCases")} />
-          <StatCard value="50,000+" label={t("landing.statsRegulations")} />
-          <StatCard value="99.9%" label={t("landing.statsUptime")} />
+          <StatCard value="عربي + EN" label={t("landing.capabilityBilingual")} />
+          <StatCard value="< 500ms" label={t("landing.capabilityResponse")} />
+          <StatCard value="BGE-M3" label={t("landing.capabilityEmbeddings")} />
+          <StatCard value="24/7" label={t("landing.capabilityMonitoring")} />
         </div>
       </div>
 
@@ -374,9 +347,9 @@ export default function LandingPage() {
           {/* Additional Features Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="p-6 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-colors group">
-              <Globe className="h-8 w-8 text-[#D97706] mb-4 group-hover:scale-110 transition-transform" />
-              <h4 className="font-bold text-[#0F2942] mb-2">{t("landing.najizIntegration")}</h4>
-              <p className="text-sm text-slate-500">{t("landing.najizIntegrationDesc")}</p>
+              <FileText className="h-8 w-8 text-[#D97706] mb-4 group-hover:scale-110 transition-transform" />
+              <h4 className="font-bold text-[#0F2942] mb-2">{t("landing.docIntelligence")}</h4>
+              <p className="text-sm text-slate-500">{t("landing.docIntelligenceDesc")}</p>
             </div>
             <div className="p-6 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-colors group">
               <Zap className="h-8 w-8 text-[#D97706] mb-4 group-hover:scale-110 transition-transform" />
@@ -474,29 +447,35 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* Testimonials Section */}
+      {/* Capabilities Section */}
       <div className="bg-white py-24 px-6 md:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <span className="inline-block text-[#D97706] text-sm font-bold uppercase tracking-widest mb-4">{t("landing.testimonialsLabel")}</span>
-            <h2 className="text-3xl font-bold font-serif text-[#0F2942] mb-4">{t("landing.whatPartnersSay")}</h2>
+            <span className="inline-block text-[#D97706] text-sm font-bold uppercase tracking-widest mb-4">{t("landing.capabilitiesLabel")}</span>
+            <h2 className="text-3xl font-bold font-serif text-[#0F2942] mb-4">{t("landing.realCapabilities")}</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <TestimonialCard
-              quote={t("landing.testimonial1")}
-              author={t("landing.testimonial1Author")}
-              role={t("landing.testimonial1Role")}
-            />
-            <TestimonialCard
-              quote={t("landing.testimonial2")}
-              author={t("landing.testimonial2Author")}
-              role={t("landing.testimonial2Role")}
-            />
-            <TestimonialCard
-              quote={t("landing.testimonial3")}
-              author={t("landing.testimonial3Author")}
-              role={t("landing.testimonial3Role")}
-            />
+            <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-all group">
+              <div className="w-14 h-14 rounded-2xl bg-[#D97706] flex items-center justify-center shadow-lg mb-6 group-hover:scale-110 transition-transform">
+                <Sparkles className="text-white" size={28} />
+              </div>
+              <h3 className="text-xl font-bold text-[#0F2942] mb-3">{t("landing.capSemanticMatching")}</h3>
+              <p className="text-slate-500 leading-relaxed">{t("landing.capSemanticMatchingDesc")}</p>
+            </div>
+            <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-all group">
+              <div className="w-14 h-14 rounded-2xl bg-[#0F2942] flex items-center justify-center shadow-lg mb-6 group-hover:scale-110 transition-transform">
+                <FileText className="text-white" size={28} />
+              </div>
+              <h3 className="text-xl font-bold text-[#0F2942] mb-3">{t("landing.capDocExtraction")}</h3>
+              <p className="text-slate-500 leading-relaxed">{t("landing.capDocExtractionDesc")}</p>
+            </div>
+            <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-all group">
+              <div className="w-14 h-14 rounded-2xl bg-[#1E3A56] flex items-center justify-center shadow-lg mb-6 group-hover:scale-110 transition-transform">
+                <Bell className="text-white" size={28} />
+              </div>
+              <h3 className="text-xl font-bold text-[#0F2942] mb-3">{t("landing.capRegulationMonitor")}</h3>
+              <p className="text-slate-500 leading-relaxed">{t("landing.capRegulationMonitorDesc")}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -556,20 +535,6 @@ export default function LandingPage() {
               ctaText={t("landing.contactSales")}
               t={t}
             />
-          </div>
-        </div>
-      </div>
-
-      {/* Social Proof / Trusted By */}
-      <div className="bg-white py-16 px-6 md:px-8 border-t border-slate-100">
-        <div className="max-w-7xl mx-auto">
-          <p className="text-center text-sm font-bold text-slate-400 uppercase tracking-widest mb-8">{t("landing.trustedBy")}</p>
-          <div className="flex flex-wrap justify-center gap-12 opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500">
-            {/* Mock Logos */}
-            <div className="h-8 w-32 bg-slate-200 rounded"></div>
-            <div className="h-8 w-32 bg-slate-200 rounded"></div>
-            <div className="h-8 w-32 bg-slate-200 rounded"></div>
-            <div className="h-8 w-32 bg-slate-200 rounded"></div>
           </div>
         </div>
       </div>

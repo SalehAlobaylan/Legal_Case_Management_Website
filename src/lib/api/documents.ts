@@ -6,7 +6,7 @@
 
 import { apiClient } from "./client";
 import { endpoints } from "./endpoints";
-import type { Document } from "@/lib/types/document";
+import type { Document, DocumentInsights } from "@/lib/types/document";
 
 export interface DocumentsResponse {
   documents: Document[];
@@ -52,5 +52,25 @@ export const documentsApi = {
    */
   async deleteDocument(docId: number): Promise<void> {
     await apiClient.delete(endpoints.documents.delete(docId));
+  },
+
+  /**
+   * Get AI insights for a specific document
+   */
+  async getDocumentInsights(docId: number): Promise<DocumentInsights> {
+    const { data } = await apiClient.get<DocumentInsights>(
+      endpoints.documents.insights(docId)
+    );
+    return data;
+  },
+
+  /**
+   * Queue AI insights refresh for a specific document
+   */
+  async refreshDocumentInsights(docId: number): Promise<DocumentInsights> {
+    const { data } = await apiClient.post<DocumentInsights>(
+      endpoints.documents.refreshInsights(docId)
+    );
+    return data;
   },
 };

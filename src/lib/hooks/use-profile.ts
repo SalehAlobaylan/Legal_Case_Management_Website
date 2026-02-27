@@ -10,48 +10,31 @@ import {
     profileApi,
     ProfileStats,
     ProfileActivity,
-    ProfileHearing,
     UpdateProfileRequest,
+    ActivitiesQueryParams,
+    ActivitiesResponse,
 } from "@/lib/api/profile";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { toast } from "@/components/ui/use-toast";
 
-/**
- * Hook to fetch profile statistics
- */
 export function useProfileStats() {
     return useQuery<{ stats: ProfileStats }>({
         queryKey: ["profile", "stats"],
         queryFn: () => profileApi.getStats(),
-        staleTime: 1000 * 60 * 5, // 5 minutes
-    });
-}
-
-/**
- * Hook to fetch profile recent activities
- */
-export function useProfileActivities(limit: number = 5) {
-    return useQuery<{ activities: ProfileActivity[] }>({
-        queryKey: ["profile", "activities", limit],
-        queryFn: () => profileApi.getActivities(limit),
-        staleTime: 1000 * 60 * 2, // 2 minutes
-    });
-}
-
-/**
- * Hook to fetch upcoming hearings
- */
-export function useProfileHearings() {
-    return useQuery<{ hearings: ProfileHearing[] }>({
-        queryKey: ["profile", "hearings"],
-        queryFn: () => profileApi.getHearings(),
         staleTime: 1000 * 60 * 5,
     });
 }
 
-/**
- * Hook to update profile
- */
+export function useProfileActivities(params: ActivitiesQueryParams = {}) {
+    const { limit = 10, offset = 0, type, from, to } = params;
+
+    return useQuery<ActivitiesResponse>({
+        queryKey: ["profile", "activities", limit, offset, type, from, to],
+        queryFn: () => profileApi.getActivities(params),
+        staleTime: 1000 * 60 * 2,
+    });
+}
+
 export function useUpdateProfile() {
     const queryClient = useQueryClient();
     const { updateUser } = useAuthStore();
@@ -59,10 +42,7 @@ export function useUpdateProfile() {
     return useMutation({
         mutationFn: (data: UpdateProfileRequest) => profileApi.updateProfile(data),
         onSuccess: (data) => {
-            // Update auth store with new user data
             updateUser(data.user);
-
-            // Invalidate profile query if we had one separate from auth store
             queryClient.invalidateQueries({ queryKey: ["profile", "me"] });
 
             toast({
@@ -80,9 +60,6 @@ export function useUpdateProfile() {
     });
 }
 
-/**
- * Hook to upload avatar
- */
 export function useUploadAvatar() {
     const queryClient = useQueryClient();
     const { user, updateUser } = useAuthStore();
@@ -90,7 +67,6 @@ export function useUploadAvatar() {
     return useMutation({
         mutationFn: (file: File) => profileApi.uploadAvatar(file),
         onSuccess: (data) => {
-            // Update local user state if needed
             if (user) {
                 updateUser({ ...user, avatarUrl: data.avatarUrl });
             }

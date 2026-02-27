@@ -8,7 +8,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
-import type { CaseRegulationLink } from "@/lib/types/case";
+import type { AILinkGenerationMeta, CaseRegulationLink } from "@/lib/types/case";
 
 export interface BulkSubscribeResponse {
   created: number;
@@ -17,6 +17,11 @@ export interface BulkSubscribeResponse {
     regulationId: number;
     reason: string;
   }>;
+}
+
+export interface GenerateAILinksResponse {
+  links: CaseRegulationLink[];
+  generationMeta?: AILinkGenerationMeta;
 }
 
 export function useAILinks(caseId: number) {
@@ -37,10 +42,10 @@ export function useGenerateAILinks(caseId: number) {
 
   return useMutation({
     mutationFn: async () => {
-      const { data } = await apiClient.post<{ links: CaseRegulationLink[] }>(
+      const { data } = await apiClient.post<GenerateAILinksResponse>(
         `/api/ai-links/${caseId}/generate`
       );
-      return data.links;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ai-links", caseId] });

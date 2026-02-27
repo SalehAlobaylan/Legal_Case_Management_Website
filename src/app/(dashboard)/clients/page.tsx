@@ -357,7 +357,7 @@ function ClientRow({ client, onView, index, t, isRTL }: ClientRowProps) {
           <div
             className={cn(
               "w-11 h-11 rounded-full flex items-center justify-center",
-              "bg-gradient-to-br from-[#0F2942] to-[#1E3A56] text-white font-bold text-sm",
+              "bg-gradient-to-br from-brand-primary to-brand-accent text-white font-bold text-sm",
               "group-hover:from-[#D97706] group-hover:to-[#B45309] transition-all duration-300",
               "shadow-md ring-2 ring-white"
             )}

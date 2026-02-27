@@ -62,9 +62,30 @@ export interface CaseRegulationLink {
   verified: boolean;
   isSubscribed?: boolean;
   is_subscribed?: boolean;
+  evidenceSources?: LinkEvidence[];
+  evidence_sources?: LinkEvidence[];
+  matchedWithDocuments?: boolean;
+  matched_with_documents?: boolean;
   regulation?: Regulation;
   created_at: string;
   createdAt?: string;
+}
+
+export interface LinkEvidence {
+  fragment_id: string;
+  source: string;
+  document_id?: number | null;
+  document_name?: string | null;
+  score: number;
+}
+
+export interface AILinkGenerationMeta {
+  docsConsidered: number;
+  docsQueued: number;
+  docsReady: number;
+  docsPending: number;
+  docsFailed: number;
+  docsUnsupported: number;
 }
 
 export interface Regulation {

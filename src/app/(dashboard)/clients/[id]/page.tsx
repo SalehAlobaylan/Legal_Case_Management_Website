@@ -90,7 +90,7 @@ const getStatusColor = (clientType: string) => {
 export default function ClientDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const { t } = useI18n();
+  const { t, isRTL } = useI18n();
   const clientId = Number(params.id as string);
 
   // Fetch client and their cases from API
@@ -106,7 +106,7 @@ export default function ClientDetailPage() {
       <div className="p-8 flex items-center justify-center min-h-[400px] animate-in fade-in duration-300">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-[#D97706]" />
-          <p className="text-slate-500 text-sm">Loading client details...</p>
+          <p className="text-slate-500 text-sm">{t("clients.loadingDetails")}</p>
         </div>
       </div>
     );
@@ -129,19 +129,20 @@ export default function ClientDetailPage() {
   }
 
   const TypeIcon = getTypeIcon(client.type);
-  const displayType = client.type === "company" ? "Corporate" : client.type?.charAt(0).toUpperCase() + client.type?.slice(1) || "Individual";
+  const displayType = client.type === "company" ? t("clients.types.corporate") : t("clients.types.individual");
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Back Button */}
       <button
         onClick={() => router.push("/clients")}
-        className="flex items-center text-slate-500 hover:text-[#0F2942] text-sm font-medium group transition-colors"
+        className={cn(
+          "flex items-center text-slate-500 hover:text-brand-primary text-sm font-medium group transition-colors",
+          isRTL ? "flex-row-reverse" : "flex-row"
+        )}
       >
-        <div className="bg-slate-100 p-1.5 rounded-md mr-2 group-hover:bg-[#0F2942] group-hover:text-white transition-colors">
-          <ChevronRight className="rotate-180 h-4 w-4" />
-        </div>
-        Back to Client Directory
+        <ChevronRight className={cn("h-4 w-4", isRTL ? "rotate-0 ml-2" : "rotate-180 mr-2")} />
+        {t("clients.backToDirectory")}
       </button>
 
       {/* Client Header Card */}
@@ -149,7 +150,7 @@ export default function ClientDetailPage() {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
           <div className="flex items-center gap-5">
             {/* Avatar */}
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#0F2942] to-[#1E3A56] flex items-center justify-center text-white font-bold text-2xl shadow-lg ring-4 ring-white">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-brand-primary to-brand-accent flex items-center justify-center text-white font-bold text-2xl shadow-lg ring-4 ring-white">
               {client.name.charAt(0)}
             </div>
             <div>
@@ -157,7 +158,7 @@ export default function ClientDetailPage() {
                 {client.name}
               </h1>
               <div className="flex items-center gap-3 mt-2">
-                <span className="text-slate-500 text-sm font-medium">ID: {client.id}</span>
+                <span className="text-slate-500 text-sm font-medium">{t("clients.clientId")}: {client.id}</span>
                 <span className="text-slate-300">•</span>
                 <span
                   className={cn(
@@ -178,14 +179,14 @@ export default function ClientDetailPage() {
                 getStatusColor(client.type)
               )}
             >
-              Active
+{t("common.active")}
             </span>
             <Button
               variant="outline"
               className="px-4 py-2 rounded-xl font-bold flex items-center gap-2"
             >
               <Edit2 className="h-4 w-4" />
-              Edit
+              {t("common.edit")}
             </Button>
           </div>
         </div>
@@ -201,7 +202,7 @@ export default function ClientDetailPage() {
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">
                 Phone
               </p>
-              <p className="text-sm text-slate-700 font-semibold">{client.contactPhone || "Not provided"}</p>
+              <p className="text-sm text-slate-700 font-semibold">{client.contactPhone || t("common.notProvided")}</p>
             </div>
           </div>
 
@@ -215,7 +216,7 @@ export default function ClientDetailPage() {
                 Email
               </p>
               <p className="text-sm text-slate-700 font-semibold break-all">
-                {client.contactEmail || "Not provided"}
+                {client.contactEmail || t("common.notProvided")}
               </p>
             </div>
           </div>
@@ -229,7 +230,7 @@ export default function ClientDetailPage() {
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">
                 Address
               </p>
-              <p className="text-sm text-slate-700 font-semibold">{client.address || "Not provided"}</p>
+              <p className="text-sm text-slate-700 font-semibold">{client.address || t("common.notProvided")}</p>
             </div>
           </div>
         </div>
@@ -250,36 +251,38 @@ export default function ClientDetailPage() {
           className="w-full bg-[#D97706] hover:bg-[#B45309] text-white px-6 py-4 rounded-xl font-bold flex items-center justify-center gap-3 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-base"
         >
           <MessageSquare className="h-5 w-5" />
-          Send Message to Client
+          {t("clients.sendMessageToClient")}
         </Button>
 
         {/* Message Dialog */}
         <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
-          <DialogContent size="default">
+          <DialogContent size="default" className="bg-white dark:bg-white">
             <DialogHeader icon={<MessageSquare className="h-5 w-5" />}>
-              <DialogTitle>Send Message to {client.name}</DialogTitle>
+              <DialogTitle className="text-slate-900">{t("clients.sendMessageTo")} {client.name}</DialogTitle>
             </DialogHeader>
             <DialogBody>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-bold text-slate-700 mb-2 block">Message</label>
+                  <label className="text-sm font-bold text-slate-800 mb-2 block">{t("clients.message")}</label>
                   <textarea
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
-                    placeholder="Enter your message to the client..."
+                    placeholder={t("clients.messagePlaceholder")}
+                    dir="auto"
                     className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/10 min-h-[120px] resize-none"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-bold text-slate-700 mb-2 block">Message Type</label>
+                  <label className="text-sm font-bold text-slate-800 mb-2 block">{t("clients.messageType")}</label>
                   <select
                     className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] bg-white"
                     defaultValue="general"
+                    dir={isRTL ? "rtl" : "ltr"}
                   >
-                    <option value="general">General Update</option>
-                    <option value="case_update">Case Update</option>
-                    <option value="hearing_reminder">Hearing Reminder</option>
-                    <option value="document_request">Document Request</option>
+                    <option value="general">{t("clients.messageTypeGeneral")}</option>
+                    <option value="case_update">{t("clients.messageTypeCaseUpdate")}</option>
+                    <option value="hearing_reminder">{t("clients.messageTypeHearingReminder")}</option>
+                    <option value="document_request">{t("clients.messageTypeDocumentRequest")}</option>
                   </select>
                 </div>
               </div>
@@ -310,7 +313,7 @@ export default function ClientDetailPage() {
                 disabled={isSendingMessage || !messageText.trim()}
                 className="bg-[#D97706] hover:bg-[#B45309]"
               >
-                {isSendingMessage ? "Sending..." : "Send Message"}
+                {isSendingMessage ? t("clients.sending") : t("clients.sendMessage")}
               </Button>
             </DialogFooter>
             <DialogCloseIconButton />
@@ -322,7 +325,7 @@ export default function ClientDetailPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-500 delay-200">
         <div className="p-6 border-b border-slate-100 flex items-center justify-between">
           <h3 className="font-bold text-lg text-[#0F2942]">
-            Associated Cases ({isLoadingCases ? "..." : clientCases?.length || 0})
+            {t("clients.associatedCases")} ({isLoadingCases ? "..." : clientCases?.length || 0})
           </h3>
           {clientCases && clientCases.length > 0 && (
             <Button
@@ -330,7 +333,7 @@ export default function ClientDetailPage() {
               className="text-[#D97706] text-sm font-bold hover:underline p-0 h-auto"
               onClick={() => router.push("/cases")}
             >
-              View All Cases <ChevronRight className="h-4 w-4 ml-1" />
+              {t("clients.viewAllCases")} <ChevronRight className={cn("h-4 w-4", isRTL ? "rotate-180 mr-1" : "ml-1")} />
             </Button>
           )}
         </div>
@@ -338,7 +341,7 @@ export default function ClientDetailPage() {
         {isLoadingCases ? (
           <div className="p-12 text-center">
             <Loader2 className="h-6 w-6 animate-spin text-[#D97706] mx-auto" />
-            <p className="text-slate-500 text-sm mt-2">Loading cases...</p>
+            <p className="text-slate-500 text-sm mt-2">{t("cases.loadingCases")}</p>
           </div>
         ) : !clientCases || clientCases.length === 0 ? (
           <div className="p-12 text-center">

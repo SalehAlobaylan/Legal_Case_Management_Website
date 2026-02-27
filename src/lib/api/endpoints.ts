@@ -44,8 +44,11 @@ export const endpoints = {
     list: `${API_BASE}/api/regulations`,
     detail: (id: number) => `${API_BASE}/api/regulations/${id}`,
     versions: (id: number) => `${API_BASE}/api/regulations/${id}/versions`,
+    compare: (id: number) => `${API_BASE}/api/regulations/${id}/compare`,
     search: `${API_BASE}/api/regulations/search`,
     subscribe: `${API_BASE}/api/regulations/subscribe`,
+    sourceSync: `${API_BASE}/api/regulations/source/moj/sync`,
+    sourceHealth: `${API_BASE}/api/regulations/source/moj/health`,
   },
 
   // AI Links
@@ -62,6 +65,10 @@ export const endpoints = {
     upload: (caseId: number) => `${API_BASE}/api/cases/${caseId}/documents`,
     download: (docId: number) => `${API_BASE}/api/documents/${docId}/download`,
     delete: (docId: number) => `${API_BASE}/api/documents/${docId}`,
+    insights: (docId: number) => `${API_BASE}/api/documents/${docId}/insights`,
+    refreshInsights: (docId: number) =>
+      `${API_BASE}/api/documents/${docId}/insights/refresh`,
+    insightsHealth: `${API_BASE}/api/documents/insights/health`,
   },
 
   // Clients
@@ -98,7 +105,6 @@ export const endpoints = {
     updatePassword: `${API_BASE}/api/profile/password`,
     stats: `${API_BASE}/api/profile/stats`,
     activities: `${API_BASE}/api/profile/activities`,
-    hearings: `${API_BASE}/api/profile/hearings`,
     avatar: `${API_BASE}/api/profile/avatar`,
   },
 
@@ -106,8 +112,15 @@ export const endpoints = {
   settings: {
     notifications: `${API_BASE}/api/settings/notifications`,
     organization: `${API_BASE}/api/settings/organization`,
+    organizationLeave: `${API_BASE}/api/settings/organization/leave`,
     team: `${API_BASE}/api/settings/team`,
     teamInvite: `${API_BASE}/api/settings/team/invite`,
+    teamInvitations: `${API_BASE}/api/settings/team/invitations`,
+    teamAcceptInvitation: `${API_BASE}/api/settings/team/invitations/accept`,
+    teamUpdateRole: (memberId: string) =>
+      `${API_BASE}/api/settings/team/members/${memberId}/role`,
+    teamRemoveMember: (memberId: string) =>
+      `${API_BASE}/api/settings/team/members/${memberId}`,
     billing: `${API_BASE}/api/settings/billing`,
     security: {
       changePassword: `${API_BASE}/api/settings/security/password`,

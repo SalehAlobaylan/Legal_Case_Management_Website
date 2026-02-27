@@ -42,6 +42,26 @@ export function useRegulationVersions(id: number) {
 }
 
 /**
+ * Hook for comparing two regulation versions
+ */
+export function useCompareRegulationVersions(
+  id: number,
+  fromVersion?: number,
+  toVersion?: number
+) {
+  return useQuery({
+    queryKey: ["regulation-compare", id, fromVersion, toVersion],
+    queryFn: () =>
+      regulationsApi.compareRegulationVersions(id, fromVersion as number, toVersion as number),
+    enabled:
+      !!id &&
+      Number.isInteger(fromVersion) &&
+      Number.isInteger(toVersion) &&
+      fromVersion !== toVersion,
+  });
+}
+
+/**
  * Hook for searching regulations
  */
 export function useSearchRegulations() {
@@ -70,5 +90,31 @@ export function useSubscribeToRegulation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["regulations"] });
     },
+  });
+}
+
+/**
+ * Hook for triggering MOJ source sync (admin)
+ */
+export function useSyncMojSource() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input?: { maxPages?: number; extractContent?: boolean }) =>
+      regulationsApi.syncMojSource(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["regulations"] });
+      queryClient.invalidateQueries({ queryKey: ["moj-source-health"] });
+    },
+  });
+}
+
+/**
+ * Hook for MOJ source sync health (admin)
+ */
+export function useMojSourceHealth() {
+  return useQuery({
+    queryKey: ["moj-source-health"],
+    queryFn: () => regulationsApi.getMojSourceHealth(),
   });
 }

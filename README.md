@@ -2,6 +2,11 @@
 
 An AI-powered legal case management platform designed for Saudi legal practitioners. The system leverages semantic similarity to automatically link legal cases with relevant regulations from Saudi Arabian law.
 
+### Brief Outcome (Regulation Upgrade)
+- Regulations list now consumes backend-only data and reflects latest updates.
+- Regulation detail page supports version timeline + side-by-side compare.
+- Discover flow integrates backend MOJ source sync for latest regulation ingestion.
+
 ---
 
 ## System Architecture
@@ -65,6 +70,12 @@ A high-performance RESTful API handling business logic, authentication, and data
 - Hybrid linking: AI-generated and manual links
 - High-score subscription suggestion dialog with preselected regulations and user opt-out checkboxes
 - Bulk subscription submission directly from the case AI suggestions flow
+- Documents tab now includes inline AI insights per attachment (summary + related highlights)
+- Insights status badges and refresh action for each case document
+- Automatic refresh behavior when insights are still processing
+- Regulations page now uses backend-only data (no mock fallback)
+- "Discover New" triggers MOJ source sync via backend admin endpoint
+- Regulation detail page supports side-by-side version comparison
 
 ### User Management
 
@@ -72,6 +83,13 @@ A high-performance RESTful API handling business logic, authentication, and data
 - Role-based access control: Admin, Senior Lawyer, Lawyer, Paralegal, Clerk
 - Multi-tenant organization support
 - Secure password hashing with bcrypt
+- Personal-first account onboarding with optional organization creation
+- Invitation-code based organization join flow from Settings
+- Team administration in Settings:
+  - Invite member by email + role
+  - Change member role
+  - Remove member from organization
+  - Leave organization (user moved to personal workspace)
 
 ### Real-Time Updates
 
@@ -88,6 +106,7 @@ A high-performance RESTful API handling business logic, authentication, and data
 - Analytics dashboard with case statistics
 - OpenAPI/Swagger documentation
 - Regulation version detail page (`/regulations/[id]`) with timeline-style history view
+- Version comparison UX with selectable left/right versions and visual diff blocks
 
 
 ---
@@ -126,6 +145,26 @@ NEXT_PUBLIC_AI_SERVICE_URL=http://localhost:8000
 | POST   | /api/auth/register | Register new user |
 | POST   | /api/auth/login    | User login        |
 | GET    | /api/auth/me       | Get current user  |
+
+#### Updated Registration Modes
+- `personal` (default): creates personal workspace without asking org details.
+- `create`: creates an organization and sets user as admin.
+
+From the web app:
+- `/register` now supports:
+  - **Personal** account creation
+  - **Create New Organization**
+- Joining an organization is done after login from:
+  - `/settings` -> Organization tab -> Join by invitation code.
+
+#### Team Management APIs used by the frontend
+- `GET /api/settings/team`
+- `POST /api/settings/team/invite`
+- `POST /api/settings/team/invitations/accept`
+- `PUT /api/settings/team/members/:memberId/role`
+- `DELETE /api/settings/team/members/:memberId`
+- `POST /api/settings/organization/leave`
+- `POST /api/organizations` (create org and switch user context)
 
 ### Cases
 
@@ -240,6 +279,49 @@ docker-compose up -d
 - Set up Redis clustering for high availability
 - Use GPU instances for AI service performance
 - Implement database read replicas for scaling
+
+---
+
+## Testing
+
+### Unit Tests (Jest + React Testing Library)
+
+```bash
+npm test              # Run all unit tests
+npm run test:watch    # Watch mode
+npm run test:coverage # Generate coverage report
+```
+
+### E2E Tests (Playwright)
+
+```bash
+npm run test:e2e      # Run E2E tests (requires backend running)
+npm run test:e2e:ui   # Run with Playwright UI
+```
+
+#### E2E Test Coverage
+
+| File | Tests | Coverage |
+|------|-------|----------|
+| `auth.spec.ts` | 7 | Registration, login, protected routes |
+| `cases.spec.ts` | 10 | Case CRUD, 5 case types |
+| `case-details.spec.ts` | 9 | Case details, documents, AI suggestions |
+| `clients.spec.ts` | 10 | Client CRUD, search, filter, export |
+| `client-details.spec.ts` | 8 | Client details, case association |
+| `documents.spec.ts` | 11 | Upload, download, delete, insights |
+| `ai-features.spec.ts` | 12 | AI links, regulation suggestions |
+| `settings.spec.ts` | 18 | Profile, org, notifications, security, billing |
+| `additional-features.spec.ts` | 14 | Filters, dashboard, language, navigation |
+| `user-journey.spec.ts` | 10 | Complete user flows, responsive |
+
+#### E2E Environment
+
+For full-stack E2E tests, create `.env.e2e`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3000
+NEXT_PUBLIC_WS_URL=http://localhost:3000
+```
 
 ---
 
