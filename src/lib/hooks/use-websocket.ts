@@ -158,6 +158,7 @@ export function useWebSocket() {
       setLastEventAt(new Date());
 
       queryClient.invalidateQueries({ queryKey: ["alerts"] });
+      queryClient.invalidateQueries({ queryKey: ["alerts-unread-count"] });
 
       if (data?.title) {
         toast({

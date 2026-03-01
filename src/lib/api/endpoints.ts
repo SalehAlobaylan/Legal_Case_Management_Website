@@ -94,6 +94,7 @@ export const endpoints = {
   // Alerts/Notifications
   alerts: {
     list: `${API_BASE}/api/alerts`,
+    unreadCount: `${API_BASE}/api/alerts/unread-count`,
     markRead: (id: number) => `${API_BASE}/api/alerts/${id}/read`,
     markAllRead: `${API_BASE}/api/alerts/read-all`,
   },
