@@ -24,6 +24,9 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils/cn";
 
 /* =============================================================================
@@ -53,9 +56,9 @@ interface ClientFormModalProps {
 
 const CLIENT_TYPES = [
   { value: "Individual", label: "Individual", icon: User, color: "text-blue-600 bg-blue-100" },
-  { value: "Corporate", label: "Corporate", icon: Building2, color: "text-purple-600 bg-purple-100" },
+  { value: "Corporate", label: "Corporate", icon: Building2, color: "text-violet-600 bg-violet-100" },
   { value: "SME", label: "SME", icon: Briefcase, color: "text-green-600 bg-green-100" },
-  { value: "Group", label: "Group", icon: Users, color: "text-orange-600 bg-orange-100" },
+  { value: "Group", label: "Group", icon: Users, color: "text-amber-600 bg-amber-100" },
 ] as const;
 
 /* =============================================================================
@@ -134,24 +137,18 @@ export function ClientFormModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl border-[var(--color-border-default)] bg-[var(--color-surface-card)]">
         <form onSubmit={handleSubmit}>
-          <DialogHeader className="relative">
-            <DialogTitle className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-[#0F2942] text-white">
-                <User className="h-5 w-5" />
-              </div>
-              {mode === "create" ? "Add New Client" : "Edit Client"}
-            </DialogTitle>
-            <DialogClose className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-slate-200 transition-colors text-slate-400 hover:text-slate-600">
+          <DialogHeader className="relative" icon={<User className="h-5 w-5" />}>
+            <DialogTitle>{mode === "create" ? "Add New Client" : "Edit Client"}</DialogTitle>
+            <DialogClose className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-2 text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-text-primary)]">
               <X className="h-5 w-5" />
             </DialogClose>
           </DialogHeader>
 
           <DialogBody className="space-y-6">
-            {/* Client Type Selection */}
             <div className="space-y-2">
-              <label className="text-sm font-bold text-[#0F2942]">Client Type</label>
+              <Label>Client Type</Label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {CLIENT_TYPES.map((type) => {
                   const Icon = type.icon;
@@ -164,10 +161,10 @@ export function ClientFormModal({
                       className={cn(
                         "p-4 rounded-xl border-2 transition-all duration-200",
                         "flex flex-col items-center gap-2 text-center",
-                        "hover:shadow-md",
+                        "hover:shadow-sm",
                         isSelected
-                          ? "border-[#D97706] bg-orange-50/50 shadow-sm"
-                          : "border-slate-200 hover:border-slate-300"
+                          ? "border-[var(--color-brand-accent)] bg-orange-50/70 shadow-sm"
+                          : "border-[var(--color-border-default)] hover:border-[var(--color-border-dark)]"
                       )}
                     >
                       <div className={cn("p-2 rounded-lg", type.color)}>
@@ -176,7 +173,9 @@ export function ClientFormModal({
                       <span
                         className={cn(
                           "text-sm font-medium",
-                          isSelected ? "text-[#D97706]" : "text-slate-600"
+                          isSelected
+                            ? "text-[var(--color-brand-accent)]"
+                            : "text-[var(--color-text-secondary)]"
                         )}
                       >
                         {type.label}
@@ -187,112 +186,90 @@ export function ClientFormModal({
               </div>
             </div>
 
-            {/* Client Name */}
             <div className="space-y-2">
-              <label className="text-sm font-bold text-[#0F2942]">
-                Client Name <span className="text-red-500">*</span>
-              </label>
-              <input
+              <Label htmlFor="client-name" required>
+                Client Name
+              </Label>
+              <Input
+                id="client-name"
                 type="text"
                 value={formData.name}
                 onChange={(e) => handleChange("name", e.target.value)}
                 placeholder="Enter client name or company name"
-                className={cn(
-                  "w-full px-4 py-3 rounded-xl border text-sm",
-                  "focus:outline-none focus:ring-2 focus:ring-[#D97706]/20 focus:border-[#D97706]",
-                  "transition-all duration-200",
-                  errors.name ? "border-red-400 bg-red-50" : "border-slate-200"
-                )}
+                error={Boolean(errors.name)}
+                aria-invalid={Boolean(errors.name)}
+                className={cn(errors.name && "bg-[var(--color-error-bg)]")}
               />
               {errors.name && (
-                <p className="text-xs text-red-500 font-medium animate-in fade-in slide-in-from-top-1">
+                <p className="text-xs font-medium text-[var(--color-error-text)] animate-in fade-in slide-in-from-top-1">
                   {errors.name}
                 </p>
               )}
             </div>
 
-            {/* Contact Information Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Email */}
               <div className="space-y-2">
-                <label className="text-sm font-bold text-[#0F2942]">
-                  Email Address <span className="text-red-500">*</span>
-                </label>
-                <input
+                <Label htmlFor="client-email" required>
+                  Email Address
+                </Label>
+                <Input
+                  id="client-email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleChange("email", e.target.value)}
                   placeholder="email@example.com"
-                  className={cn(
-                    "w-full px-4 py-3 rounded-xl border text-sm",
-                    "focus:outline-none focus:ring-2 focus:ring-[#D97706]/20 focus:border-[#D97706]",
-                    "transition-all duration-200",
-                    errors.email ? "border-red-400 bg-red-50" : "border-slate-200"
-                  )}
+                  error={Boolean(errors.email)}
+                  aria-invalid={Boolean(errors.email)}
+                  className={cn(errors.email && "bg-[var(--color-error-bg)]")}
                 />
                 {errors.email && (
-                  <p className="text-xs text-red-500 font-medium animate-in fade-in slide-in-from-top-1">
+                  <p className="text-xs font-medium text-[var(--color-error-text)] animate-in fade-in slide-in-from-top-1">
                     {errors.email}
                   </p>
                 )}
               </div>
 
-              {/* Phone */}
               <div className="space-y-2">
-                <label className="text-sm font-bold text-[#0F2942]">
-                  Phone Number <span className="text-red-500">*</span>
-                </label>
-                <input
+                <Label htmlFor="client-phone" required>
+                  Phone Number
+                </Label>
+                <Input
+                  id="client-phone"
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => handleChange("phone", e.target.value)}
                   placeholder="+966 5X XXX XXXX"
-                  className={cn(
-                    "w-full px-4 py-3 rounded-xl border text-sm",
-                    "focus:outline-none focus:ring-2 focus:ring-[#D97706]/20 focus:border-[#D97706]",
-                    "transition-all duration-200",
-                    errors.phone ? "border-red-400 bg-red-50" : "border-slate-200"
-                  )}
+                  error={Boolean(errors.phone)}
+                  aria-invalid={Boolean(errors.phone)}
+                  className={cn(errors.phone && "bg-[var(--color-error-bg)]")}
                 />
                 {errors.phone && (
-                  <p className="text-xs text-red-500 font-medium animate-in fade-in slide-in-from-top-1">
+                  <p className="text-xs font-medium text-[var(--color-error-text)] animate-in fade-in slide-in-from-top-1">
                     {errors.phone}
                   </p>
                 )}
               </div>
             </div>
 
-            {/* Address */}
             <div className="space-y-2">
-              <label className="text-sm font-bold text-[#0F2942]">Address</label>
-              <input
+              <Label htmlFor="client-address">Address</Label>
+              <Input
+                id="client-address"
                 type="text"
                 value={formData.address}
                 onChange={(e) => handleChange("address", e.target.value)}
                 placeholder="Street address, city, postal code"
-                className={cn(
-                  "w-full px-4 py-3 rounded-xl border text-sm",
-                  "focus:outline-none focus:ring-2 focus:ring-[#D97706]/20 focus:border-[#D97706]",
-                  "transition-all duration-200",
-                  "border-slate-200"
-                )}
               />
             </div>
 
-            {/* Notes */}
             <div className="space-y-2">
-              <label className="text-sm font-bold text-[#0F2942]">Notes</label>
-              <textarea
+              <Label htmlFor="client-notes">Notes</Label>
+              <Textarea
+                id="client-notes"
                 value={formData.notes}
                 onChange={(e) => handleChange("notes", e.target.value)}
                 placeholder="Additional notes about this client..."
                 rows={3}
-                className={cn(
-                  "w-full px-4 py-3 rounded-xl border text-sm resize-none",
-                  "focus:outline-none focus:ring-2 focus:ring-[#D97706]/20 focus:border-[#D97706]",
-                  "transition-all duration-200",
-                  "border-slate-200"
-                )}
               />
             </div>
           </DialogBody>
@@ -302,14 +279,14 @@ export function ClientFormModal({
               <Button
                 type="button"
                 variant="outline"
-                className="px-6 py-2.5 rounded-xl font-bold"
+                className="px-6 rounded-xl"
               >
                 Cancel
               </Button>
             </DialogClose>
             <Button
               type="submit"
-              className="bg-[#D97706] hover:bg-[#B45309] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
+              className="px-6 rounded-xl font-semibold"
             >
               <Save className="h-4 w-4" />
               {mode === "create" ? "Add Client" : "Save Changes"}
