@@ -69,12 +69,14 @@ export default function RegulationsPage() {
   const { data: regulationsData, isLoading, error, refetch } = useRegulations({
     category: activeFilter !== "All" ? activeFilter : undefined,
     search: debouncedSearch || undefined,
+    page: 1,
+    limit: 100,
   });
   const syncMojSource = useSyncMojSource();
 
   const regulations = regulationsData?.regulations || [];
 
-  // Apply local filtering to mock data
+  // Apply client-side filtering for responsive UI interactions
   const filteredRegulations = regulations.filter((reg) => {
     if (activeFilter !== "All" && reg.category?.toLowerCase() !== activeFilter.toLowerCase()) {
       return false;
