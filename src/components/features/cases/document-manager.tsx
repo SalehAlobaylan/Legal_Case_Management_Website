@@ -10,7 +10,8 @@ import { useState, useCallback } from "react";
 import { Upload, Download, Trash2, FileText, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useDocuments, useUploadDocument, useDeleteDocument, getDocumentDownloadUrl } from "@/lib/hooks/use-documents";
+import { useDocuments, useUploadDocument, useDeleteDocument } from "@/lib/hooks/use-documents";
+import { documentsApi } from "@/lib/api/documents";
 import { formatFileSize, formatRelativeTime } from "@/lib/utils/format";
 import { MAX_FILE_SIZE, isAllowedFileType, ALLOWED_EXTENSIONS } from "@/lib/types/document";
 import { cn } from "@/lib/utils/cn";
@@ -84,13 +85,7 @@ export function DocumentManager({ caseId }: DocumentManagerProps) {
     );
 
     const handleDownload = (docId: number, fileName: string) => {
-        const url = getDocumentDownloadUrl(docId);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        documentsApi.downloadDocument(docId, fileName);
     };
 
     const handleDelete = (docId: number) => {

@@ -131,15 +131,6 @@
         "oauthAccountExists": "حساب بهذا البريد الإلكتروني موجود بالفعل",
         "oauthOnlyAccount": "هذا الحساب يستخدم تسجيل الدخول بجوجل. يرجى تسجيل الدخول باستخدام جوجل."
     },
-    "clients": {
-        "loadingDetails": "جارِ تحميل تفاصيل العميل...",
-        "backToDirectory": "العودة إلى دليل العملاء",
-        "types": {
-            "corporate": "شركة",
-            "individual": "فرد"
-        },
-"statusActive": "نشط"
-    },
     "nav": {
         "home": "الرئيسية",
         "dashboard": "لوحة التحكم",
@@ -654,6 +645,7 @@
         "allowedTypes": "الأنواع المسموحة: {{types}} • الحد الأقصى: {{size}}",
         "chooseFile": "اختر ملف",
         "uploading": "جارِ الرفع...",
+        "previewError": "تعذر المعاينة. قد يكون المستند تالفًا أو غير مدعوم.",
         "confirmDelete": "هل أنت متأكد من حذف هذا المستند؟",
         "uploadHint": "PDF أو DOC أو صور حتى 10 ميجابايت"
     },

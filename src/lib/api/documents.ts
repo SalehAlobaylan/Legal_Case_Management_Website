@@ -41,10 +41,60 @@ export const documentsApi = {
   },
 
   /**
-   * Get download URL for a document
+   * Get download URL for a document (raw URL, no auth header - not suitable for direct use)
+   * @deprecated Use openDocument() or downloadDocument() instead
    */
   getDownloadUrl(docId: number): string {
     return endpoints.documents.download(docId);
+  },
+
+  /**
+   * Fetch a document with auth headers and open it in a new browser tab for preview.
+   * @deprecated Use openDocumentInModal() instead
+   */
+  async openDocument(docId: number): Promise<void> {
+    const response = await apiClient.get(endpoints.documents.download(docId), {
+      responseType: "blob",
+    });
+    const contentType =
+      (response.headers["content-type"] as string) || "application/octet-stream";
+    const blob = new Blob([response.data as BlobPart], { type: contentType });
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  },
+
+  /**
+   * Fetch a document blob for use in in-app document viewer.
+   */
+  async getDocumentBlobUrl(docId: number): Promise<string> {
+    const response = await apiClient.get(endpoints.documents.download(docId), {
+      responseType: "blob",
+    });
+    const contentType =
+      (response.headers["content-type"] as string) || "application/octet-stream";
+    const blob = new Blob([response.data as BlobPart], { type: contentType });
+    return URL.createObjectURL(blob);
+  },
+
+  /**
+   * Fetch a document with auth headers and trigger a file download.
+   */
+  async downloadDocument(docId: number, fileName: string): Promise<void> {
+    const response = await apiClient.get(endpoints.documents.download(docId), {
+      responseType: "blob",
+    });
+    const contentType =
+      (response.headers["content-type"] as string) || "application/octet-stream";
+    const blob = new Blob([response.data as BlobPart], { type: contentType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   },
 
   /**

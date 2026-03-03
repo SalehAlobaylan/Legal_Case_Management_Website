@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3001",
+    "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start -p 3001",
     "lint": "eslint",
@@ -22,6 +22,7 @@
     "lucide-react": "^0.474.0",
     "next": "^16.1.2",
     "react": "^19.2.3",
+    "react-doc-viewer": "^0.1.15",
     "react-dom": "^19.2.3",
     "react-hook-form": "^7.67.0",
     "socket.io-client": "^4.8.1",
