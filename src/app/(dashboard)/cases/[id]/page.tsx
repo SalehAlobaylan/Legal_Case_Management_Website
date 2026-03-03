@@ -43,10 +43,10 @@ import {
   useDocuments,
   useUploadDocument,
   useDeleteDocument,
-  getDocumentDownloadUrl,
   useDocumentInsights,
   useRefreshDocumentInsights,
 } from "@/lib/hooks/use-documents";
+import { documentsApi } from "@/lib/api/documents";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -60,6 +60,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { DocumentViewerModal } from "@/components/ui/document-viewer-modal";
 import { cn } from "@/lib/utils/cn";
 import type { Document } from "@/lib/types/document";
 import type { CaseRegulationLink } from "@/lib/types/case";
@@ -101,6 +102,11 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
   const [selectedRegulationIds, setSelectedRegulationIds] = React.useState<
     number[]
   >([]);
+
+  // Document Viewer State
+  const [previewDocument, setPreviewDocument] = React.useState<{ url: string; name: string; mimeType: string } | null>(null);
+  const [isPreviewLoading, setIsPreviewLoading] = React.useState<Record<number, boolean>>({});
+
   const [promptAfterGenerate, setPromptAfterGenerate] = React.useState(false);
   const shownCandidateBatchKeysRef = React.useRef<Set<string>>(new Set());
   const { toast } = useToast();
@@ -259,6 +265,29 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
     }
   };
 
+  const handlePreviewDocument = async (doc: Document) => {
+    try {
+      setIsPreviewLoading(prev => ({ ...prev, [doc.id]: true }));
+      const url = await documentsApi.getDocumentBlobUrl(doc.id);
+      setPreviewDocument({ url, name: doc.fileName || 'Document', mimeType: doc.mimeType });
+    } catch (error) {
+      toast({
+        title: t("common.error"),
+        description: t("documents.previewError"),
+        variant: "destructive",
+      });
+    } finally {
+      setIsPreviewLoading(prev => ({ ...prev, [doc.id]: false }));
+    }
+  };
+
+  const handleClosePreview = () => {
+    if (previewDocument?.url) {
+      URL.revokeObjectURL(previewDocument.url);
+    }
+    setPreviewDocument(null);
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -290,7 +319,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
       <div className="flex-1 overflow-y-auto p-8 pb-32 border-r border-slate-200 bg-white">
         <div className="max-w-4xl mx-auto">
           {/* Back Button */}
-<button
+          <button
             onClick={() => router.push("/cases")}
             className={cn(
               "flex items-center text-slate-500 hover:text-[#0F2942]",
@@ -324,7 +353,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
                 Client: <span className="font-bold text-slate-800">{case_.client_info || "Unknown"}</span>
               </p>
             </div>
-<Button
+            <Button
               variant="outline"
               onClick={() => router.push(`/cases/${caseId}/edit`)}
               className="flex items-center gap-2"
@@ -334,7 +363,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
             </Button>
           </div>
 
-{/* Tab Navigation */}
+          {/* Tab Navigation */}
           <div className="flex gap-8 border-b border-slate-200 mb-8">
             <TabButton
               active={activeTab === "details"}
@@ -361,6 +390,8 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
               isLoading={isLoadingDocuments}
               onUpload={handleFileUpload}
               onDelete={handleDeleteDocument}
+              onPreview={handlePreviewDocument}
+              isPreviewLoading={isPreviewLoading}
               isUploading={uploadDocument.isPending}
             />
           )}
@@ -380,7 +411,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
               <p className="text-xs text-slate-500 mt-1">Regulation Matching</p>
             </div>
           </div>
-<div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <span className="text-xs bg-[#D97706] text-white px-3 py-1.5 rounded-lg font-bold shadow-sm shadow-orange-900/20">
               {pendingCount} {t("cases.suggestions")}
             </span>
@@ -399,7 +430,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
         {/* Suggestions List */}
         <div className="flex-1 overflow-y-auto p-6 space-y-5 pb-32">
           {isLoadingAILinks ? (
-<div className="text-center py-8">
+            <div className="text-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-[#D97706] mx-auto" />
               <p className="text-slate-500 text-sm mt-2">{t("common.loading")}</p>
             </div>
@@ -558,6 +589,14 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <DocumentViewerModal
+        isOpen={!!previewDocument}
+        onClose={handleClosePreview}
+        documentUrl={previewDocument?.url || null}
+        documentName={previewDocument?.name || ''}
+        documentMimeType={previewDocument?.mimeType || ''}
+      />
     </div>
   );
 }
@@ -741,6 +780,8 @@ interface DocumentsTabProps {
   isLoading: boolean;
   onUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onDelete: (docId: number) => void;
+  onPreview: (doc: Document) => void;
+  isPreviewLoading: Record<number, boolean>;
   isUploading: boolean;
 }
 
@@ -748,6 +789,8 @@ interface DocumentRowProps {
   doc: Document;
   caseId: number;
   onDelete: (docId: number) => void;
+  onPreview: (doc: Document) => void;
+  isPreviewLoading: boolean;
   formatFileSize: (bytes: number) => string;
   getFileIcon: (mimeType: string) => React.ReactNode;
   getExtractionStyle: (status?: Document["extractionStatus"]) => string;
@@ -758,6 +801,8 @@ function DocumentRow({
   doc,
   caseId,
   onDelete,
+  onPreview,
+  isPreviewLoading,
   formatFileSize,
   getFileIcon,
   getExtractionStyle,
@@ -819,23 +864,25 @@ function DocumentRow({
                 <ChevronDown className="h-3.5 w-3.5" />
               )}
             </button>
-            <a
-              href={getDocumentDownloadUrl(doc.id)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-1.5 hover:bg-slate-100 rounded text-slate-500 hover:text-[#0F2942]"
+            <button
+              onClick={() => onPreview(doc)}
+              disabled={isPreviewLoading}
+              className="p-1.5 hover:bg-slate-100 rounded text-slate-500 hover:text-[#0F2942] disabled:opacity-50"
               title={t("common.preview")}
             >
-              <Eye className="h-4 w-4" />
-            </a>
-            <a
-              href={getDocumentDownloadUrl(doc.id)}
-              download
+              {isPreviewLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+            <button
+              onClick={() => documentsApi.downloadDocument(doc.id, doc.fileName)}
               className="p-1.5 hover:bg-slate-100 rounded text-slate-500 hover:text-[#0F2942]"
               title={t("common.download")}
             >
               <Download className="h-4 w-4" />
-            </a>
+            </button>
             <button
               onClick={() => onDelete(doc.id)}
               className="p-1.5 hover:bg-red-50 rounded text-slate-400 hover:text-red-500"
@@ -950,6 +997,8 @@ function DocumentsTab({
   isLoading,
   onUpload,
   onDelete,
+  onPreview,
+  isPreviewLoading,
   isUploading,
 }: DocumentsTabProps) {
   const { t } = useI18n();
@@ -1030,7 +1079,7 @@ function DocumentsTab({
             <UploadCloud className="h-8 w-8 text-slate-400 group-hover:text-[#D97706]" />
           )}
         </div>
-<p className="font-bold text-slate-700 group-hover:text-[#0F2942]">
+        <p className="font-bold text-slate-700 group-hover:text-[#0F2942]">
           {isUploading ? t("cases.uploading") : t("cases.uploadDocuments")}
         </p>
         <p className="text-xs mt-1">PDF, DOC, or images up to 10MB</p>
@@ -1038,7 +1087,7 @@ function DocumentsTab({
 
       {/* Documents Table */}
       {isLoading ? (
-<div className="text-center py-8">
+        <div className="text-center py-8">
           <Loader2 className="h-6 w-6 animate-spin text-[#D97706] mx-auto" />
           <p className="text-slate-500 text-sm mt-2">{t("common.loading")}</p>
         </div>
@@ -1077,6 +1126,8 @@ function DocumentsTab({
                     doc={doc}
                     caseId={caseId}
                     onDelete={onDelete}
+                    onPreview={onPreview}
+                    isPreviewLoading={!!isPreviewLoading[doc.id]}
                     formatFileSize={formatFileSize}
                     getFileIcon={getFileIcon}
                     getExtractionStyle={getExtractionStyle}

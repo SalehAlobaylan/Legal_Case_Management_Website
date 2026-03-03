@@ -21,6 +21,17 @@ export function useAlerts() {
 }
 
 /**
+ * Hook for fetching unread alerts count only
+ */
+export function useUnreadAlertsCount() {
+  return useQuery({
+    queryKey: ["alerts-unread-count"],
+    queryFn: () => alertsApi.getUnreadCount(),
+    refetchInterval: 30000,
+  });
+}
+
+/**
  * Hook for marking a single alert as read
  */
 export function useMarkAlertAsRead() {
@@ -30,6 +41,7 @@ export function useMarkAlertAsRead() {
     mutationFn: (alertId: number) => alertsApi.markAsRead(alertId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["alerts"] });
+      queryClient.invalidateQueries({ queryKey: ["alerts-unread-count"] });
     },
   });
 }
@@ -44,6 +56,7 @@ export function useMarkAllAlertsAsRead() {
     mutationFn: () => alertsApi.markAllAsRead(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["alerts"] });
+      queryClient.invalidateQueries({ queryKey: ["alerts-unread-count"] });
     },
   });
 }

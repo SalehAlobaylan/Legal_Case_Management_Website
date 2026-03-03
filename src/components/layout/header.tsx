@@ -19,7 +19,6 @@ import { useRouter } from "next/navigation";
 import { Search, Bell, ChevronDown, LogOut, User, BarChart3, Settings } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useLogout } from "@/lib/hooks/use-auth";
-import { useWebSocket } from "@/lib/hooks/use-websocket";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { cn } from "@/lib/utils/cn";
 import { LanguageToggle } from "@/components/layout/language-toggle";
@@ -52,9 +51,6 @@ export function Header({
   const { t, isRTL } = useI18n();
   const [searchQuery, setSearchQuery] = React.useState("");
   const [showUserMenu, setShowUserMenu] = React.useState(false);
-
-  // Establish WebSocket connection for real-time updates
-  useWebSocket();
 
   // Get user initials for avatar
   const userInitials = React.useMemo(() => {

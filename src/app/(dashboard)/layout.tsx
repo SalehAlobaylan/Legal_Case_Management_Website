@@ -34,16 +34,16 @@ import type { ReactNode } from "react";
 import { Header } from "@/components/layout/header";
 import { NavigationDock } from "@/components/layout/navigation-dock";
 import { WebSocketProvider } from "@/components/providers/websocket-provider";
-import { useAlertsStore } from "@/lib/store/alerts-store";
+import { useUnreadAlertsCount } from "@/lib/hooks/use-alerts";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  const { unreadAlerts } = useAlertsStore();
+  const { data: unreadAlerts = 0 } = useUnreadAlertsCount();
 
   return (
     <WebSocketProvider>
       <div className="flex min-h-screen flex-col bg-[#f9fafb] font-sans text-slate-900 selection:bg-[#D97706] selection:text-white">
         {/* Header - Dark navy with Silah branding */}
-        <Header />
+        <Header unreadCount={unreadAlerts} />
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-auto scroll-smooth">

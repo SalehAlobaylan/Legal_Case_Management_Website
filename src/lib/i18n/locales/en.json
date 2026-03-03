@@ -131,15 +131,6 @@
         "oauthAccountExists": "An account with this Google account already exists",
         "oauthOnlyAccount": "This account uses Google Sign-In. Please sign in with Google."
     },
-    "clients": {
-        "loadingDetails": "Loading client details...",
-        "backToDirectory": "Back to Client Directory",
-        "types": {
-            "corporate": "Corporate",
-            "individual": "Individual"
-        },
-"statusActive": "Active"
-    },
     "nav": {
         "home": "Home",
         "dashboard": "Dashboard",
@@ -406,7 +397,7 @@
             "digital": "Digital"
         }
     },
-"clients": {
+    "clients": {
         "title": "Client Directory",
         "subtitle": "Manage client relationships and contact information.",
         "newClient": "New Client",
@@ -654,6 +645,7 @@
         "allowedTypes": "Allowed: {{types}} • Max size: {{size}}",
         "chooseFile": "Choose File",
         "uploading": "Uploading...",
+        "previewError": "Unable to preview this document. It may be corrupted or unsupported.",
         "confirmDelete": "Are you sure you want to delete this document?",
         "uploadHint": "PDF, DOC, or images up to 10MB"
     },

@@ -31,6 +31,10 @@ interface LegacyAlertsResponse {
   notifications: LegacyNotification[];
 }
 
+interface AlertsUnreadCountResponse {
+  count: number;
+}
+
 type AlertsApiResponse =
   | AlertsResponse
   | LegacyAlertsResponse
@@ -103,5 +107,15 @@ export const alertsApi = {
    */
   async markAllAsRead(): Promise<void> {
     await apiClient.patch(endpoints.alerts.markAllRead);
+  },
+
+  /**
+   * Get unread alerts count for the current user
+   */
+  async getUnreadCount(): Promise<number> {
+    const { data } = await apiClient.get<AlertsUnreadCountResponse>(
+      endpoints.alerts.unreadCount
+    );
+    return typeof data?.count === "number" ? data.count : 0;
   },
 };
