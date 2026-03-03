@@ -32,7 +32,9 @@ export default function NewCasePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>{t("cases.caseDetails")}</CardTitle>
+          <CardTitle className="font-semibold text-[var(--color-text-secondary)]">
+            {t("cases.caseDetails")}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <CaseForm onSuccess={() => router.push("/cases")} />
@@ -41,6 +43,5 @@ export default function NewCasePage() {
     </div>
   );
 }
-
 
 

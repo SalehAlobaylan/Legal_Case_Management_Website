@@ -37,6 +37,9 @@ import {
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils/cn";
 import {
   useAcceptTeamInvitation,
@@ -79,17 +82,17 @@ export default function SettingsPage() {
     <div className={`flex flex-col md:flex-row overflow-hidden ${isRTL ? 'md:flex-row-reverse' : ''}`}>
       {/* Mobile Tab Selector */}
       <div className="md:hidden bg-white border-b border-slate-200 px-4 py-3">
-        <select
+        <Select
           value={activeTab}
           onChange={(e) => setActiveTab(e.target.value as TabId)}
-          className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] bg-slate-50 font-medium text-[#0F2942]"
+          className="h-11 bg-[var(--color-surface-bg)]"
         >
           {visibleTabs.map((tab) => (
             <option key={tab.id} value={tab.id}>
               {tab.label}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       {/* Sidebar */}
@@ -211,17 +214,17 @@ function ProfileTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }
           <h5 className="font-bold text-[#0F2942] mb-4">{t("settings.regionalSettings")}</h5>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">{t("settings.language")}</label>
-              <select className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] bg-slate-50">
+              <Label>{t("settings.language")}</Label>
+              <Select className="h-11 bg-[var(--color-surface-bg)]">
                 <option value="en">English</option>
                 <option value="ar">Arabic (العربية)</option>
-              </select>
+              </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">{t("settings.timezone")}</label>
-              <select className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] bg-slate-50">
+              <Label>{t("settings.timezone")}</Label>
+              <Select className="h-11 bg-[var(--color-surface-bg)]">
                 <option>Riyadh (GMT+3)</option>
-              </select>
+              </Select>
             </div>
           </div>
         </div>
@@ -267,11 +270,11 @@ function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; i
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
             <h4 className="font-bold text-[#0F2942]">{t("settings.createOrganization")}</h4>
-            <input
+            <Input
               value={newOrgName}
               onChange={(e) => setNewOrgName(e.target.value)}
               placeholder={t("settings.orgNamePlaceholder")}
-              className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706]"
+              className="h-11"
             />
             <Button
               className="bg-[#0F2942] hover:bg-[#1E3A56]"
@@ -284,11 +287,11 @@ function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; i
 
           <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
             <h4 className="font-bold text-[#0F2942]">{t("settings.joinByCode")}</h4>
-            <input
+            <Input
               value={joinCode}
               onChange={(e) => setJoinCode(e.target.value)}
               placeholder={t("settings.pasteCodePlaceholder")}
-              className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706]"
+              className="h-11"
             />
             <Button
               className="bg-[#D97706] hover:bg-[#B45309]"
@@ -305,23 +308,23 @@ function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; i
         <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
           <h4 className="font-bold text-[#0F2942]">{t("settings.inviteMember")}</h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <input
+            <Input
               value={inviteEmail}
               onChange={(e) => setInviteEmail(e.target.value)}
               placeholder={t("settings.emailPlaceholder")}
-              className="md:col-span-2 p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706]"
+              className="h-11 md:col-span-2"
             />
-            <select
+            <Select
               value={inviteRole}
               onChange={(e) => setInviteRole(e.target.value)}
-              className="p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706]"
+              className="h-11"
             >
               <option value="admin">{t("roles.admin")}</option>
               <option value="senior_lawyer">{t("roles.seniorLawyer")}</option>
               <option value="lawyer">{t("roles.lawyer")}</option>
               <option value="paralegal">{t("roles.paralegal")}</option>
               <option value="clerk">{t("roles.clerk")}</option>
-            </select>
+            </Select>
           </div>
           <Button
             className="bg-[#D97706] hover:bg-[#B45309]"
@@ -390,22 +393,24 @@ function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; i
                   <td className={`px-6 py-4 ${isRTL ? "text-left" : "text-right"} space-x-2`}>
                     {isAdmin && user?.id !== member.id && (
                       <>
-                        <select
-                          defaultValue={member.role}
-                          className="border border-slate-200 rounded px-2 py-1 text-xs"
-                          onChange={(e) =>
-                            updateRole.mutate({
-                              memberId: member.id,
-                              role: e.target.value,
-                            })
-                          }
-                        >
-                          <option value="admin">{t("roles.admin")}</option>
-                          <option value="senior_lawyer">{t("roles.seniorLawyer")}</option>
-                          <option value="lawyer">{t("roles.lawyer")}</option>
-                          <option value="paralegal">{t("roles.paralegal")}</option>
-                          <option value="clerk">{t("roles.clerk")}</option>
-                        </select>
+                        <div className="inline-block min-w-[9rem] align-middle">
+                          <Select
+                            defaultValue={member.role}
+                            className="h-8 min-w-[9rem] rounded-md px-2 py-1 text-xs"
+                            onChange={(e) =>
+                              updateRole.mutate({
+                                memberId: member.id,
+                                role: e.target.value,
+                              })
+                            }
+                          >
+                            <option value="admin">{t("roles.admin")}</option>
+                            <option value="senior_lawyer">{t("roles.seniorLawyer")}</option>
+                            <option value="lawyer">{t("roles.lawyer")}</option>
+                            <option value="paralegal">{t("roles.paralegal")}</option>
+                            <option value="clerk">{t("roles.clerk")}</option>
+                          </Select>
+                        </div>
                         <Button
                           size="sm"
                           variant="outline"
@@ -594,21 +599,21 @@ function NotificationsTab({ t }: { t: (key: string) => string }) {
         {localPrefs.quietHoursEnabled && (
           <div className="grid grid-cols-2 gap-4 pt-2 pl-2 animate-in fade-in duration-200">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">{t("settings.quietHoursStart")}</label>
-              <input
+              <Label>{t("settings.quietHoursStart")}</Label>
+              <Input
                 type="time"
                 value={localPrefs.quietHoursStart || "22:00"}
                 onChange={(e) => setLocal("quietHoursStart", e.target.value)}
-                className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] bg-slate-50"
+                className="h-11 bg-[var(--color-surface-bg)]"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">{t("settings.quietHoursEnd")}</label>
-              <input
+              <Label>{t("settings.quietHoursEnd")}</Label>
+              <Input
                 type="time"
                 value={localPrefs.quietHoursEnd || "07:00"}
                 onChange={(e) => setLocal("quietHoursEnd", e.target.value)}
-                className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] bg-slate-50"
+                className="h-11 bg-[var(--color-surface-bg)]"
               />
             </div>
           </div>
@@ -632,7 +637,7 @@ function NotificationsTab({ t }: { t: (key: string) => string }) {
         />
         {localPrefs.digestEnabled && (
           <div className="pt-2 pl-2 animate-in fade-in duration-200">
-            <label className="text-sm font-bold text-slate-700 block mb-2">{t("settings.digestFrequency")}</label>
+            <Label className="mb-2 block">{t("settings.digestFrequency")}</Label>
             <div className="flex gap-3">
               {(["daily", "weekly"] as const).map((freq) => (
                 <button
@@ -776,21 +781,21 @@ function SecurityTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean 
         </div>
 
         <div className="grid grid-cols-1 gap-4">
-          <input
+          <Input
             type="password"
             placeholder={t("settings.currentPassword")}
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
-            className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-[#D97706]"
+            className="h-11 bg-[var(--color-surface-bg)]"
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <input
+              <Input
                 type="password"
                 placeholder={t("settings.newPassword")}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-[#D97706]"
+                className="h-11 bg-[var(--color-surface-bg)]"
               />
               {newPassword.length > 0 && newPassword.length < 8 && (
                 <p className="text-xs text-red-500">{t("settings.passwordMinLength")}</p>
@@ -816,14 +821,14 @@ function SecurityTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean 
               )}
             </div>
             <div className="space-y-2">
-              <input
+              <Input
                 type="password"
                 placeholder={t("auth.confirmPassword")}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                error={!passwordsMatch}
                 className={cn(
-                  "w-full p-3 rounded-xl border bg-slate-50 focus:outline-none focus:border-[#D97706]",
-                  !passwordsMatch ? "border-red-300" : "border-slate-200"
+                  "h-11 bg-[var(--color-surface-bg)]"
                 )}
               />
               {!passwordsMatch && (
@@ -1066,12 +1071,12 @@ function BillingTab({ t, isRTL, billingData }: { t: (key: string) => string; isR
 function FormField({ label, type = "text", defaultValue, disabled }: { label: string; type?: string; defaultValue: string; disabled?: boolean }) {
   return (
     <div className="space-y-2">
-      <label className="text-sm font-bold text-slate-700">{label}</label>
-      <input
+      <Label>{label}</Label>
+      <Input
         type={type}
         defaultValue={defaultValue}
         disabled={disabled}
-        className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706] bg-slate-50 disabled:bg-slate-100 disabled:cursor-not-allowed"
+        className="h-11 bg-[var(--color-surface-bg)]"
       />
     </div>
   );

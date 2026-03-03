@@ -61,26 +61,38 @@ export function CaseForm({ onSuccess }: CaseFormProps) {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="space-y-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+      className="space-y-6 rounded-xl border border-[var(--color-border-default)] bg-[var(--color-surface-card)] p-6 shadow-sm"
     >
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="caseNumber">Case Number *</Label>
+          <Label htmlFor="caseNumber" required>
+            Case Number
+          </Label>
           <Input
             id="caseNumber"
             placeholder="e.g. 45/2025"
+            error={Boolean(errors.caseNumber)}
+            aria-invalid={Boolean(errors.caseNumber)}
             {...register("caseNumber")}
           />
           {errors.caseNumber && (
-            <p className="text-xs text-red-500">
+            <p className="text-xs font-medium text-[var(--color-error-text)]">
               {errors.caseNumber.message}
             </p>
           )}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="caseType">Case Type *</Label>
-          <Select id="caseType" defaultValue="" {...register("caseType")}>
+          <Label htmlFor="caseType" required>
+            Case Type
+          </Label>
+          <Select
+            id="caseType"
+            defaultValue=""
+            error={Boolean(errors.caseType)}
+            aria-invalid={Boolean(errors.caseType)}
+            {...register("caseType")}
+          >
             <option value="" disabled>
               Select type
             </option>
@@ -92,20 +104,28 @@ export function CaseForm({ onSuccess }: CaseFormProps) {
             <option value={CaseType.ADMINISTRATIVE}>Administrative</option>
           </Select>
           {errors.caseType && (
-            <p className="text-xs text-red-500">{errors.caseType.message}</p>
+            <p className="text-xs font-medium text-[var(--color-error-text)]">
+              {errors.caseType.message}
+            </p>
           )}
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="title">Title *</Label>
+        <Label htmlFor="title" required>
+          Title
+        </Label>
         <Input
           id="title"
           placeholder="Short case title"
+          error={Boolean(errors.title)}
+          aria-invalid={Boolean(errors.title)}
           {...register("title")}
         />
         {errors.title && (
-          <p className="text-xs text-red-500">{errors.title.message}</p>
+          <p className="text-xs font-medium text-[var(--color-error-text)]">
+            {errors.title.message}
+          </p>
         )}
       </div>
 
@@ -163,6 +183,5 @@ export function CaseForm({ onSuccess }: CaseFormProps) {
     </form>
   );
 }
-
 
 

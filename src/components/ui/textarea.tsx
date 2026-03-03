@@ -25,28 +25,17 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         ref={ref}
         rows={rows}
         className={cn(
-          // Base styles
-          "flex min-h-[80px] w-full rounded-lg border bg-white",
-          "px-3 py-2 text-sm text-[#0F2942]",
-          // Placeholder
-          "placeholder:text-slate-400",
-          // Border
+          "flex min-h-[80px] w-full rounded-lg border bg-[var(--color-surface-card)]",
+          "px-3 py-2 text-sm text-[var(--color-text-primary)]",
+          "placeholder:text-[var(--color-text-muted)]",
           error
-            ? "border-red-500 focus-visible:ring-red-500"
-            : "border-slate-200 focus-visible:ring-[#D97706]",
-          // Focus
+            ? "border-[var(--color-error-border)] focus-visible:ring-[var(--color-error-text)] focus-visible:border-[var(--color-error-text)]"
+            : "border-[var(--color-border-default)] focus-visible:ring-[var(--color-brand-accent)] focus-visible:border-[var(--color-brand-accent)]",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0",
-          "focus-visible:border-[#D97706]",
-          // Resize
           "resize-none",
-          // Transition
           "transition-colors duration-200",
-          // Disabled
-          "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-slate-50",
-          // Dark mode
-          "dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700",
-          "dark:placeholder:text-slate-500",
-          "dark:focus-visible:border-[#D97706]",
+          "disabled:cursor-not-allowed disabled:opacity-60",
+          "disabled:bg-[var(--color-surface-muted)] disabled:text-[var(--color-text-muted)]",
           className
         )}
         {...props}

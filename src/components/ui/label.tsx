@@ -21,21 +21,20 @@ export const Label = React.forwardRef<HTMLLabelElement, LabelProps>(
         <label
           ref={ref}
           className={cn(
-            "text-sm font-bold text-[#0F2942]",
-            "dark:text-slate-100",
+            "text-sm font-semibold text-[var(--color-text-secondary)]",
             className
           )}
           {...props}
         >
           {children}
           {required && (
-            <span className="ml-1 text-[#D97706]" aria-hidden="true">
+            <span className="ml-1 text-[var(--color-brand-accent)]" aria-hidden="true">
               *
             </span>
           )}
         </label>
         {description && (
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-[var(--color-text-muted)]">
             {description}
           </p>
         )}

@@ -270,7 +270,7 @@ export function DialogHeader({ className, icon, children, ...props }: DialogHead
       {...props}
     >
       {icon && (
-        <div className="p-2 rounded-xl bg-[#0F2942] text-white shadow-lg shadow-slate-900/10">
+        <div className="p-2 rounded-xl bg-[var(--color-brand-primary)] text-[var(--color-text-inverse)] shadow-lg shadow-slate-900/10">
           {icon}
         </div>
       )}
@@ -287,8 +287,7 @@ export function DialogTitle({ className, ...props }: React.HTMLAttributes<HTMLHe
   return (
     <h3
       className={cn(
-        "text-lg font-bold text-[#0F2942]",
-        "dark:text-white",
+        "text-lg font-bold text-[var(--color-text-primary)]",
         className
       )}
       {...props}
@@ -397,7 +396,7 @@ export function DialogCloseIconButton({
         "text-slate-400 hover:text-slate-600",
         "bg-transparent hover:bg-slate-100",
         "transition-all duration-200",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D97706] focus-visible:ring-offset-2",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-accent)] focus-visible:ring-offset-2",
         className
       )}
       {...props}
@@ -449,7 +448,7 @@ export function ConfirmDialog({
     "px-5 py-2.5 rounded-xl font-bold text-sm transition-all",
     variant === "danger" && "bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20",
     variant === "warning" && "bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20",
-    variant === "default" && "bg-[#D97706] hover:bg-[#B45309] text-white shadow-lg shadow-orange-500/20"
+    variant === "default" && "bg-[var(--color-brand-accent)] hover:bg-[var(--color-brand-accent-hover)] text-white shadow-lg shadow-orange-500/20"
   );
 
   return (
