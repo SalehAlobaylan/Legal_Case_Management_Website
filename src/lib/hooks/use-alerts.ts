@@ -16,7 +16,8 @@ export function useAlerts() {
   return useQuery({
     queryKey: ["alerts"],
     queryFn: () => alertsApi.getAlerts(),
-    refetchInterval: 30000, // Refetch every 30 seconds
+    retry: 1,
+    refetchInterval: (query) => (query.state.error ? false : 30000),
   });
 }
 
@@ -27,7 +28,8 @@ export function useUnreadAlertsCount() {
   return useQuery({
     queryKey: ["alerts-unread-count"],
     queryFn: () => alertsApi.getUnreadCount(),
-    refetchInterval: 30000,
+    retry: 1,
+    refetchInterval: (query) => (query.state.error ? false : 30000),
   });
 }
 

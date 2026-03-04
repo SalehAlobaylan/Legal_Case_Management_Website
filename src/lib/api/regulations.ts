@@ -109,8 +109,11 @@ export const regulationsApi = {
   async syncMojSource(input?: {
     maxPages?: number;
     extractContent?: boolean;
+    runInBackground?: boolean;
   }): Promise<void> {
-    await apiClient.post(endpoints.regulations.sourceSync, input || {});
+    await apiClient.post(endpoints.regulations.sourceSync, input || {}, {
+      timeout: input?.runInBackground ? 30000 : 600000,
+    });
   },
 
   /**

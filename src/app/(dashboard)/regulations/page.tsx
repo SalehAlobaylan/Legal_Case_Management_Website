@@ -74,6 +74,23 @@ export default function RegulationsPage() {
 
   const regulations = regulationsData?.regulations || [];
 
+  const getApiErrorMessage = (error: unknown): string => {
+    if (!error || typeof error !== "object") {
+      return t("regulations.syncFailed");
+    }
+
+    const candidate = error as {
+      response?: { data?: { message?: string; error?: string } };
+      message?: string;
+    };
+    return (
+      candidate.response?.data?.message ||
+      candidate.response?.data?.error ||
+      candidate.message ||
+      t("regulations.syncFailed")
+    );
+  };
+
   // Apply local filtering to mock data
   const filteredRegulations = regulations.filter((reg) => {
     if (activeFilter !== "All" && reg.category?.toLowerCase() !== activeFilter.toLowerCase()) {
@@ -155,19 +172,19 @@ export default function RegulationsPage() {
             className="bg-[#D97706] hover:bg-[#B45309] text-white px-4 py-2.5 h-auto rounded-xl text-sm font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center gap-2"
             onClick={() =>
               syncMojSource.mutate(
-                { extractContent: true },
+                { extractContent: true, runInBackground: true },
                 {
                   onSuccess: () => {
                     refetch();
                     toast({
                       title: t("common.success"),
-                      description: t("regulations.syncSuccess"),
+                      description: t("regulations.syncStarted"),
                     });
                   },
-                  onError: () => {
+                  onError: (error) => {
                     toast({
                       title: t("common.error"),
-                      description: t("regulations.syncFailed"),
+                      description: getApiErrorMessage(error),
                     });
                   },
                 }
@@ -242,6 +259,7 @@ interface RegulationCardProps {
     updatedAt: string;
     regulationNumber?: string;
     description?: string;
+    summary?: string;
     versionsCount?: number;
     subscribed?: boolean;
   };
@@ -252,7 +270,8 @@ interface RegulationCardProps {
 }
 
 function RegulationCard({ regulation, onClick, t, isRTL, getStatusLabel }: RegulationCardProps) {
-  const { title, status, updatedAt, description, versionsCount, subscribed } = regulation;
+  const { title, status, updatedAt, description, summary, versionsCount, subscribed } = regulation;
+  const preview = description || summary;
 
   const statusColors: Record<string, string> = {
     active: "bg-green-50 text-green-700",
@@ -306,9 +325,9 @@ function RegulationCard({ regulation, onClick, t, isRTL, getStatusLabel }: Regul
       <h3 className="text-lg font-bold text-[#0F2942] mb-2 group-hover:text-[#D97706] transition-colors">
         {title}
       </h3>
-      {description && (
+      {preview && (
         <p className="text-sm text-slate-500 mb-4 line-clamp-2 leading-relaxed">
-          {description}
+          {preview}
         </p>
       )}
 

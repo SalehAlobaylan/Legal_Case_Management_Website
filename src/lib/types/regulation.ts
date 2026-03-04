@@ -11,15 +11,62 @@ export enum RegulationStatus {
   DRAFT = "draft",
 }
 
+export interface MojRegulationHardCopy {
+  id?: string | number | null;
+  documentId?: string | null;
+  documentName?: string | null;
+  extention?: string | null;
+  documentType?: string | number | null;
+  uploadTime?: string | null;
+  downloadUrl?: string | null;
+  [key: string]: unknown;
+}
+
+export interface MojRegulationMetadata {
+  statuteId?: string | number;
+  serial?: string;
+  statuteName?: string;
+  legalType?: string | null;
+  legalTypeName?: string | null;
+  legalStatue?: number | null;
+  legalStatueName?: string | null;
+  summary?: string | null;
+  issueDate?: string | null;
+  issueDateG?: string | null;
+  issuanceDate?: string | null;
+  issuanceDateG?: string | null;
+  issuanceDateGerogian?: string | null;
+  publishDate?: string | null;
+  publishDateG?: string | null;
+  validFromDate?: string | null;
+  gregorianValidFromDate?: string | null;
+  activationDateG?: string | null;
+  hardCopy?: MojRegulationHardCopy | null;
+  sections?: unknown;
+  [key: string]: unknown;
+}
+
 export interface Regulation {
   id: number;
   title: string;
   regulationNumber?: string;
+  sourceProvider?: string;
+  sourceSerial?: string;
+  sourceListingUrl?: string;
+  sourceMetadata?: MojRegulationMetadata;
+  sourceMetadataHash?: string;
+  summary?: string;
   category?: string;
   jurisdiction?: string;
   status: RegulationStatus;
   sourceUrl?: string;
   versionsCount?: number;
+  latestVersionId?: number | null;
+  latestVersionNumber?: number | null;
+  latestContent?: string | null;
+  latestContentHash?: string | null;
+  latestFetchedAt?: string | null;
+  latestExtractionMetadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }
@@ -32,7 +79,14 @@ export interface RegulationVersion {
   sourceUrl?: string;
   contentText: string;
   contentHash: string;
-  metadata?: Record<string, unknown>;
+  rawHtml?: string | null;
+  artifactUri?: string | null;
+  sourceMetadata?: MojRegulationMetadata;
+  sourceMetadataHash?: string | null;
+  extractionMetadata?: Record<string, unknown>;
+  changesSummary?: string | null;
+  fetchedAt?: string;
+  createdBy?: string;
   createdAt: string;
 }
 

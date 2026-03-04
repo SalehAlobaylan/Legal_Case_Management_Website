@@ -100,7 +100,11 @@ export function useSyncMojSource() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input?: { maxPages?: number; extractContent?: boolean }) =>
+    mutationFn: (input?: {
+      maxPages?: number;
+      extractContent?: boolean;
+      runInBackground?: boolean;
+    }) =>
       regulationsApi.syncMojSource(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["regulations"] });

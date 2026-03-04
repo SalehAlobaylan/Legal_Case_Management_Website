@@ -66,7 +66,7 @@ export function useWebSocket() {
     });
 
     // Regulation updated
-    socket.on("regulation-updated", (data?: { regulationId?: number }) => {
+    const onRegulationUpdated = (data?: { regulationId?: number }) => {
       setLastEventAt(new Date());
 
       toast({
@@ -83,7 +83,9 @@ export function useWebSocket() {
         queryClient.invalidateQueries({ queryKey: ["regulation-versions", data.regulationId] });
         queryClient.invalidateQueries({ queryKey: ["regulation-compare", data.regulationId] });
       }
-    });
+    };
+    socket.on("regulation-updated", onRegulationUpdated);
+    socket.on("regulation_updated", onRegulationUpdated);
 
     // AI links generated/refreshed for a case
     socket.on("ai-links.generated", (data?: { caseId?: number }) => {
