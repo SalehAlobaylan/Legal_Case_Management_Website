@@ -379,6 +379,8 @@
         "compareVersions": "Compare Versions",
         "leftVersion": "Left version",
         "rightVersion": "Right version",
+        "older": "Older",
+        "newer": "Newer",
         "needTwoVersions": "At least two versions are required to compare.",
         "fullContent": "Full Regulation Content",
         "noContentAvailable": "No regulation content is available yet.",

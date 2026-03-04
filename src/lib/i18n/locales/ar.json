@@ -379,6 +379,8 @@
         "compareVersions": "مقارنة الإصدارات",
         "leftVersion": "الإصدار الأيسر",
         "rightVersion": "الإصدار الأيمن",
+        "older": "الأقدم",
+        "newer": "الأحدث",
         "needTwoVersions": "يلزم وجود إصدارين على الأقل للمقارنة.",
         "fullContent": "النص الكامل للنظام",
         "noContentAvailable": "لا يوجد نص نظام متاح حالياً.",
