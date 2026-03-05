@@ -7,9 +7,11 @@
 import { apiClient } from "./client";
 import { endpoints } from "./endpoints";
 import type {
+  RegulationAmendmentImpact,
   MojSourceSyncHealth,
   Regulation,
   RegulationComparison,
+  RegulationInsights,
   RegulationVersion,
 } from "@/lib/types/regulation";
 
@@ -83,6 +85,60 @@ export const regulationsApi = {
       `${endpoints.regulations.compare(id)}?${params.toString()}`
     );
     return data.comparison;
+  },
+
+  /**
+   * Get latest regulation AI insights
+   */
+  async getRegulationInsights(id: number): Promise<RegulationInsights> {
+    const { data } = await apiClient.get<RegulationInsights>(endpoints.regulations.insights(id));
+    return data;
+  },
+
+  /**
+   * Queue regulation AI insights generation
+   */
+  async refreshRegulationInsights(
+    id: number,
+    input?: { force?: boolean }
+  ): Promise<RegulationInsights> {
+    const { data } = await apiClient.post<RegulationInsights>(
+      endpoints.regulations.refreshInsights(id),
+      input || {}
+    );
+    return data;
+  },
+
+  /**
+   * Get amendment impact analysis for selected versions
+   */
+  async getRegulationAmendmentImpact(
+    id: number,
+    fromVersion: number,
+    toVersion: number
+  ): Promise<RegulationAmendmentImpact> {
+    const params = new URLSearchParams({
+      fromVersion: String(fromVersion),
+      toVersion: String(toVersion),
+    });
+    const { data } = await apiClient.get<RegulationAmendmentImpact>(
+      `${endpoints.regulations.amendmentImpact(id)}?${params.toString()}`
+    );
+    return data;
+  },
+
+  /**
+   * Queue amendment impact analysis generation
+   */
+  async refreshRegulationAmendmentImpact(
+    id: number,
+    input: { fromVersion: number; toVersion: number; force?: boolean }
+  ): Promise<RegulationAmendmentImpact> {
+    const { data } = await apiClient.post<RegulationAmendmentImpact>(
+      endpoints.regulations.refreshAmendmentImpact(id),
+      input
+    );
+    return data;
   },
 
   /**

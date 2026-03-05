@@ -110,6 +110,63 @@ export interface RegulationComparison {
   };
 }
 
+export type RegulationAiStatus =
+  | "not_generated"
+  | "pending"
+  | "processing"
+  | "ready"
+  | "failed";
+
+export interface RegulationInsightBullet {
+  title: string;
+  description: string;
+  severity?: "low" | "medium" | "high" | string;
+}
+
+export interface RegulationCitation {
+  snippet: string;
+  sectionRef?: string | null;
+  relevance?: number | null;
+}
+
+export interface RegulationKeyDate {
+  label: string;
+  value: string;
+  source?: string | null;
+}
+
+export interface RegulationInsights {
+  regulationId: number;
+  regulationVersionId: number | null;
+  languageCode: string;
+  status: RegulationAiStatus;
+  summary: string | null;
+  obligations: RegulationInsightBullet[];
+  riskFlags: RegulationInsightBullet[];
+  keyDates: RegulationKeyDate[];
+  citations: RegulationCitation[];
+  method: string | null;
+  errorCode: string | null;
+  warnings: string[];
+  updatedAt: string | null;
+}
+
+export interface RegulationAmendmentImpact {
+  regulationId: number;
+  fromVersion: number;
+  toVersion: number;
+  languageCode: string;
+  status: RegulationAiStatus;
+  whatChanged: RegulationInsightBullet[];
+  legalImpact: RegulationInsightBullet[];
+  affectedParties: RegulationInsightBullet[];
+  citations: RegulationCitation[];
+  method: string | null;
+  errorCode: string | null;
+  warnings: string[];
+  updatedAt: string | null;
+}
+
 export interface MojSourceSyncHealth {
   hasRun: boolean;
   lastRunAt: string | null;

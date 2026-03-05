@@ -410,6 +410,28 @@
             "metadataHash": "بصمة البيانات",
             "rawJson": "البيانات الخام للمصدر (JSON)"
         },
+        "ai": {
+            "title": "التحليل الذكي",
+            "arabicOnly": "يتم عرض المحتوى المُولّد باللغة العربية فقط.",
+            "generate": "إنشاء التحليل الذكي",
+            "regenerate": "إعادة الإنشاء",
+            "refreshQueued": "تمت جدولة التحليل الذكي.",
+            "processing": "جاري إعداد التحليل الذكي، يرجى الانتظار...",
+            "failed": "فشل التحليل الذكي",
+            "executiveSummary": "الملخص التنفيذي",
+            "obligations": "الالتزامات النظامية",
+            "riskFlags": "مؤشرات المخاطر",
+            "keyDates": "التواريخ المهمة",
+            "evidenceSnippets": "مقتطفات الاستدلال",
+            "amendmentImpact": "محلل أثر التعديلات",
+            "generateImpact": "إنشاء الأثر",
+            "impactQueued": "تمت جدولة تحليل أثر التعديلات.",
+            "processingImpact": "جاري تحليل أثر التعديلات...",
+            "failedImpact": "تعذر إنشاء تحليل أثر التعديلات.",
+            "whatChanged": "ما الذي تغيّر",
+            "legalImpact": "الأثر القانوني",
+            "affectedParties": "من الأطراف المتأثرة"
+        },
         "statuses": {
             "active": "ساري",
             "amended": "معدّل",

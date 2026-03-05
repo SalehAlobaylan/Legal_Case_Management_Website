@@ -45,6 +45,14 @@ export const endpoints = {
     detail: (id: number) => `${API_BASE}/api/regulations/${id}`,
     versions: (id: number) => `${API_BASE}/api/regulations/${id}/versions`,
     compare: (id: number) => `${API_BASE}/api/regulations/${id}/compare`,
+    insights: (id: number) => `${API_BASE}/api/regulations/${id}/insights`,
+    refreshInsights: (id: number) =>
+      `${API_BASE}/api/regulations/${id}/insights/refresh`,
+    amendmentImpact: (id: number) =>
+      `${API_BASE}/api/regulations/${id}/amendment-impact`,
+    refreshAmendmentImpact: (id: number) =>
+      `${API_BASE}/api/regulations/${id}/amendment-impact/refresh`,
+    aiHealth: `${API_BASE}/api/regulations/ai/health`,
     search: `${API_BASE}/api/regulations/search`,
     subscribe: `${API_BASE}/api/regulations/subscribe`,
     sourceSync: `${API_BASE}/api/regulations/source/moj/sync`,

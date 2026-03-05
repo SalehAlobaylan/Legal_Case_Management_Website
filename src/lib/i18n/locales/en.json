@@ -410,6 +410,28 @@
             "metadataHash": "Metadata Hash",
             "rawJson": "Raw Source Metadata JSON"
         },
+        "ai": {
+            "title": "AI Analysis",
+            "arabicOnly": "Generated content appears in Arabic only.",
+            "generate": "Generate AI Analysis",
+            "regenerate": "Regenerate",
+            "refreshQueued": "AI analysis has been queued.",
+            "processing": "AI analysis is being prepared. Please wait...",
+            "failed": "AI analysis failed",
+            "executiveSummary": "Executive Summary",
+            "obligations": "Compliance Obligations",
+            "riskFlags": "Risk Flags",
+            "keyDates": "Key Dates",
+            "evidenceSnippets": "Evidence Snippets",
+            "amendmentImpact": "Amendment Impact Analyzer",
+            "generateImpact": "Generate Impact",
+            "impactQueued": "Amendment impact analysis has been queued.",
+            "processingImpact": "Amendment impact analysis is in progress...",
+            "failedImpact": "Unable to generate amendment impact analysis.",
+            "whatChanged": "What Changed",
+            "legalImpact": "Legal Impact",
+            "affectedParties": "Who Is Affected"
+        },
         "statuses": {
             "active": "Active",
             "amended": "Amended",

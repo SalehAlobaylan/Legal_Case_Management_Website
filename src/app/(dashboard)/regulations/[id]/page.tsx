@@ -19,6 +19,9 @@ import {
   Scale,
   CalendarDays,
   Building2,
+  Sparkles,
+  AlertTriangle,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,12 +37,17 @@ import {
   DialogCloseIconButton,
 } from "@/components/ui/dialog";
 import {
+  useRegulationAmendmentImpact,
   useCompareRegulationVersions,
+  useRefreshRegulationAmendmentImpact,
+  useRefreshRegulationInsights,
   useRegulation,
+  useRegulationInsights,
   useRegulationVersions,
 } from "@/lib/hooks/use-regulations";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { cn } from "@/lib/utils/cn";
+import { useToast } from "@/components/ui/use-toast";
 
 interface RegulationDetailPageProps {
   params: Promise<{
@@ -99,6 +107,7 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
   const regulationId = Number(resolvedParams.id);
   const router = useRouter();
   const { t, isRTL } = useI18n();
+  const { toast } = useToast();
 
   const { data: regulation, isLoading: isLoadingRegulation } = useRegulation(regulationId);
   const { data: versions, isLoading: isLoadingVersions } = useRegulationVersions(regulationId);
@@ -124,6 +133,14 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
     data: comparison,
     isLoading: isLoadingCompare,
   } = useCompareRegulationVersions(regulationId, leftVersion, rightVersion);
+  const { data: insights } = useRegulationInsights(regulationId);
+  const refreshInsights = useRefreshRegulationInsights(regulationId);
+  const { data: amendmentImpact } = useRegulationAmendmentImpact(
+    regulationId,
+    leftVersion,
+    rightVersion
+  );
+  const refreshAmendmentImpact = useRefreshRegulationAmendmentImpact(regulationId);
 
   if (isLoadingRegulation || isLoadingVersions) {
     return (
@@ -180,6 +197,12 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
   const issuanceDate = normalizeDate(metadata.issuanceDateG || metadata.issueDateG);
   const validFromDate = normalizeDate(metadata.gregorianValidFromDate || metadata.activationDateG);
   const statusStyle = getStatusStyle(regulation.status);
+  const insightsStatus = insights?.status || "not_generated";
+  const amendmentImpactStatus = amendmentImpact?.status || "not_generated";
+  const canTriggerAmendmentImpact =
+    Number.isInteger(leftVersion) &&
+    Number.isInteger(rightVersion) &&
+    leftVersion !== rightVersion;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -448,6 +471,10 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
               <FileText className="h-4 w-4" />
               {t("regulations.fullContent") || "Content"}
             </TabsTrigger>
+            <TabsTrigger value="insights" className="flex items-center gap-2 px-5">
+              <Sparkles className="h-4 w-4" />
+              {t("regulations.ai.title") || "AI Analysis"}
+            </TabsTrigger>
             <TabsTrigger value="versions" className="flex items-center gap-2 px-5">
               <Clock3 className="h-4 w-4" />
               {t("regulations.versions") || "Versions"}
@@ -474,6 +501,151 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
                 <p className="text-sm text-slate-400">{t("regulations.noContentAvailable")}</p>
               </div>
             )}
+          </TabsContent>
+
+          {/* ──── Tab: AI Insights ──── */}
+          <TabsContent value="insights" className="mt-0 focus-visible:outline-none focus:outline-none">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <p className="text-xs text-slate-600">
+                  {t("regulations.ai.arabicOnly") || "Generated content appears in Arabic only."}
+                </p>
+                <Button
+                  onClick={() =>
+                    refreshInsights.mutate(
+                      { force: true },
+                      {
+                        onSuccess: () => {
+                          toast({
+                            title: t("common.success"),
+                            description:
+                              t("regulations.ai.refreshQueued") ||
+                              "AI analysis has been queued.",
+                          });
+                        },
+                        onError: (error) => {
+                          toast({
+                            title: t("common.error"),
+                            description:
+                              error instanceof Error
+                                ? error.message
+                                : t("regulations.syncFailed"),
+                            variant: "destructive",
+                          });
+                        },
+                      }
+                    )
+                  }
+                  disabled={refreshInsights.isPending}
+                  className="gap-2"
+                >
+                  {refreshInsights.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
+                  {insightsStatus === "not_generated"
+                    ? t("regulations.ai.generate") || "Generate AI Analysis"
+                    : t("regulations.ai.regenerate") || "Regenerate"}
+                </Button>
+              </div>
+
+              {(insightsStatus === "pending" || insightsStatus === "processing") && (
+                <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-700">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <p className="text-sm">
+                    {t("regulations.ai.processing") ||
+                      "AI analysis is being prepared. Please wait..."}
+                  </p>
+                </div>
+              )}
+
+              {insightsStatus === "failed" && (
+                <div className="space-y-2 rounded-xl border border-rose-200 bg-rose-50 p-4">
+                  <p className="text-sm font-semibold text-rose-700">
+                    {t("regulations.ai.failed") || "AI analysis failed"}
+                  </p>
+                  {insights?.errorCode && (
+                    <p className="text-xs text-rose-600">{insights.errorCode}</p>
+                  )}
+                </div>
+              )}
+
+              {insightsStatus === "ready" && insights && (
+                <div className="space-y-4">
+                  <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <h3 className="mb-2 text-sm font-bold text-[#0F2942]">
+                      {t("regulations.ai.executiveSummary") || "Executive Summary"}
+                    </h3>
+                    <p className="text-sm leading-relaxed text-slate-700">
+                      {insights.summary || t("common.notAvailable")}
+                    </p>
+                  </article>
+
+                  <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <h3 className="mb-3 text-sm font-bold text-[#0F2942]">
+                      {t("regulations.ai.obligations") || "Compliance Obligations"}
+                    </h3>
+                    <div className="space-y-2">
+                      {(insights.obligations || []).map((item, index) => (
+                        <div key={`obl-${index}`} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                          <p className="text-xs font-semibold text-slate-900">{item.title}</p>
+                          <p className="mt-1 text-sm text-slate-700">{item.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </article>
+
+                  <article className="rounded-xl border border-amber-200 bg-amber-50/60 p-4 shadow-sm">
+                    <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-amber-800">
+                      <AlertTriangle className="h-4 w-4" />
+                      {t("regulations.ai.riskFlags") || "Risk Flags"}
+                    </h3>
+                    <div className="space-y-2">
+                      {(insights.riskFlags || []).map((item, index) => (
+                        <div key={`risk-${index}`} className="rounded-lg border border-amber-200 bg-white p-3">
+                          <p className="text-xs font-semibold text-amber-900">{item.title}</p>
+                          <p className="mt-1 text-sm text-amber-800">{item.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </article>
+
+                  <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <h3 className="mb-3 text-sm font-bold text-[#0F2942]">
+                      {t("regulations.ai.keyDates") || "Key Dates"}
+                    </h3>
+                    <div className="space-y-2">
+                      {(insights.keyDates || []).map((item, index) => (
+                        <div
+                          key={`date-${index}`}
+                          className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
+                        >
+                          <span className="text-xs text-slate-600">{item.label}</span>
+                          <span className="text-sm font-medium text-slate-900">{item.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </article>
+
+                  <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <h3 className="mb-3 text-sm font-bold text-[#0F2942]">
+                      {t("regulations.ai.evidenceSnippets") || "Evidence Snippets"}
+                    </h3>
+                    <div className="space-y-2">
+                      {(insights.citations || []).map((item, index) => (
+                        <blockquote
+                          key={`cite-${index}`}
+                          className="rounded-lg border-l-4 border-[#D97706] bg-slate-50 px-3 py-2 text-sm text-slate-700"
+                        >
+                          {item.snippet}
+                        </blockquote>
+                      ))}
+                    </div>
+                  </article>
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           {/* ──── Tab: Versions ──── */}
@@ -597,6 +769,137 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
                     <span className="text-rose-600 font-bold">-{comparison?.summary.deletedLines || 0}</span>
                     <span className="text-slate-500">lines changed</span>
                   </div>
+                </div>
+
+                <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-sm font-bold text-[#0F2942]">
+                      {t("regulations.ai.amendmentImpact") || "Amendment Impact Analyzer"}
+                    </h3>
+                    <Button
+                      onClick={() => {
+                        if (!canTriggerAmendmentImpact) {
+                          return;
+                        }
+                        refreshAmendmentImpact.mutate(
+                          {
+                            fromVersion: Number(leftVersion),
+                            toVersion: Number(rightVersion),
+                            force: true,
+                          },
+                          {
+                            onSuccess: () => {
+                              toast({
+                                title: t("common.success"),
+                                description:
+                                  t("regulations.ai.impactQueued") ||
+                                  "Amendment impact analysis has been queued.",
+                              });
+                            },
+                            onError: (error) => {
+                              toast({
+                                title: t("common.error"),
+                                description:
+                                  error instanceof Error
+                                    ? error.message
+                                    : t("regulations.syncFailed"),
+                                variant: "destructive",
+                              });
+                            },
+                          }
+                        );
+                      }}
+                      disabled={!canTriggerAmendmentImpact || refreshAmendmentImpact.isPending}
+                      className="gap-2"
+                    >
+                      {refreshAmendmentImpact.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-4 w-4" />
+                      )}
+                      {amendmentImpactStatus === "not_generated"
+                        ? t("regulations.ai.generateImpact") || "Generate Impact"
+                        : t("regulations.ai.regenerate") || "Regenerate"}
+                    </Button>
+                  </div>
+
+                  {(amendmentImpactStatus === "pending" ||
+                    amendmentImpactStatus === "processing") && (
+                    <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      {t("regulations.ai.processingImpact") ||
+                        "Amendment impact analysis is in progress..."}
+                    </div>
+                  )}
+
+                  {amendmentImpactStatus === "failed" && (
+                    <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                      {t("regulations.ai.failedImpact") ||
+                        "Unable to generate amendment impact analysis."}
+                    </div>
+                  )}
+
+                  {amendmentImpactStatus === "ready" && amendmentImpact && (
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                      <article className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                        <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-600">
+                          {t("regulations.ai.whatChanged") || "What Changed"}
+                        </h4>
+                        <div className="space-y-2">
+                          {amendmentImpact.whatChanged.map((item, index) => (
+                            <p key={`changed-${index}`} className="text-sm text-slate-700">
+                              {item.description}
+                            </p>
+                          ))}
+                        </div>
+                      </article>
+
+                      <article className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                        <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-amber-700">
+                          {t("regulations.ai.legalImpact") || "Legal Impact"}
+                        </h4>
+                        <div className="space-y-2">
+                          {amendmentImpact.legalImpact.map((item, index) => (
+                            <p key={`impact-${index}`} className="text-sm text-amber-800">
+                              {item.description}
+                            </p>
+                          ))}
+                        </div>
+                      </article>
+
+                      <article className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+                        <h4 className="mb-2 flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-blue-700">
+                          <Users className="h-3.5 w-3.5" />
+                          {t("regulations.ai.affectedParties") || "Who Is Affected"}
+                        </h4>
+                        <div className="space-y-2">
+                          {amendmentImpact.affectedParties.map((item, index) => (
+                            <p key={`party-${index}`} className="text-sm text-blue-800">
+                              {item.description}
+                            </p>
+                          ))}
+                        </div>
+                      </article>
+                    </div>
+                  )}
+
+                  {amendmentImpactStatus === "ready" &&
+                    amendmentImpact &&
+                    amendmentImpact.citations.length > 0 && (
+                      <div className="space-y-2">
+                        <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                          {t("regulations.ai.evidenceSnippets") || "Evidence Snippets"}
+                        </h4>
+                        {amendmentImpact.citations.map((item, index) => (
+                          <blockquote
+                            key={`impact-cite-${index}`}
+                            className="rounded-md border-l-4 border-[#D97706] bg-slate-50 px-3 py-2 text-sm text-slate-700"
+                          >
+                            {item.snippet}
+                          </blockquote>
+                        ))}
+                      </div>
+                    )}
                 </div>
 
                 {/* Diff Blocks */}
