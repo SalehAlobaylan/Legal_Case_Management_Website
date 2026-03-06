@@ -33,7 +33,7 @@ export function DocumentManager({ caseId }: DocumentManagerProps) {
             setUploadError(null);
 
             // Validate file type
-            if (!isAllowedFileType(file.type)) {
+            if (!isAllowedFileType(file.type, file.name)) {
                 setUploadError(`Invalid file type. Allowed: ${ALLOWED_EXTENSIONS.join(", ")}`);
                 return;
             }

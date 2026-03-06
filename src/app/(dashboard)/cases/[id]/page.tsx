@@ -63,7 +63,12 @@ import {
 import { DocumentViewerModal } from "@/components/ui/document-viewer-modal";
 import { cn } from "@/lib/utils/cn";
 import type { Document } from "@/lib/types/document";
-import type { CaseRegulationLink } from "@/lib/types/case";
+import type {
+  CaseRegulationLink,
+  LinkLineMatch,
+  LinkMatchExplanation,
+  LinkScoreBreakdown,
+} from "@/lib/types/case";
 import { useToast } from "@/components/ui/use-toast";
 
 interface CaseDetailPageProps {
@@ -199,6 +204,16 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
             }),
           });
         }
+
+        if ((meta.warnings || []).includes("regulation_chunk_index_fallback_used")) {
+          toast({
+            title: t("ai.linkingFallbackTitle"),
+            description: t("ai.linkingFallbackDesc", {
+              indexed: meta.regulationsIndexed || 0,
+              unindexed: meta.regulationsUnindexed || 0,
+            }),
+          });
+        }
       },
       onError: () => {
         setPromptAfterGenerate(false);
@@ -311,7 +326,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
   }
 
   // Count pending suggestions
-  const pendingCount = aiLinks?.filter(l => !l.verified)?.length || 0;
+  const pendingCount = aiLinks?.filter((l: CaseRegulationLink) => !l.verified)?.length || 0;
 
   return (
     <div className="h-[calc(100vh-80px)] overflow-hidden flex flex-col lg:flex-row -mx-4 sm:-mx-6 lg:-mx-8 -my-8">
@@ -459,7 +474,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
                 {t("cases.foundMatches", { count: aiLinks.length })}
               </div>
 
-              {aiLinks.map((link) => (
+              {aiLinks.map((link: CaseRegulationLink) => (
                 <SuggestionCard
                   key={link.id}
                   link={link}
@@ -1061,7 +1076,7 @@ function DocumentsTab({
         ref={fileInputRef}
         onChange={onUpload}
         className="hidden"
-        accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+        accept=".pdf,.docx,.xlsx,.xls,.csv,.tsv,.dsv,.txt,.md,.rtf,.jpg,.jpeg,.png"
       />
 
       {/* Upload Zone */}
@@ -1195,6 +1210,19 @@ function SuggestionCard({ link, onVerify, onDismiss, isVerifying, isDismissing, 
   const evidence = (link.evidence_sources || link.evidenceSources || []).filter(
     (item) => item && typeof item === "object"
   );
+  const matchExplanation: LinkMatchExplanation = (link.match_explanation ||
+    link.matchExplanation ||
+    {}) as LinkMatchExplanation;
+  const lineMatches: LinkLineMatch[] = (
+    matchExplanation.line_matches ||
+    matchExplanation.lineMatches ||
+    []
+  ).slice(0, 2);
+  const scoreBreakdown: LinkScoreBreakdown | null =
+    matchExplanation.score_breakdown || matchExplanation.scoreBreakdown || null;
+  const warnings = (matchExplanation.warnings || []).filter(
+    (item) => typeof item === "string"
+  );
   const documentEvidence = evidence
     .filter((item) => item.source === "document")
     .slice(0, 2);
@@ -1241,8 +1269,92 @@ function SuggestionCard({ link, onVerify, onDismiss, isVerifying, isDismissing, 
           </p>
         )}
         <p className="text-sm text-slate-600 leading-relaxed italic border-l-4 border-[#D97706]/30 pl-3 mb-4 bg-slate-50 py-2 pr-2 rounded-r-lg">
-          Matched via {link.method || "AI"} analysis
+          {t("ai.matchedViaAi")}
         </p>
+        {lineMatches.length > 0 && (
+          <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+              {t("ai.whyThisMatch")}
+            </p>
+            <div className="space-y-2">
+              {lineMatches.map((item, index) => {
+                const lineStart =
+                  typeof item.line_start === "number" ? item.line_start : null;
+                const lineEnd =
+                  typeof item.line_end === "number" ? item.line_end : null;
+                const lineLabel =
+                  lineStart && lineEnd
+                    ? `${t("ai.lines")}: ${lineStart}-${lineEnd}`
+                    : lineStart
+                      ? `${t("ai.lines")}: ${lineStart}`
+                      : null;
+                return (
+                  <div key={`${item.case_fragment_id || "line"}-${index}`}>
+                    <p className="text-[11px] font-semibold text-slate-700">
+                      {t("ai.caseSnippet")}
+                    </p>
+                    <p className="text-xs text-slate-600 line-clamp-2">
+                      {item.case_snippet}
+                    </p>
+                    <p className="mt-1 text-[11px] font-semibold text-slate-700">
+                      {t("ai.regulationSnippet")}
+                    </p>
+                    <p className="text-xs text-slate-600 line-clamp-2">
+                      {item.regulation_snippet}
+                    </p>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {item.article_ref && (
+                        <span className="rounded-md bg-[#0F2942]/10 px-2 py-0.5 text-[10px] font-bold text-[#0F2942]">
+                          {item.article_ref}
+                        </span>
+                      )}
+                      {lineLabel && (
+                        <span className="rounded-md bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+                          {lineLabel}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        {scoreBreakdown && (
+          <div className="mb-4 rounded-xl border border-slate-200 bg-white p-3">
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+              {t("ai.scoreBreakdown")}
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              <span className="rounded-md bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-700">
+                {t("ai.scoreSemantic")}{" "}
+                {Math.round((scoreBreakdown.semantic_max || 0) * 100)}%
+              </span>
+              <span className="rounded-md bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-700">
+                {t("ai.scoreSupport")}{" "}
+                {Math.round((scoreBreakdown.support_coverage || 0) * 100)}%
+              </span>
+              <span className="rounded-md bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-700">
+                {t("ai.scoreLexical")}{" "}
+                {Math.round((scoreBreakdown.lexical_overlap || 0) * 100)}%
+              </span>
+            </div>
+          </div>
+        )}
+        {warnings.length > 0 && (
+          <div className="mb-4 flex flex-wrap gap-2">
+            {warnings.map((warning) => (
+              <span
+                key={warning}
+                className="inline-flex items-center rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-bold text-amber-800"
+              >
+                {warning === "regulation_chunk_index_fallback_used"
+                  ? t("ai.warningFallback")
+                  : warning}
+              </span>
+            ))}
+          </div>
+        )}
         {documentEvidence.length > 0 && (
           <div className="mb-4 flex flex-wrap gap-2">
             {documentEvidence.map((item, index) => (

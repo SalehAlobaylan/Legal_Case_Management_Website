@@ -4,7 +4,7 @@
  * Used by: Data-fetching hooks and services that need authenticated requests with automatic 401 handling.
  */
 
-import axios, { AxiosError, AxiosInstance } from "axios";
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import { useAuthStore } from "@/lib/store/auth-store";
 
 class ApiClient {
@@ -55,6 +55,22 @@ class ApiClient {
   getInstance() {
     return this.client;
   }
+
+  get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<{ data: T }> {
+    return this.client.get(url, config) as Promise<{ data: T }>;
+  }
+
+  post<T = unknown>(
+    url: string,
+    data?: unknown,
+    config?: AxiosRequestConfig
+  ): Promise<{ data: T }> {
+    return this.client.post(url, data, config);
+  }
+
+  delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<{ data: T }> {
+    return this.client.delete(url, config) as Promise<{ data: T }>;
+  }
 }
 
-export const apiClient = new ApiClient().getInstance();
+export const apiClient = new ApiClient();

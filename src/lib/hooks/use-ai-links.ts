@@ -43,7 +43,9 @@ export function useGenerateAILinks(caseId: number) {
   return useMutation({
     mutationFn: async () => {
       const { data } = await apiClient.post<GenerateAILinksResponse>(
-        `/api/ai-links/${caseId}/generate`
+        `/api/ai-links/${caseId}/generate`,
+        {},
+        { timeout: 300000 } // 5 minutes - AI linking can take ~2min with embeddings
       );
       return data;
     },
@@ -58,10 +60,14 @@ export function useVerifyLink() {
 
   return useMutation({
     mutationFn: async (linkId: number) => {
-      await apiClient.post(`/api/ai-links/${linkId}/verify`);
+      const response = await apiClient.post(`/api/ai-links/${linkId}/verify`);
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ai-links"] });
+    },
+    onError: (error) => {
+      console.error("Failed to verify link:", error);
     },
   });
 }
@@ -71,10 +77,15 @@ export function useDismissLink() {
 
   return useMutation({
     mutationFn: async (linkId: number) => {
-      await apiClient.delete(`/api/ai-links/${linkId}`);
+      const response = await apiClient.delete(`/api/ai-links/${linkId}`);
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ai-links"] });
+      queryClient.refetchQueries({ queryKey: ["ai-links"] });
+    },
+    onError: (error) => {
+      console.error("Failed to dismiss link:", error);
     },
   });
 }

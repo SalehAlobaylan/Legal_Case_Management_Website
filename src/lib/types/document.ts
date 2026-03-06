@@ -50,20 +50,49 @@ export interface UploadProgress {
 // Allowed file types for upload
 export const ALLOWED_FILE_TYPES = [
   "application/pdf",
-  "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-excel",
   "text/plain",
+  "text/csv",
+  "text/tab-separated-values",
+  "text/markdown",
+  "application/rtf",
   "image/jpeg",
   "image/png",
 ] as const;
 
-export const ALLOWED_EXTENSIONS = [".pdf", ".doc", ".docx", ".txt", ".jpg", ".jpeg", ".png"] as const;
+export const ALLOWED_EXTENSIONS = [
+  ".pdf",
+  ".docx",
+  ".xlsx",
+  ".xls",
+  ".csv",
+  ".tsv",
+  ".dsv",
+  ".txt",
+  ".md",
+  ".rtf",
+  ".jpg",
+  ".jpeg",
+  ".png",
+] as const;
 
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
-// Helper to check if a file type is allowed
-export function isAllowedFileType(mimeType: string): boolean {
-  return ALLOWED_FILE_TYPES.includes(mimeType as typeof ALLOWED_FILE_TYPES[number]);
+// Helper to check if a file type is allowed (by MIME type or extension)
+export function isAllowedFileType(mimeType: string, fileName?: string): boolean {
+  if (ALLOWED_FILE_TYPES.includes(mimeType as typeof ALLOWED_FILE_TYPES[number])) {
+    return true;
+  }
+  // Browsers may send generic MIME for unusual extensions (.dsv, .tsv, .rtf, etc.)
+  if (fileName) {
+    const ext = getFileExtension(fileName);
+    if (ext && ALLOWED_EXTENSIONS.includes(ext as typeof ALLOWED_EXTENSIONS[number])) {
+      return true;
+    }
+  }
+  return false;
 }
 
 // Helper to get file extension

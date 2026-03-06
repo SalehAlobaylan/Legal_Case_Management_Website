@@ -725,9 +725,20 @@
         "subscribeSuccessDesc": "Subscribed to {{count}} regulation updates.",
         "subscribePartialTitle": "Some subscriptions failed",
         "subscribePartialDesc": "{{count}} regulations could not be subscribed.",
+        "linkingFallbackTitle": "Partial indexing fallback used",
+        "linkingFallbackDesc": "Indexed: {{indexed}}, unindexed fallback candidates: {{unindexed}}.",
         "confidencePercent": "% Confidence",
         "matchedViaAi": "Matched via AI analysis",
-        "linkToCase": "Link to Case"
+        "linkToCase": "Link to Case",
+        "whyThisMatch": "Why this match",
+        "caseSnippet": "Case snippet",
+        "regulationSnippet": "Regulation snippet",
+        "lines": "Lines",
+        "scoreBreakdown": "Score breakdown",
+        "scoreSemantic": "Semantic",
+        "scoreSupport": "Support",
+        "scoreLexical": "Lexical",
+        "warningFallback": "Using fallback text (chunk index unavailable)"
     },
     "header": {
         "searchPlaceholder": "Search cases, regulations, or documents...",

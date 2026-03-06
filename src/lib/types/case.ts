@@ -64,6 +64,10 @@ export interface CaseRegulationLink {
   is_subscribed?: boolean;
   evidenceSources?: LinkEvidence[];
   evidence_sources?: LinkEvidence[];
+  matchedRegulationVersionId?: number | null;
+  matched_regulation_version_id?: number | null;
+  matchExplanation?: LinkMatchExplanation;
+  match_explanation?: LinkMatchExplanation;
   matchedWithDocuments?: boolean;
   matched_with_documents?: boolean;
   regulation?: Regulation;
@@ -79,6 +83,34 @@ export interface LinkEvidence {
   score: number;
 }
 
+export interface LinkScoreBreakdown {
+  semantic_max: number;
+  support_coverage: number;
+  lexical_overlap: number;
+  category_prior: number;
+  final_score: number;
+}
+
+export interface LinkLineMatch {
+  case_fragment_id: string;
+  case_snippet: string;
+  regulation_chunk_id?: number | null;
+  regulation_snippet: string;
+  line_start?: number | null;
+  line_end?: number | null;
+  article_ref?: string | null;
+  pair_score: number;
+  contribution: number;
+}
+
+export interface LinkMatchExplanation {
+  lineMatches?: LinkLineMatch[];
+  line_matches?: LinkLineMatch[];
+  scoreBreakdown?: LinkScoreBreakdown | null;
+  score_breakdown?: LinkScoreBreakdown | null;
+  warnings?: string[];
+}
+
 export interface AILinkGenerationMeta {
   docsConsidered: number;
   docsQueued: number;
@@ -86,6 +118,11 @@ export interface AILinkGenerationMeta {
   docsPending: number;
   docsFailed: number;
   docsUnsupported: number;
+  candidateCount?: number;
+  droppedByPrecision?: number;
+  regulationsIndexed?: number;
+  regulationsUnindexed?: number;
+  warnings?: string[];
 }
 
 export interface Regulation {

@@ -725,9 +725,20 @@
         "subscribeSuccessDesc": "تم الاشتراك في تحديثات {{count}} نظام.",
         "subscribePartialTitle": "فشل بعض الاشتراكات",
         "subscribePartialDesc": "تعذر الاشتراك في {{count}} نظام.",
+        "linkingFallbackTitle": "تم استخدام وضع بديل جزئي",
+        "linkingFallbackDesc": "المفهرس: {{indexed}}، المرشحات غير المفهرسة (بديل): {{unindexed}}.",
         "confidencePercent": "% ثقة",
         "matchedViaAi": "تم المطابقة عبر تحليل الذكاء الاصطناعي",
-        "linkToCase": "ربط بالقضية"
+        "linkToCase": "ربط بالقضية",
+        "whyThisMatch": "سبب هذه المطابقة",
+        "caseSnippet": "مقتطف من القضية",
+        "regulationSnippet": "مقتطف من النظام",
+        "lines": "الأسطر",
+        "scoreBreakdown": "تفصيل الدرجة",
+        "scoreSemantic": "الدلالي",
+        "scoreSupport": "الدعم",
+        "scoreLexical": "اللفظي",
+        "warningFallback": "يتم استخدام نص بديل (فهرسة المقاطع غير متاحة)"
     },
     "header": {
         "searchPlaceholder": "البحث في القضايا والأنظمة والمستندات...",

@@ -66,6 +66,10 @@ A high-performance RESTful API handling business logic, authentication, and data
 - Automatic semantic similarity matching between cases and regulations
 - BGE-M3 multilingual model with Arabic language support
 - Cosine similarity scoring (0-100%) for relevance ranking
+- Explainability UI for each suggested regulation:
+  - matched regulation lines/chunks and article references (when available)
+  - supporting case/document snippets used by the model
+  - score breakdown and model warnings for confidence interpretation
 - Lawyer verification/dismissal of AI suggestions
 - Hybrid linking: AI-generated and manual links
 - High-score subscription suggestion dialog with preselected regulations and user opt-out checkboxes
