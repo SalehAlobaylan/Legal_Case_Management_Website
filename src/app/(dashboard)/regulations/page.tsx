@@ -36,6 +36,9 @@ import { useI18n } from "@/lib/hooks/use-i18n";
 import { formatDate } from "@/lib/utils/format";
 import { Filter } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { ProgressSteps } from "@/components/ui/progress-steps";
+
+
 
 /* ── Status color helper ── */
 const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string; border: string }> = {
@@ -54,6 +57,21 @@ export default function RegulationsPage() {
   const router = useRouter();
   const { t, isRTL } = useI18n();
   const { toast } = useToast();
+
+  const syncSteps = React.useMemo(() => [
+    { label: t("ai.progress.connectingSource"), estimatedMs: 3000 },
+    { label: t("ai.progress.fetchingListings"), estimatedMs: 8000 },
+    { label: t("ai.progress.downloadingContent"), estimatedMs: 15000 },
+    { label: t("ai.progress.extractingText"), estimatedMs: 12000 },
+    { label: t("ai.progress.updatingDb"), estimatedMs: 5000 },
+  ], [t]);
+
+  const progressI18n = React.useMemo(() => ({
+    doneLabel: t("ai.progress.done"),
+    stepLabel: t("ai.progress.step"),
+    defaultTitle: t("ai.progress.processing"),
+    footerTip: t("ai.progress.footerTip"),
+  }), [t]);
   const [activeFilter, setActiveFilter] = React.useState("All");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
@@ -262,6 +280,18 @@ export default function RegulationsPage() {
           </div>
         </div>
       </div>
+
+      {/* Sync Progress Bar */}
+      {syncMojSource.isPending && (
+        <ProgressSteps
+          isActive={syncMojSource.isPending}
+          steps={syncSteps}
+          title={t("ai.progress.syncTitle")}
+          subtitle={t("ai.progress.syncSubtitle")}
+          variant="compact"
+          i18nTexts={progressI18n}
+        />
+      )}
 
       {/* Category Filters */}
       <FilterPills className="pb-2">

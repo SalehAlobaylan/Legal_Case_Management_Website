@@ -99,12 +99,13 @@ export function CaseFilters({ onFilterChange }: CaseFiltersProps) {
           className="h-8 w-full rounded-md border border-gray-300 bg-white px-2 text-xs text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
         >
           <option value="">All</option>
+          <option value={CaseType.GENERAL}>General</option>
           <option value={CaseType.CRIMINAL}>Criminal</option>
-          <option value={CaseType.CIVIL}>Civil</option>
+          <option value={CaseType.PERSONAL_STATUS}>Personal Status</option>
           <option value={CaseType.COMMERCIAL}>Commercial</option>
           <option value={CaseType.LABOR}>Labor</option>
-          <option value={CaseType.FAMILY}>Family</option>
           <option value={CaseType.ADMINISTRATIVE}>Administrative</option>
+          <option value={CaseType.ENFORCEMENT}>Enforcement</option>
         </select>
       </div>
 

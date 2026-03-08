@@ -5,12 +5,13 @@
  */
 
 export enum CaseType {
+  GENERAL = "general",
   CRIMINAL = "criminal",
-  CIVIL = "civil",
+  PERSONAL_STATUS = "personal_status",
   COMMERCIAL = "commercial",
   LABOR = "labor",
-  FAMILY = "family",
   ADMINISTRATIVE = "administrative",
+  ENFORCEMENT = "enforcement",
 }
 
 export enum CaseStatus {

@@ -22,6 +22,8 @@ import {
   Bell,
   UploadCloud,
   Eye,
+  ArrowUpRight,
+  Link2,
   Download,
   Trash2,
   File,
@@ -70,6 +72,10 @@ import type {
   LinkScoreBreakdown,
 } from "@/lib/types/case";
 import { useToast } from "@/components/ui/use-toast";
+import { ProgressSteps } from "@/components/ui/progress-steps";
+
+
+
 
 interface CaseDetailPageProps {
   params: Promise<{
@@ -99,7 +105,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
   const router = useRouter();
   const resolvedParams = React.use(params);
   const caseId = Number(resolvedParams.id);
-  const [activeTab, setActiveTab] = React.useState<"details" | "documents">("details");
+  const [activeTab, setActiveTab] = React.useState<"details" | "documents" | "linking">("details");
   const [showSubscribeDialog, setShowSubscribeDialog] = React.useState(false);
   const [subscriptionCandidates, setSubscriptionCandidates] = React.useState<
     SubscriptionCandidate[]
@@ -116,6 +122,22 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
   const shownCandidateBatchKeysRef = React.useRef<Set<string>>(new Set());
   const { toast } = useToast();
   const { t } = useI18n();
+
+  const aiLinkingSteps = React.useMemo(() => [
+    { label: t("ai.progress.analyzingCase"), estimatedMs: 10000 },
+    { label: t("ai.progress.processingDocs"), estimatedMs: 15000 },
+    { label: t("ai.progress.searchingRegs"), estimatedMs: 20000 },
+    { label: t("ai.progress.computingScores"), estimatedMs: 25000 },
+    { label: t("ai.progress.buildingEvidence"), estimatedMs: 15000 },
+    { label: t("ai.progress.finalizingResults"), estimatedMs: 5000 },
+  ], [t]);
+
+  const progressI18n = React.useMemo(() => ({
+    doneLabel: t("ai.progress.done"),
+    stepLabel: t("ai.progress.step"),
+    defaultTitle: t("ai.progress.processing"),
+    footerTip: t("ai.progress.footerTip"),
+  }), [t]);
 
   // Fetch case data
   const { data: case_, isLoading } = useCase(caseId);
@@ -393,12 +415,19 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
             >
               {t("cases.documents")}
             </TabButton>
+            <TabButton
+              active={activeTab === "linking"}
+              onClick={() => setActiveTab("linking")}
+              count={aiLinks?.length}
+            >
+              Case Linking
+            </TabButton>
           </div>
 
           {/* Tab Content */}
           {activeTab === "details" ? (
             <DetailsTab case_={case_} />
-          ) : (
+          ) : activeTab === "documents" ? (
             <DocumentsTab
               caseId={caseId}
               documents={documents || []}
@@ -409,6 +438,13 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
               isPreviewLoading={isPreviewLoading}
               isUploading={uploadDocument.isPending}
             />
+          ) : (
+            <CaseLinkingTab
+              aiLinks={aiLinks || []}
+              isLoading={isLoadingAILinks}
+              caseId={caseId}
+              onNavigateToStudio={() => router.push(`/cases/${caseId}/linking`)}
+            />
           )}
         </div>
       </div>
@@ -416,34 +452,57 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
       {/* Right Panel: AI Assistant */}
       <div className="w-full lg:w-[480px] bg-slate-50/50 backdrop-blur-sm border-l border-slate-200 flex flex-col h-full shadow-inner">
         {/* AI Header */}
-        <div className="p-6 border-b border-slate-200 bg-white shadow-sm flex justify-between items-center z-10">
-          <div className="flex items-center gap-3">
-            <div className="bg-[#0F2942] p-2 rounded-lg text-white">
-              <Sparkles className="h-5 w-5" />
+        <div className="p-6 border-b border-slate-200 bg-white shadow-sm z-10">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="bg-[#0F2942] p-2 rounded-lg text-white">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-[#0F2942] leading-none">AI Assistant</h3>
+                <p className="text-xs text-slate-500 mt-1">Regulation Matching</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-bold text-[#0F2942] leading-none">AI Assistant</h3>
-              <p className="text-xs text-slate-500 mt-1">Regulation Matching</p>
+            <div className="flex items-center gap-2">
+              <span className="text-xs bg-[#D97706] text-white px-3 py-1.5 rounded-lg font-bold shadow-sm shadow-orange-900/20">
+                {pendingCount} {t("cases.suggestions")}
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleGenerateSuggestions}
+                disabled={isGenerating}
+                className="text-xs"
+              >
+                {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : "Refresh"}
+              </Button>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs bg-[#D97706] text-white px-3 py-1.5 rounded-lg font-bold shadow-sm shadow-orange-900/20">
-              {pendingCount} {t("cases.suggestions")}
-            </span>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleGenerateSuggestions}
-              disabled={isGenerating}
-              className="text-xs"
-            >
-              {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : "Refresh"}
-            </Button>
-          </div>
+          {/* Open Linking Studio button */}
+          <button
+            onClick={() => router.push(`/cases/${caseId}/linking`)}
+            className="mt-3 w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-[#0F2942]/5 hover:bg-[#0F2942]/10 border border-[#0F2942]/10 hover:border-[#0F2942]/20 transition-all text-[#0F2942] group"
+          >
+            <ArrowUpRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            <span className="text-xs font-bold">Open Linking Studio</span>
+          </button>
         </div>
 
         {/* Suggestions List */}
         <div className="flex-1 overflow-y-auto p-6 space-y-5 pb-32">
+          {/* Compact Progress Bar during generation */}
+          {isGenerating && (
+            <div className="mb-4">
+              <ProgressSteps
+                isActive={isGenerating}
+                steps={aiLinkingSteps}
+                title={t("ai.progress.generatingMatches")}
+                subtitle={t("ai.progress.generatingMatchesSub")}
+                variant="compact"
+                i18nTexts={progressI18n}
+              />
+            </div>
+          )}
           {isLoadingAILinks ? (
             <div className="text-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-[#D97706] mx-auto" />
@@ -781,6 +840,194 @@ function DetailsTab({ case_ }: DetailsTabProps) {
           <span className="text-slate-700">Certificate of Service.</span>
         </li>
       </ul>
+    </div>
+  );
+}
+
+/* =============================================================================
+   CASE LINKING TAB
+   ============================================================================= */
+
+interface CaseLinkingTabProps {
+  aiLinks: CaseRegulationLink[];
+  isLoading: boolean;
+  caseId: number;
+  onNavigateToStudio: () => void;
+}
+
+function CaseLinkingTab({
+  aiLinks,
+  isLoading,
+  caseId,
+  onNavigateToStudio,
+}: CaseLinkingTabProps) {
+  const { t } = useI18n();
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-[#D97706] mx-auto" />
+        <p className="text-slate-500 text-sm mt-2">{t("common.loading")}</p>
+      </div>
+    );
+  }
+
+  const verifiedLinks = aiLinks.filter((l) => l.verified);
+  const pendingLinks = aiLinks.filter((l) => !l.verified);
+  const avgScore =
+    aiLinks.length > 0
+      ? Math.round(
+        (aiLinks.reduce((sum, l) => {
+          const raw = l.similarity_score ?? l.similarityScore ?? 0;
+          const s = typeof raw === "number" ? raw : Number.parseFloat(raw as string);
+          return sum + (Number.isNaN(s) ? 0 : s > 1 ? s / 100 : s);
+        }, 0) /
+          aiLinks.length) *
+        100
+      )
+      : 0;
+
+  return (
+    <div className="space-y-6">
+      {/* Open Studio CTA */}
+      <button
+        onClick={onNavigateToStudio}
+        className="w-full flex items-center justify-between p-5 rounded-2xl bg-gradient-to-r from-[#0F2942] to-[#1a3a5c] text-white group hover:shadow-lg transition-all"
+      >
+        <div className="flex items-center gap-3">
+          <div className="bg-white/10 p-2.5 rounded-xl backdrop-blur-sm">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div className="text-left">
+            <p className="font-bold text-sm">Case Linking Studio</p>
+            <p className="text-xs text-white/70 mt-0.5">
+              Deep review, manage, and verify all regulation links
+            </p>
+          </div>
+        </div>
+        <div className="bg-white/10 p-2 rounded-lg group-hover:bg-white/20 transition-colors">
+          <ArrowUpRight className="h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+        </div>
+      </button>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 text-center">
+          <p className="text-2xl font-bold text-[#0F2942]">{aiLinks.length}</p>
+          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1">
+            Total Links
+          </p>
+        </div>
+        <div className="bg-white rounded-xl border border-green-200 p-4 text-center">
+          <p className="text-2xl font-bold text-green-600">
+            {verifiedLinks.length}
+          </p>
+          <p className="text-[10px] text-green-600 font-bold uppercase tracking-wider mt-1">
+            Verified
+          </p>
+        </div>
+        <div className="bg-white rounded-xl border border-amber-200 p-4 text-center">
+          <p className="text-2xl font-bold text-amber-600">
+            {pendingLinks.length}
+          </p>
+          <p className="text-[10px] text-amber-600 font-bold uppercase tracking-wider mt-1">
+            Pending
+          </p>
+        </div>
+        <div className="bg-white rounded-xl border border-blue-200 p-4 text-center">
+          <p className="text-2xl font-bold text-blue-600">{avgScore}%</p>
+          <p className="text-[10px] text-blue-600 font-bold uppercase tracking-wider mt-1">
+            Avg Score
+          </p>
+        </div>
+      </div>
+
+      {/* Link List */}
+      {aiLinks.length === 0 ? (
+        <div className="text-center py-8 bg-slate-50 rounded-2xl border border-slate-100">
+          <div className="bg-slate-100 p-4 rounded-full w-fit mx-auto mb-3">
+            <Link2 className="h-6 w-6 text-slate-400" />
+          </div>
+          <p className="text-sm text-slate-600 font-medium mb-1">
+            No regulation links yet
+          </p>
+          <p className="text-xs text-slate-400">
+            Use the AI Assistant to generate regulation matches
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              Linked Regulations
+            </span>
+            <span className="text-[10px] font-bold bg-[#0F2942]/10 text-[#0F2942] px-2 py-0.5 rounded-md">
+              {aiLinks.length} total
+            </span>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {aiLinks.map((link) => {
+              const title =
+                link.regulation?.title ||
+                `Regulation #${link.regulation_id ?? link.regulationId}`;
+              const regNum =
+                link.regulation?.regulation_number ||
+                link.regulation?.regulationNumber;
+              const rawScore =
+                link.similarity_score ?? link.similarityScore ?? 0;
+              const score =
+                typeof rawScore === "number"
+                  ? rawScore
+                  : Number.parseFloat(rawScore);
+              const normalizedScore = score > 1 ? score / 100 : score;
+              const confidence = Math.round(
+                (Number.isNaN(normalizedScore) ? 0 : normalizedScore) * 100
+              );
+
+              return (
+                <div
+                  key={link.id}
+                  className="flex items-center justify-between px-6 py-3 hover:bg-slate-50 transition-colors"
+                >
+                  <div className="min-w-0 flex-1 mr-3">
+                    <p className="text-sm font-bold text-[#0F2942] truncate">
+                      {title}
+                    </p>
+                    {regNum && (
+                      <p className="text-[10px] text-slate-500 mt-0.5">
+                        {regNum}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span
+                      className={cn(
+                        "text-[10px] font-bold px-2 py-0.5 rounded-md tabular-nums",
+                        confidence > 90
+                          ? "bg-emerald-100 text-emerald-700"
+                          : confidence > 70
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-slate-100 text-slate-600"
+                      )}
+                    >
+                      {confidence}%
+                    </span>
+                    {link.verified ? (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-green-100 text-green-700">
+                        Verified
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-700">
+                        Pending
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

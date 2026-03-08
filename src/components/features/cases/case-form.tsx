@@ -96,12 +96,13 @@ export function CaseForm({ onSuccess }: CaseFormProps) {
             <option value="" disabled>
               Select type
             </option>
-            <option value={CaseType.CIVIL}>Civil</option>
+            <option value={CaseType.GENERAL}>General</option>
+            <option value={CaseType.CRIMINAL}>Criminal</option>
+            <option value={CaseType.PERSONAL_STATUS}>Personal Status</option>
             <option value={CaseType.COMMERCIAL}>Commercial</option>
             <option value={CaseType.LABOR}>Labor</option>
-            <option value={CaseType.CRIMINAL}>Criminal</option>
-            <option value={CaseType.FAMILY}>Family</option>
             <option value={CaseType.ADMINISTRATIVE}>Administrative</option>
+            <option value={CaseType.ENFORCEMENT}>Enforcement</option>
           </Select>
           {errors.caseType && (
             <p className="text-xs font-medium text-[var(--color-error-text)]">

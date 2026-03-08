@@ -1,47 +1,35 @@
-/*
+/**
  * File: src/app/(dashboard)/cases/new/page.tsx
- * Purpose: New case creation page that embeds the Phase 8 `CaseForm` component.
+ * Purpose: New case creation page — uses the multi-step CaseWizard.
  */
 
 "use client";
 
-import { useRouter } from "next/navigation";
-import { CaseForm } from "@/components/features/cases/case-form";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { CaseWizard } from "@/components/features/cases/CaseWizard";
 import { useI18n } from "@/lib/hooks/use-i18n";
+import { Sparkles } from "lucide-react";
 
 export default function NewCasePage() {
-  const router = useRouter();
-  const { t, isRTL } = useI18n();
+  const { t } = useI18n();
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl text-[#0F2942]">
-          {t("cases.newCase")}
+    <div className="space-y-6 py-2">
+      {/* Header */}
+      <div className="text-center max-w-xl mx-auto">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <div className="bg-[#0F2942] p-2 rounded-lg text-white">
+            <Sparkles className="h-5 w-5" />
+          </div>
+        </div>
+        <h1 className="text-2xl font-bold tracking-tight text-[#0F2942]">
+          {t("cases.wizard.createNewCase")}
         </h1>
-        <p className="text-sm text-muted-foreground">
-          {isRTL ? "أنشئ قضية جديدة بالتفاصيل والتواريخ ومعلومات العميل" : "Create a new case with key details, dates, and client information."}
+        <p className="text-sm text-slate-500 mt-1">
+          {t("cases.wizard.createNewCaseDesc")}
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-semibold text-[var(--color-text-secondary)]">
-            {t("cases.caseDetails")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <CaseForm onSuccess={() => router.push("/cases")} />
-        </CardContent>
-      </Card>
+      <CaseWizard mode="create" />
     </div>
   );
 }
-
-
