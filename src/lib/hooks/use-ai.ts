@@ -59,7 +59,7 @@ export function useAiChat() {
         } catch (error) {
             toast({
                 title: "Chat Error",
-                description: "Failed to get a response from the AI assistant.",
+                description: "Could not complete the request. Please try again.",
                 variant: "destructive",
             });
             throw error;

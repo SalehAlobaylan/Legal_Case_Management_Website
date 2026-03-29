@@ -33,6 +33,7 @@ import {
   Download,
   Settings as SettingsIcon,
   Moon,
+  Cpu,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useI18n } from "@/lib/hooks/use-i18n";
@@ -54,8 +55,9 @@ import { useBillingInfo, useSubscribeToPlan, useCancelSubscription, useDownloadI
 import { useUpdateProfile } from "@/lib/hooks/use-profile";
 import { useNotificationSettings, useUpdateNotificationSettings } from "@/lib/hooks/use-notification-settings";
 import { useLoginActivity, useChangePassword } from "@/lib/hooks/use-security-settings";
+import { useAISettings, useUpdateAISettings } from "@/lib/hooks/use-ai-settings";
 
-type TabId = "profile" | "org" | "notifications" | "security" | "integrations" | "billing";
+type TabId = "profile" | "org" | "notifications" | "security" | "integrations" | "ai" | "billing";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = React.useState<TabId>("profile");
@@ -72,6 +74,7 @@ export default function SettingsPage() {
     { id: "notifications" as TabId, label: t("settings.notifications"), icon: <Bell size={18} /> },
     { id: "security" as TabId, label: t("settings.security"), icon: <Lock size={18} /> },
     { id: "integrations" as TabId, label: t("settings.integrations"), icon: <LinkIcon size={18} /> },
+    { id: "ai" as TabId, label: t("settings.aiSettings"), icon: <Cpu size={18} />, adminOnly: true },
     { id: "billing" as TabId, label: t("settings.billing"), icon: <CreditCard size={18} />, adminOnly: true },
   ];
 
@@ -155,6 +158,7 @@ export default function SettingsPage() {
           {activeTab === "notifications" && <NotificationsTab t={t} />}
           {activeTab === "security" && <SecurityTab t={t} isRTL={isRTL} />}
           {activeTab === "integrations" && <IntegrationsTab t={t} />}
+          {activeTab === "ai" && <AISettingsTab t={t} isRTL={isRTL} />}
           {activeTab === "billing" && <BillingTab t={t} isRTL={isRTL} billingData={billingData} />}
         </div>
       </div>
@@ -935,6 +939,495 @@ function IntegrationsTab({ t }: { t: (key: string) => string }) {
           connectedLabel={t("settings.connected")}
           connectLabel={t("common.connect")}
         />
+      </div>
+    </div>
+  );
+}
+
+/* =============================================================================
+   AI SETTINGS TAB
+   ============================================================================= */
+
+function AISettingsTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }) {
+  const { data: settings, isLoading, isError } = useAISettings();
+  const { mutate: updateSettings, isPending } = useUpdateAISettings();
+
+  // Local draft state for sliders so we don't fire a request on every drag tick
+  const [draft, setDraft] = React.useState<Record<string, number>>({});
+  const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sync draft when server data arrives
+  React.useEffect(() => {
+    if (settings) setDraft({});
+  }, [settings]);
+
+  const handleToggle = (key: string, value: boolean) => {
+    updateSettings({ [key]: value });
+  };
+
+  const handleNumber = (key: string, value: number) => {
+    updateSettings({ [key]: value });
+  };
+
+  /** Slider: update local draft immediately, debounce the API call */
+  const handleSlider = (key: string, rawValue: string) => {
+    const num = parseFloat(rawValue);
+    if (isNaN(num) || num < 0 || num > 1) return;
+    const rounded = Math.round(num * 100) / 100;
+    setDraft((prev) => ({ ...prev, [key]: rounded }));
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      updateSettings({ [key]: rounded });
+    }, 400);
+  };
+
+  /** Read a numeric value preferring draft (mid-drag) over server */
+  const val = (key: string, fallback: number): number =>
+    draft[key] ?? (settings as Record<string, unknown> | undefined)?.[key] as number ?? fallback;
+
+  const handleResetDefaults = () => {
+    updateSettings({
+      llmVerificationEnabled: false,
+      crossEncoderEnabled: false,
+      hydeEnabled: false,
+      colbertEnabled: false,
+      agenticRetrievalEnabled: false,
+      semanticWeight: 0.55,
+      supportWeight: 0.20,
+      lexicalWeight: 0.15,
+      categoryWeight: 0.10,
+      minFinalScore: 0.45,
+      minPairScore: 0.40,
+      geminiModel: "gemini-2.0-flash",
+      crossEncoderTopN: 15,
+      colbertTopN: 15,
+      geminiTopNCandidates: 15,
+      agenticMaxRounds: 2,
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="w-6 h-6 border-2 border-[#D97706] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-2xl p-6 text-center">
+        <p className="text-red-600 dark:text-red-400 font-medium">{t("settings.aiSettingsError") || "Failed to load AI settings. Please try again."}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-3 text-sm text-red-500 hover:text-red-700 underline"
+        >
+          {t("common.retry") || "Retry"}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Save indicator */}
+      {isPending && (
+        <div className="flex items-center gap-2 text-xs text-[#D97706]">
+          <div className="w-3 h-3 border-2 border-[#D97706] border-t-transparent rounded-full animate-spin" />
+          {t("settings.saving") || "Saving..."}
+        </div>
+      )}
+
+      {/* Pipeline Features */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+        <div className="mb-6">
+          <h4 className="text-lg font-bold text-[#0F2942] dark:text-white">{t("settings.aiPipelineFeatures")}</h4>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t("settings.aiPipelineFeaturesDesc")}</p>
+        </div>
+        <div className="space-y-1">
+          <ToggleRow
+            label={t("settings.llmVerification")}
+            description={t("settings.llmVerificationDesc")}
+            checked={settings?.llmVerificationEnabled ?? false}
+            onChange={(v) => handleToggle("llmVerificationEnabled", v)}
+          />
+          <ToggleRow
+            label={t("settings.crossEncoder")}
+            description={t("settings.crossEncoderDesc")}
+            checked={settings?.crossEncoderEnabled ?? false}
+            onChange={(v) => handleToggle("crossEncoderEnabled", v)}
+          />
+          <ToggleRow
+            label={t("settings.hyde")}
+            description={t("settings.hydeDesc")}
+            checked={settings?.hydeEnabled ?? false}
+            onChange={(v) => handleToggle("hydeEnabled", v)}
+          />
+          <ToggleRow
+            label={t("settings.colbert")}
+            description={t("settings.colbertDesc")}
+            checked={settings?.colbertEnabled ?? false}
+            onChange={(v) => handleToggle("colbertEnabled", v)}
+            badge={t("settings.experimental")}
+          />
+          <ToggleRow
+            label={t("settings.agenticRetrieval")}
+            description={t("settings.agenticRetrievalDesc")}
+            checked={settings?.agenticRetrievalEnabled ?? false}
+            onChange={(v) => handleToggle("agenticRetrievalEnabled", v)}
+            badge={t("settings.experimental")}
+          />
+        </div>
+      </div>
+
+      {/* Scoring Weights */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+        <div className="mb-6">
+          <h4 className="text-lg font-bold text-[#0F2942] dark:text-white">{t("settings.scoringWeights")}</h4>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t("settings.scoringWeightsDesc")}</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <WeightSlider
+            label={t("settings.semanticWeight")}
+            value={val("semanticWeight", 0.55)}
+            onChange={(v) => handleSlider("semanticWeight", v)}
+            color="bg-blue-500"
+          />
+          <WeightSlider
+            label={t("settings.supportWeight")}
+            value={val("supportWeight", 0.20)}
+            onChange={(v) => handleSlider("supportWeight", v)}
+            color="bg-emerald-500"
+          />
+          <WeightSlider
+            label={t("settings.lexicalWeight")}
+            value={val("lexicalWeight", 0.15)}
+            onChange={(v) => handleSlider("lexicalWeight", v)}
+            color="bg-purple-500"
+          />
+          <WeightSlider
+            label={t("settings.categoryWeight")}
+            value={val("categoryWeight", 0.10)}
+            onChange={(v) => handleSlider("categoryWeight", v)}
+            color="bg-amber-500"
+          />
+        </div>
+
+        {/* Weight sum indicator */}
+        <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-700">
+          <WeightSumBar
+            t={t}
+            semantic={val("semanticWeight", 0.55)}
+            support={val("supportWeight", 0.20)}
+            lexical={val("lexicalWeight", 0.15)}
+            category={val("categoryWeight", 0.10)}
+          />
+        </div>
+      </div>
+
+      {/* Thresholds */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+        <div className="mb-6">
+          <h4 className="text-lg font-bold text-[#0F2942] dark:text-white">{t("settings.thresholds")}</h4>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t("settings.thresholdsDesc")}</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <WeightSlider
+            label={t("settings.minFinalScore")}
+            value={val("minFinalScore", 0.45)}
+            onChange={(v) => handleSlider("minFinalScore", v)}
+            color="bg-[#0F2942]"
+          />
+          <WeightSlider
+            label={t("settings.minPairScore")}
+            value={val("minPairScore", 0.40)}
+            onChange={(v) => handleSlider("minPairScore", v)}
+            color="bg-[#0F2942]"
+          />
+        </div>
+      </div>
+
+      {/* Advanced Tuning — only show controls relevant to enabled features */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+        <div className="mb-6">
+          <h4 className="text-lg font-bold text-[#0F2942] dark:text-white">{t("settings.advancedTuning")}</h4>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t("settings.advancedTuningDesc")}</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Gemini model — show when LLM verification or HyDE or agentic is on */}
+          {(settings?.llmVerificationEnabled || settings?.hydeEnabled || settings?.agenticRetrievalEnabled) && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                {t("settings.geminiModel")}
+              </label>
+              <select
+                className="w-full h-10 px-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-[#0F2942] dark:text-white focus:ring-2 focus:ring-[#D97706] focus:border-transparent"
+                value={settings?.geminiModel ?? "gemini-2.0-flash"}
+                onChange={(e) => updateSettings({ geminiModel: e.target.value })}
+              >
+                <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                <option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite</option>
+                <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+              </select>
+            </div>
+          )}
+
+          {/* Gemini top N — show when LLM verification is on */}
+          {settings?.llmVerificationEnabled && (
+            <NumberInput
+              label={t("settings.geminiTopNCandidates")}
+              value={settings?.geminiTopNCandidates ?? 15}
+              min={1}
+              max={100}
+              onChange={(v) => handleNumber("geminiTopNCandidates", v)}
+            />
+          )}
+
+          {/* Cross-encoder top N — show when cross-encoder is on */}
+          {settings?.crossEncoderEnabled && (
+            <NumberInput
+              label={t("settings.crossEncoderTopN")}
+              value={settings?.crossEncoderTopN ?? 15}
+              min={1}
+              max={100}
+              onChange={(v) => handleNumber("crossEncoderTopN", v)}
+            />
+          )}
+
+          {/* ColBERT top N — show when ColBERT is on */}
+          {settings?.colbertEnabled && (
+            <NumberInput
+              label={t("settings.colbertTopN")}
+              value={settings?.colbertTopN ?? 15}
+              min={1}
+              max={100}
+              onChange={(v) => handleNumber("colbertTopN", v)}
+            />
+          )}
+
+          {/* Agentic max rounds — show when agentic is on */}
+          {settings?.agenticRetrievalEnabled && (
+            <NumberInput
+              label={t("settings.agenticMaxRounds")}
+              value={settings?.agenticMaxRounds ?? 2}
+              min={1}
+              max={10}
+              onChange={(v) => handleNumber("agenticMaxRounds", v)}
+            />
+          )}
+
+          {/* Hint when nothing is enabled */}
+          {!settings?.llmVerificationEnabled && !settings?.crossEncoderEnabled &&
+           !settings?.hydeEnabled && !settings?.colbertEnabled && !settings?.agenticRetrievalEnabled && (
+            <p className="col-span-full text-sm text-slate-400 dark:text-slate-500 italic py-2">
+              {t("settings.enableFeatureHint") || "Enable a pipeline feature above to see its tuning options."}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Reset to Defaults */}
+      <div className={`flex ${isRTL ? "justify-start" : "justify-end"}`}>
+        <button
+          type="button"
+          onClick={handleResetDefaults}
+          className="text-sm text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 transition-colors underline underline-offset-2"
+        >
+          {t("settings.resetDefaults") || "Reset to defaults"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* -- AI Settings helper components -- */
+
+function ToggleRow({
+  label,
+  description,
+  checked,
+  onChange,
+  badge,
+}: {
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+  badge?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between py-3 border-b border-slate-100 dark:border-slate-700 last:border-0">
+      <div className="flex-1">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-[#0F2942] dark:text-white">{label}</span>
+          {badge && (
+            <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-full">
+              {badge}
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{description}</p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={cn(
+          "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D97706] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900",
+          checked ? "bg-[#D97706]" : "bg-slate-200 dark:bg-slate-600"
+        )}
+      >
+        <span
+          className={cn(
+            "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform duration-200",
+            checked ? "translate-x-5" : "translate-x-0"
+          )}
+        />
+      </button>
+    </div>
+  );
+}
+
+function WeightSlider({
+  label,
+  value,
+  onChange,
+  color = "bg-[#D97706]",
+}: {
+  label: string;
+  value: number;
+  onChange: (value: string) => void;
+  color?: string;
+}) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1.5">
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+          {label}
+        </label>
+        <span className="text-sm font-mono font-bold text-[#0F2942] dark:text-white">
+          {value.toFixed(2)}
+        </span>
+      </div>
+      <div className="relative h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+        <div
+          className={cn("absolute inset-y-0 left-0 rounded-full transition-all duration-150", color)}
+          style={{ width: `${value * 100}%` }}
+        />
+      </div>
+      <input
+        type="range"
+        min="0"
+        max="1"
+        step="0.05"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full h-2 mt-[-8px] relative z-10 opacity-0 cursor-pointer"
+      />
+    </div>
+  );
+}
+
+function NumberInput({
+  label,
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+        {label}
+      </label>
+      <input
+        type="number"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(e) => {
+          const v = parseInt(e.target.value);
+          if (!isNaN(v) && v >= min && v <= max) onChange(v);
+        }}
+        className="w-full h-10 px-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-[#0F2942] dark:text-white focus:ring-2 focus:ring-[#D97706] focus:border-transparent"
+      />
+    </div>
+  );
+}
+
+function WeightSumBar({
+  t,
+  semantic,
+  support,
+  lexical,
+  category,
+}: {
+  t: (key: string) => string;
+  semantic: number;
+  support: number;
+  lexical: number;
+  category: number;
+}) {
+  const total = semantic + support + lexical + category;
+  const isBalanced = Math.abs(total - 1.0) < 0.01;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs text-slate-500 dark:text-slate-400">{t("settings.weightDistribution")}</span>
+        <span
+          className={cn(
+            "text-xs font-bold",
+            isBalanced ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"
+          )}
+        >
+          {(total * 100).toFixed(0)}% {isBalanced ? "\u2713" : "(auto-normalized)"}
+        </span>
+      </div>
+      <div className="flex h-3 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-700">
+        <div
+          className="bg-blue-500 transition-all duration-300"
+          style={{ width: `${(semantic / Math.max(total, 0.01)) * 100}%` }}
+          title={`${t("settings.semanticWeight")}: ${(semantic * 100).toFixed(0)}%`}
+        />
+        <div
+          className="bg-emerald-500 transition-all duration-300"
+          style={{ width: `${(support / Math.max(total, 0.01)) * 100}%` }}
+          title={`${t("settings.supportWeight")}: ${(support * 100).toFixed(0)}%`}
+        />
+        <div
+          className="bg-purple-500 transition-all duration-300"
+          style={{ width: `${(lexical / Math.max(total, 0.01)) * 100}%` }}
+          title={`${t("settings.lexicalWeight")}: ${(lexical * 100).toFixed(0)}%`}
+        />
+        <div
+          className="bg-amber-500 transition-all duration-300"
+          style={{ width: `${(category / Math.max(total, 0.01)) * 100}%` }}
+          title={`${t("settings.categoryWeight")}: ${(category * 100).toFixed(0)}%`}
+        />
+      </div>
+      <div className="flex gap-4 mt-2">
+        <span className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400">
+          <span className="w-2 h-2 rounded-full bg-blue-500" /> {t("settings.semanticWeight")}
+        </span>
+        <span className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400">
+          <span className="w-2 h-2 rounded-full bg-emerald-500" /> {t("settings.supportWeight")}
+        </span>
+        <span className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400">
+          <span className="w-2 h-2 rounded-full bg-purple-500" /> {t("settings.lexicalWeight")}
+        </span>
+        <span className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400">
+          <span className="w-2 h-2 rounded-full bg-amber-500" /> {t("settings.categoryWeight")}
+        </span>
       </div>
     </div>
   );

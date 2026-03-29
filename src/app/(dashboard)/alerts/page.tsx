@@ -64,7 +64,7 @@ const getIcon = (type: AlertType) => {
 
 export default function AlertsPage() {
   const router = useRouter();
-  const { t, isRTL } = useI18n();
+  const { t, isRTL, locale } = useI18n();
   const [filter, setFilter] = React.useState<"all" | "unread">("all");
 
   const { data: alertsData, isLoading, error, refetch } = useAlerts();
@@ -214,6 +214,7 @@ export default function AlertsPage() {
                 index={index}
                 t={t}
                 isRTL={isRTL}
+                locale={locale}
               />
             ))}
           </div>
@@ -234,9 +235,10 @@ interface AlertItemProps {
   index: number;
   t: (key: string) => string;
   isRTL: boolean;
+  locale: "ar" | "en";
 }
 
-function AlertItem({ alert, onMarkRead, isMarkingRead, index, t, isRTL }: AlertItemProps) {
+function AlertItem({ alert, onMarkRead, isMarkingRead, index, t, isRTL, locale }: AlertItemProps) {
   const { type, title, message, createdAt, isRead, metadata } = alert;
   const { Icon, color, bg } = getIcon(type);
 
@@ -302,7 +304,7 @@ function AlertItem({ alert, onMarkRead, isMarkingRead, index, t, isRTL }: AlertI
           {/* Actions */}
           <div className="flex flex-wrap items-center gap-4 mt-3">
             <span className="text-xs text-slate-400 font-medium">
-              {formatRelativeTime(createdAt)}
+              {formatRelativeTime(createdAt, locale === "ar" ? "ar" : "en")}
             </span>
 
             {!isRead && (
@@ -332,8 +334,8 @@ function AlertItem({ alert, onMarkRead, isMarkingRead, index, t, isRTL }: AlertI
       {/* Type indicator pill for AI notifications */}
       {type === "ai_suggestion" && !isRead && (
         <div className={`absolute top-4 ${isRTL ? 'left-4' : 'right-4'}`}>
-          <span className="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-600 animate-pulse">
-            AI
+          <span className="px-2 py-1 rounded-full text-[10px] font-bold tracking-wider bg-purple-100 text-purple-600 animate-pulse">
+            {t("alerts.aiBadge")}
           </span>
         </div>
       )}

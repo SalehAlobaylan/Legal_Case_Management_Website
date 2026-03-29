@@ -68,6 +68,14 @@ class ApiClient {
     return this.client.post(url, data, config);
   }
 
+  put<T = unknown>(
+    url: string,
+    data?: unknown,
+    config?: AxiosRequestConfig
+  ): Promise<{ data: T }> {
+    return this.client.put(url, data, config) as Promise<{ data: T }>;
+  }
+
   delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<{ data: T }> {
     return this.client.delete(url, config) as Promise<{ data: T }>;
   }

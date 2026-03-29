@@ -1,11 +1,13 @@
 /**
  * File: src/app/(dashboard)/dashboard/page.tsx
- * Purpose: Dashboard page matching the Silah design system exactly.
+ * Purpose: Dashboard page matching the Silah design system.
  *
  * Layout:
  * - Welcome section with AI analysis summary
- * - 3 Statistics cards (Active Cases highlighted, then Pending Regs, AI Discoveries)
- * - Two-column section: Recent Cases (card rows) + Regulation Updates
+ * - 4 Statistics cards
+ * - Quick Actions bar
+ * - Two-column section: Recent Cases + Regulation Updates
+ * - Bottom row: Upcoming Deadlines + AI Activity Feed
  */
 
 "use client";
@@ -22,6 +24,15 @@ import {
   Clock,
   Scale,
   Plus,
+  Users,
+  FolderOpen,
+  Calendar,
+  TrendingUp,
+  Search,
+  Bell,
+  ArrowUpRight,
+  CheckCircle,
+  Timer,
 } from "lucide-react";
 import { useCases } from "@/lib/hooks/use-cases";
 import { useDashboardStats, useRecentActivity } from "@/lib/hooks/use-dashboard";
@@ -67,7 +78,6 @@ export default function DashboardPage() {
 
   const displayCases = cases || [];
 
-  // Use API stats with fallback to defaults
   const activeCasesCount = displayCases.length > 0
     ? displayCases.filter(c => c.status !== CaseStatus.CLOSED && c.status !== CaseStatus.ARCHIVED).length
     : 0;
@@ -82,7 +92,10 @@ export default function DashboardPage() {
     casesUpdatedToday: 0,
   };
 
-  // Use API activity with fallback to static updates
+  // Clients count from cases (client_info is a string field, count unique non-empty values)
+  const uniqueClients = new Set(displayCases.map(c => c.client_info).filter(Boolean));
+
+  // Regulation updates
   const regulationUpdates = activityData?.recentUpdates?.map(update => ({
     id: update.id,
     type: update.type === "regulation_amendment" ? "amendment" :
@@ -91,21 +104,21 @@ export default function DashboardPage() {
     description: update.description,
     action: update.type === "regulation_amendment" ? t("dashboard.readAnalysis") : null,
   })) || [
-      {
-        id: 1,
-        type: "amendment",
-        title: t("dashboard.newAmendment"),
-        description: t("dashboard.amendmentDesc"),
-        action: t("dashboard.readAnalysis"),
-      },
-      {
-        id: 2,
-        type: "maintenance",
-        title: t("dashboard.systemMaintenance"),
-        description: t("dashboard.scheduledFor"),
-        action: null,
-      },
-    ];
+    {
+      id: 1,
+      type: "amendment",
+      title: t("dashboard.newAmendment"),
+      description: t("dashboard.amendmentDesc"),
+      action: t("dashboard.readAnalysis"),
+    },
+    {
+      id: 2,
+      type: "maintenance",
+      title: t("dashboard.systemMaintenance"),
+      description: t("dashboard.scheduledFor"),
+      action: null,
+    },
+  ];
 
   const handleNewCase = () => {
     router.push("/cases/new");
@@ -121,10 +134,14 @@ export default function DashboardPage() {
           </div>
           <div className="h-12 w-36 bg-slate-200 rounded-xl" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
             <div key={i} className="h-40 bg-slate-200 rounded-2xl" />
           ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 h-80 bg-slate-200 rounded-2xl" />
+          <div className="h-80 bg-slate-200 rounded-2xl" />
         </div>
       </div>
     );
@@ -156,8 +173,8 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* Stats Cards - 3 columns */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8 mt-8">
+      {/* Stats Cards - 4 columns */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8 mt-8">
         {/* Active Cases - Highlighted */}
         <div className="p-4 md:p-6 rounded-2xl shadow-sm border bg-[#0F2942] border-[#0F2942] text-white">
           <div className="flex justify-between items-start mb-4">
@@ -168,7 +185,6 @@ export default function DashboardPage() {
               {dashboardStats.activeCasesTrend}
             </span>
           </div>
-          <div className="h-2 md:h-4" />
           <h3 className="text-2xl md:text-3xl font-bold mb-1 font-serif text-white">{dashboardStats.activeCases}</h3>
           <p className="text-xs md:text-sm font-bold text-blue-200">{t("dashboard.activeCases")}</p>
           <p className="text-[10px] md:text-xs mt-1 text-blue-300">{t("dashboard.updatedToday", { count: String(dashboardStats.casesUpdatedToday) })}</p>
@@ -184,7 +200,6 @@ export default function DashboardPage() {
               {dashboardStats.pendingRegulationsTrend}
             </span>
           </div>
-          <div className="h-2 md:h-4" />
           <h3 className="text-2xl md:text-3xl font-bold mb-1 font-serif text-[#0F2942]">{dashboardStats.pendingRegulations}</h3>
           <p className="text-xs md:text-sm font-bold text-slate-700">{t("dashboard.pendingRegulations")}</p>
           <p className="text-[10px] md:text-xs mt-1 text-slate-400">{t("dashboard.requiresReview")}</p>
@@ -200,15 +215,66 @@ export default function DashboardPage() {
               {dashboardStats.aiDiscoveriesTrend}
             </span>
           </div>
-          <div className="h-2 md:h-4" />
           <h3 className="text-2xl md:text-3xl font-bold mb-1 font-serif text-[#0F2942]">{dashboardStats.aiDiscoveries}</h3>
           <p className="text-xs md:text-sm font-bold text-slate-700">{t("dashboard.aiDiscoveries")}</p>
           <p className="text-[10px] md:text-xs mt-1 text-slate-400">{t("dashboard.regulationsMatched")}</p>
         </div>
+
+        {/* Clients */}
+        <div className="p-4 md:p-6 rounded-2xl shadow-sm border bg-white border-slate-200 hover:border-[#D97706]/50 transition-shadow">
+          <div className="flex justify-between items-start mb-4">
+            <div className="p-2 md:p-3 rounded-xl bg-slate-50">
+              <Users className="h-5 w-5 md:h-6 md:w-6 text-emerald-600" />
+            </div>
+          </div>
+          <h3 className="text-2xl md:text-3xl font-bold mb-1 font-serif text-[#0F2942]">{uniqueClients.size || 0}</h3>
+          <p className="text-xs md:text-sm font-bold text-slate-700">{t("dashboard.totalClients")}</p>
+          <p className="text-[10px] md:text-xs mt-1 text-slate-400">{t("dashboard.activeClients")}</p>
+        </div>
       </div>
 
-      {/* Two Column Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+        <button
+          onClick={() => router.push("/cases/new")}
+          className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 hover:border-[#D97706]/50 hover:shadow-md transition-all group"
+        >
+          <div className="p-2 rounded-lg bg-[#D97706]/10 group-hover:bg-[#D97706] transition-colors">
+            <Plus className="h-4 w-4 text-[#D97706] group-hover:text-white transition-colors" />
+          </div>
+          <span className="text-sm font-bold text-[#0F2942]">{t("dashboard.quickNewCase")}</span>
+        </button>
+        <button
+          onClick={() => router.push("/clients")}
+          className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 hover:border-[#D97706]/50 hover:shadow-md transition-all group"
+        >
+          <div className="p-2 rounded-lg bg-emerald-50 group-hover:bg-emerald-500 transition-colors">
+            <Users className="h-4 w-4 text-emerald-600 group-hover:text-white transition-colors" />
+          </div>
+          <span className="text-sm font-bold text-[#0F2942]">{t("dashboard.quickClients")}</span>
+        </button>
+        <button
+          onClick={() => router.push("/regulations")}
+          className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 hover:border-[#D97706]/50 hover:shadow-md transition-all group"
+        >
+          <div className="p-2 rounded-lg bg-blue-50 group-hover:bg-blue-500 transition-colors">
+            <Search className="h-4 w-4 text-blue-600 group-hover:text-white transition-colors" />
+          </div>
+          <span className="text-sm font-bold text-[#0F2942]">{t("dashboard.quickRegulations")}</span>
+        </button>
+        <button
+          onClick={() => router.push("/alerts")}
+          className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 hover:border-[#D97706]/50 hover:shadow-md transition-all group"
+        >
+          <div className="p-2 rounded-lg bg-purple-50 group-hover:bg-purple-500 transition-colors">
+            <Bell className="h-4 w-4 text-purple-600 group-hover:text-white transition-colors" />
+          </div>
+          <span className="text-sm font-bold text-[#0F2942]">{t("dashboard.quickAlerts")}</span>
+        </button>
+      </div>
+
+      {/* Two Column Section: Recent Cases + Regulation Updates */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
         {/* Recent Cases - Card Style */}
         <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 md:p-6">
           <div className="flex justify-between items-center mb-4 md:mb-6">
@@ -217,7 +283,7 @@ export default function DashboardPage() {
               href="/cases"
               className="text-[#D97706] text-sm font-bold hover:underline flex items-center gap-1"
             >
-              {t("dashboard.viewAll")} <ChevronRight className={`h-3.5 w-3.5 ${isRTL ? 'rotate-180' : ''}`} />
+              {t("dashboard.viewAll")} <ChevronRight className={`h-3.5 w-3.5 ${isRTL ? "rotate-180" : ""}`} />
             </Link>
           </div>
 
@@ -242,7 +308,7 @@ export default function DashboardPage() {
                 </button>
               </div>
             ) : (
-              displayCases.slice(0, 3).map((case_) => {
+              displayCases.slice(0, 5).map((case_) => {
                 const statusStyle = getStatusStyle(case_.status);
                 const typeLabel = getTypeLabel(case_.case_type);
 
@@ -271,7 +337,7 @@ export default function DashboardPage() {
                         {statusStyle.label}
                       </span>
                       <div className="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-slate-300 group-hover:text-[#D97706] transition-colors">
-                        <ChevronRight className={`h-3.5 w-3.5 md:h-4 md:w-4 ${isRTL ? 'rotate-180' : ''}`} />
+                        <ChevronRight className={`h-3.5 w-3.5 md:h-4 md:w-4 ${isRTL ? "rotate-180" : ""}`} />
                       </div>
                     </div>
                   </div>
@@ -283,24 +349,34 @@ export default function DashboardPage() {
 
         {/* Regulation Updates */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 md:p-6 h-fit">
-          <h3 className="font-bold text-base md:text-lg text-[#0F2942] mb-4 md:mb-6">
-            {t("dashboard.regulationUpdates")}
-          </h3>
+          <div className="flex justify-between items-center mb-4 md:mb-6">
+            <h3 className="font-bold text-base md:text-lg text-[#0F2942]">
+              {t("dashboard.regulationUpdates")}
+            </h3>
+            <Link
+              href="/alerts"
+              className="text-[#D97706] text-xs font-bold hover:underline flex items-center gap-1"
+            >
+              {t("dashboard.viewAll")} <ChevronRight className={`h-3 w-3 ${isRTL ? "rotate-180" : ""}`} />
+            </Link>
+          </div>
 
           <div className="space-y-4 md:space-y-[32px]">
             {regulationUpdates.map((update) => (
               <div
                 key={update.id}
-                className={`flex gap-4 md:gap-6 p-3 md:p-[24px] rounded-xl transition-colors group ${update.type === "amendment"
-                  ? "hover:bg-orange-50/50"
-                  : "hover:bg-slate-50"
-                  }`}
+                className={`flex gap-4 md:gap-6 p-3 md:p-[24px] rounded-xl transition-colors group ${
+                  update.type === "amendment"
+                    ? "hover:bg-orange-50/50"
+                    : "hover:bg-slate-50"
+                }`}
               >
                 <div
-                  className={`mt-1 p-2 rounded-lg h-fit transition-colors flex-shrink-0 ${update.type === "amendment"
-                    ? "bg-orange-100 text-[#D97706] group-hover:bg-[#D97706] group-hover:text-white"
-                    : "bg-slate-100 text-slate-500"
-                    }`}
+                  className={`mt-1 p-2 rounded-lg h-fit transition-colors flex-shrink-0 ${
+                    update.type === "amendment"
+                      ? "bg-orange-100 text-[#D97706] group-hover:bg-[#D97706] group-hover:text-white"
+                      : "bg-slate-100 text-slate-500"
+                  }`}
                 >
                   {update.type === "amendment" ? (
                     <AlertCircle className="h-4 w-4 md:h-[18px] md:w-[18px]" />
@@ -317,13 +393,143 @@ export default function DashboardPage() {
                   </p>
                   {update.action && (
                     <button className="mt-2 text-xs text-[#D97706] font-bold hover:underline flex items-center gap-1">
-                      {update.action} <ChevronRight className={`h-2.5 w-2.5 ${isRTL ? 'rotate-180' : ''}`} />
+                      {update.action} <ChevronRight className={`h-2.5 w-2.5 ${isRTL ? "rotate-180" : ""}`} />
                     </button>
                   )}
                 </div>
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Bottom Row: Case Distribution + AI Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        {/* Case Status Overview */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 md:p-6">
+          <h3 className="font-bold text-base md:text-lg text-[#0F2942] mb-4 md:mb-6">
+            {t("dashboard.caseOverview")}
+          </h3>
+          <div className="space-y-4">
+            {/* Status bars */}
+            {[
+              { status: "open", color: "bg-[#0F2942]" },
+              { status: "in_progress", color: "bg-[#D97706]" },
+              { status: "pending_hearing", color: "bg-amber-500" },
+              { status: "closed", color: "bg-slate-400" },
+            ].map(({ status, color }) => {
+              const count = displayCases.filter(c => c.status === status).length;
+              const percentage = displayCases.length > 0 ? (count / displayCases.length) * 100 : 0;
+              const style = getStatusStyle(status);
+              return (
+                <div key={status}>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-sm font-medium text-slate-700">{style.label}</span>
+                    <span className="text-sm font-bold text-[#0F2942]">{count}</span>
+                  </div>
+                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${color}`}
+                      style={{ width: `${Math.max(percentage, 2)}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+
+            {displayCases.length === 0 && (
+              <p className="text-sm text-slate-400 italic text-center py-4">
+                {t("dashboard.noCasesYet")}
+              </p>
+            )}
+          </div>
+
+          {/* Case type breakdown */}
+          {displayCases.length > 0 && (
+            <div className="mt-6 pt-4 border-t border-slate-100">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">{t("dashboard.byType")}</p>
+              <div className="flex flex-wrap gap-2">
+                {["labor", "civil", "commercial", "criminal", "family", "administrative"].map(type => {
+                  const count = displayCases.filter(c => c.case_type === type).length;
+                  if (count === 0) return null;
+                  return (
+                    <span key={type} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-xs font-medium text-slate-700">
+                      {getTypeLabel(type)}
+                      <span className="font-bold text-[#0F2942]">{count}</span>
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* AI Activity Feed */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 md:p-6">
+          <div className="flex justify-between items-center mb-4 md:mb-6">
+            <h3 className="font-bold text-base md:text-lg text-[#0F2942]">
+              {t("dashboard.aiActivity")}
+            </h3>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 border border-green-100">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-[10px] font-bold text-green-700">{t("dashboard.aiActive")}</span>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {/* AI activity items - show last analysis results or fallback */}
+            {displayCases.slice(0, 4).map((case_, idx) => (
+              <div
+                key={case_.id}
+                className="flex gap-3 items-start p-3 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
+                onClick={() => router.push(`/cases/${case_.id}`)}
+              >
+                <div className={`p-1.5 rounded-lg shrink-0 mt-0.5 ${
+                  idx === 0 ? "bg-[#D97706]/10" : "bg-slate-100"
+                }`}>
+                  <Sparkles className={`h-3.5 w-3.5 ${idx === 0 ? "text-[#D97706]" : "text-slate-400"}`} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-[#0F2942] truncate">
+                    {t("dashboard.aiScanned")} <span className="font-bold">{case_.title}</span>
+                  </p>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {case_.case_number} • {getTypeLabel(case_.case_type)}
+                  </p>
+                </div>
+                <ArrowUpRight className={`h-3.5 w-3.5 text-slate-300 shrink-0 ${isRTL ? "rotate-180" : ""}`} />
+              </div>
+            ))}
+
+            {displayCases.length === 0 && (
+              <div className="text-center py-8">
+                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                  <Sparkles className="h-6 w-6 text-slate-300" />
+                </div>
+                <p className="text-sm text-slate-400">{t("dashboard.noAiActivity")}</p>
+                <p className="text-xs text-slate-300 mt-1">{t("dashboard.aiActivityHint")}</p>
+              </div>
+            )}
+          </div>
+
+          {displayCases.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-slate-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-xs font-medium text-slate-600">
+                    {t("dashboard.aiProcessedCount", { count: String(displayCases.length) })}
+                  </span>
+                </div>
+                <Link
+                  href="/cases"
+                  className="text-xs font-bold text-[#D97706] hover:underline"
+                >
+                  {t("dashboard.viewAll")}
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

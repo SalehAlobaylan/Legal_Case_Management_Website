@@ -30,7 +30,7 @@ export const ALERT_TYPE_CONFIG = {
     color: "blue",
   },
   ai_suggestion: {
-    label: { ar: "اقتراح ذكي", en: "AI Suggestion" },
+    label: { ar: "مطابقة مقترحة", en: "Suggested match" },
     icon: "Sparkles",
     color: "purple",
   },

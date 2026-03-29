@@ -116,7 +116,7 @@ test.describe("Profile Page - Productivity Metrics", () => {
   test("should display AI assistance rate", async ({ page }) => {
     await page.goto("/profile");
     
-    await expect(page.getByText(/AI Assistance Rate|مساعدة الذكاء الاصطناعي/i)).toBeVisible();
+    await expect(page.getByText(/Match acceptance|قبول المطابقات/i)).toBeVisible();
   });
 
   test("should display document processing metric", async ({ page }) => {

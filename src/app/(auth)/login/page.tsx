@@ -8,7 +8,7 @@ import Image from "next/image";
 import { useLogin } from "@/lib/hooks/use-auth";
 import { useGoogleSignIn } from "@/lib/hooks/use-oauth";
 import { useI18n } from "@/lib/hooks/use-i18n";
-import { Star, ArrowLeft, ArrowRight } from "lucide-react";
+import { Star, ArrowLeft, ArrowRight, Scale } from "lucide-react";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 
 const loginSchema = z.object({
@@ -203,6 +203,25 @@ export default function SignInPage() {
                 {isPending ? t("auth.signingIn") : t("auth.signIn")}
               </button>
             </form>
+
+            {/* Demo Login */}
+            <div className="relative flex items-center py-1">
+              <div className="flex-grow border-t border-slate-200"></div>
+              <span className="flex-shrink-0 mx-4 text-slate-400 text-xs uppercase font-bold tracking-wider">{t("auth.orTryDemo")}</span>
+              <div className="flex-grow border-t border-slate-200"></div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => login({ email: "ahmed@alfaisal-law.sa", password: "password123" })}
+              disabled={isPending}
+              className="w-full flex items-center justify-center gap-3 bg-[#0F2942]/5 border-2 border-dashed border-[#0F2942]/20 p-3.5 rounded-xl font-semibold text-[#0F2942] hover:bg-[#0F2942]/10 hover:border-[#0F2942]/40 transition-all disabled:opacity-50"
+            >
+              <div className="bg-[#D97706]/10 p-1 rounded-md">
+                <Scale size={16} className="text-[#D97706]" />
+              </div>
+              {t("auth.demoLogin")}
+            </button>
 
             <p className="text-center text-sm text-slate-500 pt-2">
               {t("auth.noAccount")}{" "}

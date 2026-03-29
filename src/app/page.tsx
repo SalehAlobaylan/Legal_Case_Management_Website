@@ -15,7 +15,13 @@ import {
   FileText,
   Globe,
   Award,
-  ArrowRight
+  ArrowRight,
+  Shield,
+  Search,
+  FolderOpen,
+  BarChart3,
+  Clock,
+  Languages,
 } from "lucide-react";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { LanguageToggle } from "@/components/layout/language-toggle";
@@ -26,7 +32,7 @@ const FeatureCard = ({
   icon,
   title,
   desc,
-  color
+  color,
 }: {
   icon: React.ReactNode;
   title: string;
@@ -34,8 +40,12 @@ const FeatureCard = ({
   color: string;
 }) => (
   <div className="group p-8 rounded-3xl border border-slate-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-white relative overflow-hidden">
-    <div className={`absolute top-0 right-0 p-24 ${color} opacity-[0.03] rounded-bl-full group-hover:scale-150 transition-transform duration-700`}></div>
-    <div className={`w-14 h-14 rounded-2xl ${color} flex items-center justify-center shadow-lg mb-6 group-hover:scale-110 transition-transform`}>
+    <div
+      className={`absolute top-0 right-0 p-24 ${color} opacity-[0.03] rounded-bl-full group-hover:scale-150 transition-transform duration-700`}
+    ></div>
+    <div
+      className={`w-14 h-14 rounded-2xl ${color} flex items-center justify-center shadow-lg mb-6 group-hover:scale-110 transition-transform`}
+    >
       {icon}
     </div>
     <h3 className="text-xl font-bold text-[#0F2942] mb-3">{title}</h3>
@@ -51,7 +61,7 @@ const PricingCard = ({
   features,
   highlighted = false,
   ctaText,
-  t
+  t,
 }: {
   name: string;
   price: string;
@@ -62,49 +72,72 @@ const PricingCard = ({
   ctaText: string;
   t: (key: string) => string;
 }) => (
-  <div className={`relative p-8 rounded-3xl border transition-all duration-300 hover:-translate-y-1 ${highlighted
-    ? 'bg-[#0F2942] text-white border-[#0F2942] shadow-2xl scale-105'
-    : 'bg-white border-slate-200 shadow-lg hover:shadow-xl'
-    }`}>
+  <div
+    className={`relative p-8 rounded-3xl border transition-all duration-300 hover:-translate-y-1 ${
+      highlighted
+        ? "bg-[#0F2942] text-white border-[#0F2942] shadow-2xl scale-105"
+        : "bg-white border-slate-200 shadow-lg hover:shadow-xl"
+    }`}
+  >
     {highlighted && (
       <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#D97706] text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
         {t("landing.mostPopular")}
       </div>
     )}
-    <h3 className={`text-xl font-bold mb-2 ${highlighted ? 'text-white' : 'text-[#0F2942]'}`}>{name}</h3>
-    <p className={`text-sm mb-6 ${highlighted ? 'text-blue-200' : 'text-slate-500'}`}>{description}</p>
+    <h3
+      className={`text-xl font-bold mb-2 ${highlighted ? "text-white" : "text-[#0F2942]"}`}
+    >
+      {name}
+    </h3>
+    <p
+      className={`text-sm mb-6 ${highlighted ? "text-blue-200" : "text-slate-500"}`}
+    >
+      {description}
+    </p>
     <div className="mb-6">
-      <span className={`text-4xl font-bold ${highlighted ? 'text-white' : 'text-[#0F2942]'}`}>{price}</span>
-      <span className={`text-sm ${highlighted ? 'text-blue-200' : 'text-slate-400'}`}>{period}</span>
+      <span
+        className={`text-4xl font-bold ${highlighted ? "text-white" : "text-[#0F2942]"}`}
+      >
+        {price}
+      </span>
+      <span
+        className={`text-sm ${highlighted ? "text-blue-200" : "text-slate-400"}`}
+      >
+        {period}
+      </span>
     </div>
     <ul className="space-y-3 mb-8">
       {features.map((feature, idx) => (
-        <li key={idx} className={`flex items-center gap-3 text-sm ${highlighted ? 'text-blue-100' : 'text-slate-600'}`}>
-          <Check className={`h-4 w-4 ${highlighted ? 'text-[#D97706]' : 'text-green-500'}`} />
+        <li
+          key={idx}
+          className={`flex items-center gap-3 text-sm ${highlighted ? "text-blue-100" : "text-slate-600"}`}
+        >
+          <Check
+            className={`h-4 w-4 ${highlighted ? "text-[#D97706]" : "text-green-500"}`}
+          />
           {feature}
         </li>
       ))}
     </ul>
     <Link href="/register">
-      <Button className={`w-full py-3 h-auto rounded-xl font-bold transition-all ${highlighted
-        ? 'bg-[#D97706] hover:bg-[#B45309] text-white'
-        : 'bg-[#0F2942] hover:bg-[#1E3A56] text-white'
-        }`}>
+      <Button
+        className={`w-full py-3 h-auto rounded-xl font-bold transition-all ${
+          highlighted
+            ? "bg-[#D97706] hover:bg-[#B45309] text-white"
+            : "bg-[#0F2942] hover:bg-[#1E3A56] text-white"
+        }`}
+      >
         {ctaText}
       </Button>
     </Link>
   </div>
 );
 
-const StatCard = ({
-  value,
-  label
-}: {
-  value: string;
-  label: string;
-}) => (
+const StatCard = ({ value, label }: { value: string; label: string }) => (
   <div className="text-center">
-    <div className="text-4xl md:text-5xl font-bold text-white mb-2">{value}</div>
+    <div className="text-4xl md:text-5xl font-bold text-white mb-2">
+      {value}
+    </div>
     <div className="text-white/70 text-sm font-medium">{label}</div>
   </div>
 );
@@ -115,7 +148,7 @@ export default function LandingPage() {
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      element.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -129,33 +162,47 @@ export default function LandingPage() {
 
       {/* Navbar */}
       <nav className="relative z-20 flex justify-between items-center px-6 md:px-8 py-6 max-w-7xl mx-auto w-full">
-<Link href="/" className="flex items-center gap-3 cursor-pointer group">
+        <Link href="/" className="flex items-center gap-3 cursor-pointer group">
           <div className="bg-white rounded-xl p-1.5 shadow-lg shadow-orange-900/20 group-hover:scale-105 transition-transform">
-            <Image src="/silah-logo.svg" alt="Silah" width={32} height={32} className="h-8 w-auto" />
+            <Image
+              src="/silah-logo.svg"
+              alt="Silah"
+              width={32}
+              height={32}
+              className="h-8 w-auto"
+            />
           </div>
-          <h1 className="font-bold text-2xl tracking-wide font-serif text-white">{t("landing.appName")}</h1>
+          <h1 className="font-bold text-2xl tracking-wide font-serif text-white">
+            {t("landing.appName")}
+          </h1>
         </Link>
         <div className="flex items-center gap-4 md:gap-6">
           <button
-            onClick={() => scrollToSection('features')}
+            onClick={() => scrollToSection("features")}
             className="hidden md:block text-sm font-medium text-white/80 hover:text-white transition-colors"
           >
             {t("landing.features")}
           </button>
           <button
-            onClick={() => scrollToSection('solutions')}
+            onClick={() => scrollToSection("solutions")}
             className="hidden md:block text-sm font-medium text-white/80 hover:text-white transition-colors"
           >
             {t("landing.solutions")}
           </button>
           <button
-            onClick={() => scrollToSection('pricing')}
+            onClick={() => scrollToSection("pricing")}
             className="hidden md:block text-sm font-medium text-white/80 hover:text-white transition-colors"
           >
             {t("landing.pricing")}
           </button>
-          <LanguageToggle variant="icon" className="text-white/80 hover:text-white hover:bg-white/10" />
-          <Link href="/login" className="text-white/80 hover:text-white text-sm font-bold transition-colors">
+          <LanguageToggle
+            variant="icon"
+            className="text-white/80 hover:text-white hover:bg-white/10"
+          />
+          <Link
+            href="/login"
+            className="text-white/80 hover:text-white text-sm font-bold transition-colors"
+          >
             {t("auth.signIn")}
           </Link>
           <Link href="/register">
@@ -168,32 +215,30 @@ export default function LandingPage() {
 
       {/* Hero Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-8 pt-10 md:pt-14 pb-20 flex flex-col items-center text-center">
-        {/* Badge */}
-        {/* <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1E3A56]/80 border border-[#2A4D70] mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700 backdrop-blur-md shadow-lg hover:border-[#D97706]/50 transition-colors cursor-default">
-          <Sparkles size={14} className="text-[#D97706] fill-[#D97706]" />
-          <span className="text-xs font-bold text-white tracking-wide uppercase">{t("landing.tagline")}</span>
-        </div> */}
-
         <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold font-serif mb-6 leading-tight animate-in fade-in slide-in-from-bottom-8 duration-700 drop-shadow-2xl text-white">
-          {t("landing.heroTitle")} <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D97706] to-[#fb923c]">{t("landing.heroHighlight")}</span>
+          {t("landing.heroTitle")}{" "}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D97706] to-[#fb923c]">
+            {t("landing.heroHighlight")}
+          </span>
         </h1>
         <p className="text-lg text-white/80 max-w-2xl mb-8 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700">
           {t("landing.heroDescription")}
         </p>
 
-        {/* <div className="flex flex-col sm:flex-row gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700 w-full sm:w-auto">
           <Link href="/register">
             <Button className="bg-[#D97706] hover:bg-[#B45309] text-white px-8 py-3 h-auto rounded-2xl font-bold text-base shadow-xl shadow-orange-900/40 transition-all hover:scale-105 flex items-center justify-center gap-2 group w-full sm:w-auto">
-              {t("landing.startFreeTrial")} <ChevronRight size={18} className={`group-hover:translate-x-1 transition-transform ${isRTL ? 'rotate-180 group-hover:-translate-x-1' : ''}`} />
+              {t("landing.startFreeTrial")}{" "}
+              <ChevronRight
+                size={18}
+                className={`group-hover:translate-x-1 transition-transform ${isRTL ? "rotate-180 group-hover:-translate-x-1" : ""}`}
+              />
             </Button>
           </Link>
-          <Button variant="secondary" className="bg-white text-[#0F2942] hover:bg-slate-100 px-8 py-3 h-auto rounded-2xl font-bold text-base shadow-xl transition-all hover:scale-105 flex items-center justify-center gap-2">
-            <Play size={16} fill="currentColor" /> {t("landing.watchDemo")}
-          </Button>
-        </div> */}
+        </div>
 
         {/* Hero Visual / Glass Card */}
-        <div className="mt-24 w-full max-w-6xl h-[600px] md:h-auto md:aspect-[21/9] bg-gradient-to-br from-white/10 to-white/5 rounded-t-[32px] border-t border-l border-r border-white/20 backdrop-blur-md shadow-2xl p-2 md:p-4 animate-in fade-in slide-in-from-bottom-12 duration-1000 relative overflow-hidden mx-4">
+        <div className="mt-16 w-full max-w-6xl h-[600px] md:h-auto md:aspect-[21/9] bg-gradient-to-br from-white/10 to-white/5 rounded-t-[32px] border-t border-l border-r border-white/20 backdrop-blur-md shadow-2xl p-2 md:p-4 animate-in fade-in slide-in-from-bottom-12 duration-1000 relative overflow-hidden mx-4">
           <div className="absolute inset-0 bg-[#f8fafc] rounded-t-[24px] top-2 left-2 right-2 flex flex-col overflow-hidden shadow-inner">
             {/* Mock Header */}
             <div className="h-14 bg-white border-b border-slate-200 flex items-center px-6 justify-between shrink-0">
@@ -210,11 +255,19 @@ export default function LandingPage() {
             {/* Mock Body */}
             <div className="flex-1 p-6 md:p-8 bg-slate-50 flex gap-6 overflow-hidden relative">
               {/* Overlay indicating AI Processing */}
-              <div className={`hidden md:flex absolute top-10 ${isRTL ? 'left-10' : 'right-10'} z-20 bg-white/90 backdrop-blur border border-[#D97706]/20 p-4 rounded-xl shadow-lg animate-in slide-in-from-right duration-1000 items-center gap-4`}>
-                <div className="bg-[#D97706]/10 p-2 rounded-lg"><Sparkles size={20} className="text-[#D97706]" /></div>
+              <div
+                className={`hidden md:flex absolute top-10 ${isRTL ? "left-10" : "right-10"} z-20 bg-white/90 backdrop-blur border border-[#D97706]/20 p-4 rounded-xl shadow-lg animate-in slide-in-from-right duration-1000 items-center gap-4`}
+              >
+                <div className="bg-[#D97706]/10 p-2 rounded-lg">
+                  <Sparkles size={20} className="text-[#D97706]" />
+                </div>
                 <div>
-                  <p className="text-xs font-bold text-[#0F2942]">{t("landing.aiComplete")}</p>
-                  <p className="text-[10px] text-slate-500">{t("landing.foundRegulations")}</p>
+                  <p className="text-xs font-bold text-[#0F2942]">
+                    {t("landing.aiComplete")}
+                  </p>
+                  <p className="text-[10px] text-slate-500">
+                    {t("landing.foundRegulations")}
+                  </p>
                 </div>
               </div>
 
@@ -231,11 +284,19 @@ export default function LandingPage() {
                 <div className="flex justify-between items-start">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700">OPEN</span>
-                      <span className="text-xs text-slate-400 font-mono">#CASE-2025-001</span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700">
+                        OPEN
+                      </span>
+                      <span className="text-xs text-slate-400 font-mono">
+                        #CASE-2025-001
+                      </span>
                     </div>
-                    <h3 className="font-bold text-[#0F2942] text-lg">{t("landing.heroCaseTitle")}</h3>
-                    <p className="text-xs text-slate-500 max-w-md leading-relaxed">{t("landing.heroCaseDesc")}</p>
+                    <h3 className="font-bold text-[#0F2942] text-lg">
+                      {t("landing.heroCaseTitle")}
+                    </h3>
+                    <p className="text-xs text-slate-500 max-w-md leading-relaxed">
+                      {t("landing.heroCaseDesc")}
+                    </p>
                   </div>
                 </div>
 
@@ -243,34 +304,42 @@ export default function LandingPage() {
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex-1 p-5 space-y-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Sparkles size={16} className="text-[#D97706]" />
-                    <h4 className="font-bold text-[#0F2942] text-sm">{t("landing.heroAiAnalysis")}</h4>
+                    <h4 className="font-bold text-[#0F2942] text-sm">
+                      {t("landing.heroAiAnalysis")}
+                    </h4>
                   </div>
 
                   <div className="space-y-3">
-                    {/* Regulation 1 - Verified Match */}
+                    {/* Regulation 1 */}
                     <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center group hover:border-[#D97706]/30 transition-colors">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-[#0F2942]">
                           <Scale size={14} />
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-[#0F2942]">{t("landing.heroSuggestion1")}</p>
+                          <p className="text-sm font-bold text-[#0F2942]">
+                            {t("landing.heroSuggestion1")}
+                          </p>
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">{t("landing.heroMatch")}</span>
+                            <span className="text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">
+                              {t("landing.heroMatch")}
+                            </span>
                           </div>
                         </div>
                       </div>
                       <Check size={16} className="text-green-500" />
                     </div>
 
-                    {/* Regulation 2 - Update Alert */}
+                    {/* Regulation 2 */}
                     <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center group hover:border-[#D97706]/30 transition-colors">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-[#0F2942]">
                           <Scale size={14} />
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-[#0F2942]">{t("landing.heroSuggestion2")}</p>
+                          <p className="text-sm font-bold text-[#0F2942]">
+                            {t("landing.heroSuggestion2")}
+                          </p>
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-bold text-[#D97706] bg-orange-50 px-1.5 py-0.5 rounded flex items-center gap-1">
                               <Bell size={8} /> {t("landing.heroUpdateBadge")}
@@ -278,8 +347,15 @@ export default function LandingPage() {
                           </div>
                         </div>
                       </div>
-                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0 rounded-full hover:bg-slate-200">
-                        <ChevronRight size={14} className={isRTL ? "rotate-180" : ""} />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 w-7 p-0 rounded-full hover:bg-slate-200"
+                      >
+                        <ChevronRight
+                          size={14}
+                          className={isRTL ? "rotate-180" : ""}
+                        />
                       </Button>
                     </div>
                   </div>
@@ -294,7 +370,9 @@ export default function LandingPage() {
                 </div>
                 <div className="space-y-4">
                   <div className="h-32 bg-slate-50 rounded-xl border border-green-100 relative overflow-hidden">
-                    <div className={`absolute top-0 ${isRTL ? 'right-0' : 'left-0'} w-1 h-full bg-green-500`}></div>
+                    <div
+                      className={`absolute top-0 ${isRTL ? "right-0" : "left-0"} w-1 h-full bg-green-500`}
+                    ></div>
                   </div>
                   <div className="h-32 bg-slate-50 rounded-xl border border-slate-200 opacity-50"></div>
                 </div>
@@ -304,25 +382,47 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* Capabilities Section */}
+      {/* Platform Stats */}
       <div className="bg-[#1E3A56] py-16 px-6 md:px-8 relative z-20">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
-          <StatCard value="عربي + EN" label={t("landing.capabilityBilingual")} />
-          <StatCard value="< 500ms" label={t("landing.capabilityResponse")} />
-          <StatCard value="BGE-M3" label={t("landing.capabilityEmbeddings")} />
-          <StatCard value="24/7" label={t("landing.capabilityMonitoring")} />
+          <StatCard
+            value={isRTL ? "عربي + EN" : "AR + EN"}
+            label={t("landing.capabilityBilingual")}
+          />
+          <StatCard
+            value="< 500ms"
+            label={t("landing.capabilityResponse")}
+          />
+          <StatCard
+            value="BGE-M3"
+            label={t("landing.capabilityEmbeddings")}
+          />
+          <StatCard
+            value="24/7"
+            label={t("landing.capabilityMonitoring")}
+          />
         </div>
       </div>
 
-      {/* Feature Section (White Background) */}
-      <div id="features" className="bg-white text-[#0F2942] py-24 px-6 md:px-8 relative z-20">
+      {/* Platform Features */}
+      <div
+        id="features"
+        className="bg-white text-[#0F2942] py-24 px-6 md:px-8 relative z-20"
+      >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <span className="inline-block text-[#D97706] text-sm font-bold uppercase tracking-widest mb-4">{t("landing.featuresLabel")}</span>
-            <h2 className="text-3xl md:text-5xl font-bold font-serif mb-6">{t("landing.everythingYouNeed")}</h2>
-            <p className="text-slate-500 text-lg max-w-2xl mx-auto leading-relaxed">{t("landing.replaceFragmented")}</p>
+            <span className="inline-block text-[#D97706] text-sm font-bold uppercase tracking-widest mb-4">
+              {t("landing.featuresLabel")}
+            </span>
+            <h2 className="text-3xl md:text-5xl font-bold font-serif mb-6">
+              {t("landing.featuresTitle")}
+            </h2>
+            <p className="text-slate-500 text-lg max-w-2xl mx-auto leading-relaxed">
+              {t("landing.featuresSubtitle")}
+            </p>
           </div>
 
+          {/* Main Features */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
             <FeatureCard
               icon={<Sparkles className="text-white" size={28} />}
@@ -332,14 +432,14 @@ export default function LandingPage() {
             />
             <FeatureCard
               icon={<Bell className="text-white" size={28} />}
-              title={t("landing.liveMonitor")}
-              desc={t("landing.liveMonitorDesc")}
+              title={t("landing.regulationAlerts")}
+              desc={t("landing.regulationAlertsDesc")}
               color="bg-[#0F2942]"
             />
             <FeatureCard
               icon={<LayoutDashboard className="text-white" size={28} />}
-              title={t("landing.unifiedWorkspace")}
-              desc={t("landing.unifiedWorkspaceDesc")}
+              title={t("landing.caseManagement")}
+              desc={t("landing.caseManagementDesc")}
               color="bg-[#1E3A56]"
             />
           </div>
@@ -348,97 +448,163 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="p-6 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-colors group">
               <FileText className="h-8 w-8 text-[#D97706] mb-4 group-hover:scale-110 transition-transform" />
-              <h4 className="font-bold text-[#0F2942] mb-2">{t("landing.docIntelligence")}</h4>
-              <p className="text-sm text-slate-500">{t("landing.docIntelligenceDesc")}</p>
+              <h4 className="font-bold text-[#0F2942] mb-2">
+                {t("landing.documentProcessing")}
+              </h4>
+              <p className="text-sm text-slate-500">
+                {t("landing.documentProcessingDesc")}
+              </p>
             </div>
             <div className="p-6 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-colors group">
               <Zap className="h-8 w-8 text-[#D97706] mb-4 group-hover:scale-110 transition-transform" />
-              <h4 className="font-bold text-[#0F2942] mb-2">{t("landing.realTimeSync")}</h4>
-              <p className="text-sm text-slate-500">{t("landing.realTimeSyncDesc")}</p>
+              <h4 className="font-bold text-[#0F2942] mb-2">
+                {t("landing.realTimeUpdates")}
+              </h4>
+              <p className="text-sm text-slate-500">
+                {t("landing.realTimeUpdatesDesc")}
+              </p>
             </div>
             <div className="p-6 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-colors group">
               <Users className="h-8 w-8 text-[#D97706] mb-4 group-hover:scale-110 transition-transform" />
-              <h4 className="font-bold text-[#0F2942] mb-2">{t("landing.teamCollab")}</h4>
-              <p className="text-sm text-slate-500">{t("landing.teamCollabDesc")}</p>
+              <h4 className="font-bold text-[#0F2942] mb-2">
+                {t("landing.teamManagement")}
+              </h4>
+              <p className="text-sm text-slate-500">
+                {t("landing.teamManagementDesc")}
+              </p>
             </div>
             <div className="p-6 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-colors group">
-              <FileText className="h-8 w-8 text-[#D97706] mb-4 group-hover:scale-110 transition-transform" />
-              <h4 className="font-bold text-[#0F2942] mb-2">{t("landing.docManagement")}</h4>
-              <p className="text-sm text-slate-500">{t("landing.docManagementDesc")}</p>
+              <FolderOpen className="h-8 w-8 text-[#D97706] mb-4 group-hover:scale-110 transition-transform" />
+              <h4 className="font-bold text-[#0F2942] mb-2">
+                {t("landing.documentStorage")}
+              </h4>
+              <p className="text-sm text-slate-500">
+                {t("landing.documentStorageDesc")}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Solutions Section */}
+      {/* Who Uses Silah */}
       <div id="solutions" className="bg-slate-50 py-24 px-6 md:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <span className="inline-block text-[#D97706] text-sm font-bold uppercase tracking-widest mb-4">{t("landing.solutionsLabel")}</span>
-            <h2 className="text-3xl md:text-5xl font-bold font-serif text-[#0F2942] mb-6">{t("landing.builtForLegal")}</h2>
-            <p className="text-slate-500 text-lg max-w-2xl mx-auto">{t("landing.builtForLegalDesc")}</p>
+            <span className="inline-block text-[#D97706] text-sm font-bold uppercase tracking-widest mb-4">
+              {t("landing.solutionsLabel")}
+            </span>
+            <h2 className="text-3xl md:text-5xl font-bold font-serif text-[#0F2942] mb-6">
+              {t("landing.solutionsTitle")}
+            </h2>
+            <p className="text-slate-500 text-lg max-w-2xl mx-auto">
+              {t("landing.solutionsSubtitle")}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Solution Card 1 */}
+            {/* Law Firms */}
             <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100 hover:shadow-xl transition-all group">
               <div className="flex items-start gap-6">
                 <div className="bg-[#0F2942] p-4 rounded-2xl text-white group-hover:bg-[#D97706] transition-colors">
                   <Scale size={32} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-[#0F2942] mb-3">{t("landing.lawFirms")}</h3>
-                  <p className="text-slate-500 leading-relaxed mb-4">{t("landing.lawFirmsDesc")}</p>
-                  <Link href="/register" className="inline-flex items-center gap-2 text-[#D97706] font-bold text-sm hover:underline">
-                    {t("landing.learnMore")} <ArrowRight size={16} className={isRTL ? 'rotate-180' : ''} />
+                  <h3 className="text-xl font-bold text-[#0F2942] mb-3">
+                    {t("landing.lawFirms")}
+                  </h3>
+                  <p className="text-slate-500 leading-relaxed mb-4">
+                    {t("landing.lawFirmsDesc")}
+                  </p>
+                  <Link
+                    href="/register"
+                    className="inline-flex items-center gap-2 text-[#D97706] font-bold text-sm hover:underline"
+                  >
+                    {t("landing.learnMore")}{" "}
+                    <ArrowRight
+                      size={16}
+                      className={isRTL ? "rotate-180" : ""}
+                    />
                   </Link>
                 </div>
               </div>
             </div>
 
-            {/* Solution Card 2 */}
+            {/* Corporate Legal */}
             <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100 hover:shadow-xl transition-all group">
               <div className="flex items-start gap-6">
                 <div className="bg-[#0F2942] p-4 rounded-2xl text-white group-hover:bg-[#D97706] transition-colors">
                   <Globe size={32} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-[#0F2942] mb-3">{t("landing.legalDepts")}</h3>
-                  <p className="text-slate-500 leading-relaxed mb-4">{t("landing.legalDeptsDesc")}</p>
-                  <Link href="/register" className="inline-flex items-center gap-2 text-[#D97706] font-bold text-sm hover:underline">
-                    {t("landing.learnMore")} <ArrowRight size={16} className={isRTL ? 'rotate-180' : ''} />
+                  <h3 className="text-xl font-bold text-[#0F2942] mb-3">
+                    {t("landing.legalDepts")}
+                  </h3>
+                  <p className="text-slate-500 leading-relaxed mb-4">
+                    {t("landing.legalDeptsDesc")}
+                  </p>
+                  <Link
+                    href="/register"
+                    className="inline-flex items-center gap-2 text-[#D97706] font-bold text-sm hover:underline"
+                  >
+                    {t("landing.learnMore")}{" "}
+                    <ArrowRight
+                      size={16}
+                      className={isRTL ? "rotate-180" : ""}
+                    />
                   </Link>
                 </div>
               </div>
             </div>
 
-            {/* Solution Card 3 */}
+            {/* Solo Practitioners */}
             <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100 hover:shadow-xl transition-all group">
               <div className="flex items-start gap-6">
                 <div className="bg-[#0F2942] p-4 rounded-2xl text-white group-hover:bg-[#D97706] transition-colors">
                   <Users size={32} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-[#0F2942] mb-3">{t("landing.soloLawyers")}</h3>
-                  <p className="text-slate-500 leading-relaxed mb-4">{t("landing.soloLawyersDesc")}</p>
-                  <Link href="/register" className="inline-flex items-center gap-2 text-[#D97706] font-bold text-sm hover:underline">
-                    {t("landing.learnMore")} <ArrowRight size={16} className={isRTL ? 'rotate-180' : ''} />
+                  <h3 className="text-xl font-bold text-[#0F2942] mb-3">
+                    {t("landing.soloLawyers")}
+                  </h3>
+                  <p className="text-slate-500 leading-relaxed mb-4">
+                    {t("landing.soloLawyersDesc")}
+                  </p>
+                  <Link
+                    href="/register"
+                    className="inline-flex items-center gap-2 text-[#D97706] font-bold text-sm hover:underline"
+                  >
+                    {t("landing.learnMore")}{" "}
+                    <ArrowRight
+                      size={16}
+                      className={isRTL ? "rotate-180" : ""}
+                    />
                   </Link>
                 </div>
               </div>
             </div>
 
-            {/* Solution Card 4 */}
+            {/* Consultants */}
             <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100 hover:shadow-xl transition-all group">
               <div className="flex items-start gap-6">
                 <div className="bg-[#0F2942] p-4 rounded-2xl text-white group-hover:bg-[#D97706] transition-colors">
                   <Award size={32} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-[#0F2942] mb-3">{t("landing.consultants")}</h3>
-                  <p className="text-slate-500 leading-relaxed mb-4">{t("landing.consultantsDesc")}</p>
-                  <Link href="/register" className="inline-flex items-center gap-2 text-[#D97706] font-bold text-sm hover:underline">
-                    {t("landing.learnMore")} <ArrowRight size={16} className={isRTL ? 'rotate-180' : ''} />
+                  <h3 className="text-xl font-bold text-[#0F2942] mb-3">
+                    {t("landing.consultants")}
+                  </h3>
+                  <p className="text-slate-500 leading-relaxed mb-4">
+                    {t("landing.consultantsDesc")}
+                  </p>
+                  <Link
+                    href="/register"
+                    className="inline-flex items-center gap-2 text-[#D97706] font-bold text-sm hover:underline"
+                  >
+                    {t("landing.learnMore")}{" "}
+                    <ArrowRight
+                      size={16}
+                      className={isRTL ? "rotate-180" : ""}
+                    />
                   </Link>
                 </div>
               </div>
@@ -447,46 +613,107 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* Capabilities Section */}
+      {/* How the AI Works */}
       <div className="bg-white py-24 px-6 md:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <span className="inline-block text-[#D97706] text-sm font-bold uppercase tracking-widest mb-4">{t("landing.capabilitiesLabel")}</span>
-            <h2 className="text-3xl font-bold font-serif text-[#0F2942] mb-4">{t("landing.realCapabilities")}</h2>
+            <span className="inline-block text-[#D97706] text-sm font-bold uppercase tracking-widest mb-4">
+              {t("landing.technologyLabel")}
+            </span>
+            <h2 className="text-3xl md:text-5xl font-bold font-serif text-[#0F2942] mb-6">
+              {t("landing.technologyTitle")}
+            </h2>
+            <p className="text-slate-500 text-lg max-w-2xl mx-auto">
+              {t("landing.technologySubtitle")}
+            </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-all group">
+
+          {/* Pipeline Steps */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-all group relative">
+              <div className="absolute -top-4 left-8 bg-[#D97706] text-white text-xs font-bold w-8 h-8 rounded-full flex items-center justify-center shadow-lg">
+                1
+              </div>
               <div className="w-14 h-14 rounded-2xl bg-[#D97706] flex items-center justify-center shadow-lg mb-6 group-hover:scale-110 transition-transform">
-                <Sparkles className="text-white" size={28} />
+                <Search className="text-white" size={28} />
               </div>
-              <h3 className="text-xl font-bold text-[#0F2942] mb-3">{t("landing.capSemanticMatching")}</h3>
-              <p className="text-slate-500 leading-relaxed">{t("landing.capSemanticMatchingDesc")}</p>
+              <h3 className="text-xl font-bold text-[#0F2942] mb-3">
+                {t("landing.step1Title")}
+              </h3>
+              <p className="text-slate-500 leading-relaxed">
+                {t("landing.step1Desc")}
+              </p>
             </div>
-            <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-all group">
+            <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-all group relative">
+              <div className="absolute -top-4 left-8 bg-[#0F2942] text-white text-xs font-bold w-8 h-8 rounded-full flex items-center justify-center shadow-lg">
+                2
+              </div>
               <div className="w-14 h-14 rounded-2xl bg-[#0F2942] flex items-center justify-center shadow-lg mb-6 group-hover:scale-110 transition-transform">
-                <FileText className="text-white" size={28} />
+                <BarChart3 className="text-white" size={28} />
               </div>
-              <h3 className="text-xl font-bold text-[#0F2942] mb-3">{t("landing.capDocExtraction")}</h3>
-              <p className="text-slate-500 leading-relaxed">{t("landing.capDocExtractionDesc")}</p>
+              <h3 className="text-xl font-bold text-[#0F2942] mb-3">
+                {t("landing.step2Title")}
+              </h3>
+              <p className="text-slate-500 leading-relaxed">
+                {t("landing.step2Desc")}
+              </p>
             </div>
-            <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-all group">
-              <div className="w-14 h-14 rounded-2xl bg-[#1E3A56] flex items-center justify-center shadow-lg mb-6 group-hover:scale-110 transition-transform">
-                <Bell className="text-white" size={28} />
+            <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-all group relative">
+              <div className="absolute -top-4 left-8 bg-[#1E3A56] text-white text-xs font-bold w-8 h-8 rounded-full flex items-center justify-center shadow-lg">
+                3
               </div>
-              <h3 className="text-xl font-bold text-[#0F2942] mb-3">{t("landing.capRegulationMonitor")}</h3>
-              <p className="text-slate-500 leading-relaxed">{t("landing.capRegulationMonitorDesc")}</p>
+              <div className="w-14 h-14 rounded-2xl bg-[#1E3A56] flex items-center justify-center shadow-lg mb-6 group-hover:scale-110 transition-transform">
+                <Shield className="text-white" size={28} />
+              </div>
+              <h3 className="text-xl font-bold text-[#0F2942] mb-3">
+                {t("landing.step3Title")}
+              </h3>
+              <p className="text-slate-500 leading-relaxed">
+                {t("landing.step3Desc")}
+              </p>
+            </div>
+          </div>
+
+          {/* Key Technical Details */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex items-center gap-4 p-5 bg-slate-50 rounded-xl border border-slate-100">
+              <Languages className="h-10 w-10 text-[#D97706] shrink-0" />
+              <div>
+                <h4 className="font-bold text-[#0F2942] text-sm">{t("landing.techBilingual")}</h4>
+                <p className="text-xs text-slate-500">{t("landing.techBilingualDesc")}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 p-5 bg-slate-50 rounded-xl border border-slate-100">
+              <Clock className="h-10 w-10 text-[#D97706] shrink-0" />
+              <div>
+                <h4 className="font-bold text-[#0F2942] text-sm">{t("landing.techSpeed")}</h4>
+                <p className="text-xs text-slate-500">{t("landing.techSpeedDesc")}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 p-5 bg-slate-50 rounded-xl border border-slate-100">
+              <Shield className="h-10 w-10 text-[#D97706] shrink-0" />
+              <div>
+                <h4 className="font-bold text-[#0F2942] text-sm">{t("landing.techSecurity")}</h4>
+                <p className="text-xs text-slate-500">{t("landing.techSecurityDesc")}</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Pricing Section */}
+      {/* Pricing */}
       <div id="pricing" className="bg-slate-50 py-24 px-6 md:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <span className="inline-block text-[#D97706] text-sm font-bold uppercase tracking-widest mb-4">{t("landing.pricingLabel")}</span>
-            <h2 className="text-3xl md:text-5xl font-bold font-serif text-[#0F2942] mb-6">{t("landing.simplePricing")}</h2>
-            <p className="text-slate-500 text-lg max-w-2xl mx-auto">{t("landing.simplePricingDesc")}</p>
+            <span className="inline-block text-[#D97706] text-sm font-bold uppercase tracking-widest mb-4">
+              {t("landing.pricingLabel")}
+            </span>
+            <h2 className="text-3xl md:text-5xl font-bold font-serif text-[#0F2942] mb-6">
+              {t("landing.pricingTitle")}
+            </h2>
+            <p className="text-slate-500 text-lg max-w-2xl mx-auto">
+              {t("landing.pricingSubtitle")}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
@@ -539,18 +766,26 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* CTA Section */}
+      {/* Call to Action */}
       <div className="bg-[#0F2942] py-24 px-6 md:px-8 relative overflow-hidden">
-        <div className={`absolute top-0 ${isRTL ? 'left-0 -skew-x-12 -translate-x-20' : 'right-0 skew-x-12 translate-x-20'} w-1/2 h-full bg-[#1E3A56]/30 transform`}></div>
+        <div
+          className={`absolute top-0 ${isRTL ? "left-0 -skew-x-12 -translate-x-20" : "right-0 skew-x-12 translate-x-20"} w-1/2 h-full bg-[#1E3A56]/30 transform`}
+        ></div>
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h2 className="text-4xl md:text-5xl font-bold font-serif mb-6 text-white">{t("landing.readyToModernize")}</h2>
-          <p className="text-white/70 text-lg mb-10 max-w-2xl mx-auto">{t("landing.joinHundreds")}</p>
+          <h2 className="text-4xl md:text-5xl font-bold font-serif mb-6 text-white">
+            {t("landing.ctaTitle")}
+          </h2>
+          <p className="text-white/70 text-lg mb-10 max-w-2xl mx-auto">
+            {t("landing.ctaDescription")}
+          </p>
           <Link href="/register">
             <Button className="bg-[#D97706] hover:bg-[#B45309] text-white px-10 py-4 h-auto rounded-2xl font-bold text-lg shadow-xl shadow-orange-900/40 transition-all hover:scale-105">
               {t("landing.createFreeAccount")}
             </Button>
           </Link>
-          <p className="text-white/50 text-sm mt-6">{t("landing.noCreditCard")}</p>
+          <p className="text-white/50 text-sm mt-6">
+            {t("landing.noCreditCard")}
+          </p>
         </div>
       </div>
 
@@ -560,38 +795,130 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             {/* Company */}
             <div>
-              <h4 className="font-bold text-white mb-4">{t("landing.footerCompany")}</h4>
+              <h4 className="font-bold text-white mb-4">
+                {t("landing.footerCompany")}
+              </h4>
               <ul className="space-y-2">
-                <li><Link href="#" className="text-white/60 hover:text-white transition-colors text-sm">{t("landing.footerAbout")}</Link></li>
-                <li><Link href="#" className="text-white/60 hover:text-white transition-colors text-sm">{t("landing.footerCareers")}</Link></li>
-                <li><Link href="#" className="text-white/60 hover:text-white transition-colors text-sm">{t("landing.footerPress")}</Link></li>
+                <li>
+                  <Link
+                    href="#"
+                    className="text-white/60 hover:text-white transition-colors text-sm"
+                  >
+                    {t("landing.footerAbout")}
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="#"
+                    className="text-white/60 hover:text-white transition-colors text-sm"
+                  >
+                    {t("landing.footerCareers")}
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="#"
+                    className="text-white/60 hover:text-white transition-colors text-sm"
+                  >
+                    {t("landing.footerPress")}
+                  </Link>
+                </li>
               </ul>
             </div>
             {/* Product */}
             <div>
-              <h4 className="font-bold text-white mb-4">{t("landing.footerProduct")}</h4>
+              <h4 className="font-bold text-white mb-4">
+                {t("landing.footerProduct")}
+              </h4>
               <ul className="space-y-2">
-                <li><button onClick={() => scrollToSection('features')} className="text-white/60 hover:text-white transition-colors text-sm">{t("landing.features")}</button></li>
-                <li><button onClick={() => scrollToSection('pricing')} className="text-white/60 hover:text-white transition-colors text-sm">{t("landing.pricing")}</button></li>
-                <li><Link href="#" className="text-white/60 hover:text-white transition-colors text-sm">{t("landing.footerIntegrations")}</Link></li>
+                <li>
+                  <button
+                    onClick={() => scrollToSection("features")}
+                    className="text-white/60 hover:text-white transition-colors text-sm"
+                  >
+                    {t("landing.features")}
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => scrollToSection("pricing")}
+                    className="text-white/60 hover:text-white transition-colors text-sm"
+                  >
+                    {t("landing.pricing")}
+                  </button>
+                </li>
+                <li>
+                  <Link
+                    href="#"
+                    className="text-white/60 hover:text-white transition-colors text-sm"
+                  >
+                    {t("landing.footerIntegrations")}
+                  </Link>
+                </li>
               </ul>
             </div>
             {/* Resources */}
             <div>
-              <h4 className="font-bold text-white mb-4">{t("landing.footerResources")}</h4>
+              <h4 className="font-bold text-white mb-4">
+                {t("landing.footerResources")}
+              </h4>
               <ul className="space-y-2">
-                <li><Link href="#" className="text-white/60 hover:text-white transition-colors text-sm">{t("landing.footerDocs")}</Link></li>
-                <li><Link href="#" className="text-white/60 hover:text-white transition-colors text-sm">{t("landing.footerHelp")}</Link></li>
-                <li><Link href="#" className="text-white/60 hover:text-white transition-colors text-sm">{t("landing.footerBlog")}</Link></li>
+                <li>
+                  <Link
+                    href="#"
+                    className="text-white/60 hover:text-white transition-colors text-sm"
+                  >
+                    {t("landing.footerDocs")}
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="#"
+                    className="text-white/60 hover:text-white transition-colors text-sm"
+                  >
+                    {t("landing.footerHelp")}
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="#"
+                    className="text-white/60 hover:text-white transition-colors text-sm"
+                  >
+                    {t("landing.footerBlog")}
+                  </Link>
+                </li>
               </ul>
             </div>
             {/* Legal */}
             <div>
-              <h4 className="font-bold text-white mb-4">{t("landing.footerLegal")}</h4>
+              <h4 className="font-bold text-white mb-4">
+                {t("landing.footerLegal")}
+              </h4>
               <ul className="space-y-2">
-                <li><Link href="#" className="text-white/60 hover:text-white transition-colors text-sm">{t("landing.privacyPolicy")}</Link></li>
-                <li><Link href="#" className="text-white/60 hover:text-white transition-colors text-sm">{t("landing.termsOfService")}</Link></li>
-                <li><Link href="#" className="text-white/60 hover:text-white transition-colors text-sm">{t("landing.footerSecurity")}</Link></li>
+                <li>
+                  <Link
+                    href="#"
+                    className="text-white/60 hover:text-white transition-colors text-sm"
+                  >
+                    {t("landing.privacyPolicy")}
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="#"
+                    className="text-white/60 hover:text-white transition-colors text-sm"
+                  >
+                    {t("landing.termsOfService")}
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="#"
+                    className="text-white/60 hover:text-white transition-colors text-sm"
+                  >
+                    {t("landing.footerSecurity")}
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>
@@ -599,9 +926,17 @@ export default function LandingPage() {
           <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
               <div className="bg-white rounded-lg p-1">
-                <Image src="/silah-logo.svg" alt="Silah" width={24} height={24} className="h-6 w-6" />
+                <Image
+                  src="/silah-logo.svg"
+                  alt="Silah"
+                  width={24}
+                  height={24}
+                  className="h-6 w-6"
+                />
               </div>
-              <span className="font-bold text-white">{t("landing.appName")}</span>
+              <span className="font-bold text-white">
+                {t("landing.appName")}
+              </span>
             </div>
             <p className="text-white/40 text-sm">{t("landing.copyright")}</p>
           </div>

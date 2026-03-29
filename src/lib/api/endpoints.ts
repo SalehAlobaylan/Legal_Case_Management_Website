@@ -131,6 +131,7 @@ export const endpoints = {
     teamRemoveMember: (memberId: string) =>
       `${API_BASE}/api/settings/team/members/${memberId}`,
     billing: `${API_BASE}/api/settings/billing`,
+    ai: `${API_BASE}/api/settings/ai`,
     security: {
       changePassword: `${API_BASE}/api/settings/security/password`,
       loginActivity: `${API_BASE}/api/settings/security/activity`,

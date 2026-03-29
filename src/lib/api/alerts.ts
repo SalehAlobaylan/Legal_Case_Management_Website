@@ -6,7 +6,15 @@
 
 import { apiClient } from "./client";
 import { endpoints } from "./endpoints";
+import { toArabicNotificationContent } from "./alert-content-ar";
 import type { Alert } from "@/lib/types/alert";
+
+function withArabicNotificationContent(alerts: Alert[]): Alert[] {
+  return alerts.map((a) => {
+    const { title, message } = toArabicNotificationContent(a.title, a.message);
+    return { ...a, title, message };
+  });
+}
 
 export interface AlertsResponse {
   alerts: Alert[];
@@ -57,12 +65,13 @@ export const alertsApi = {
       "alerts" in data &&
       Array.isArray(data.alerts)
     ) {
+      const alerts = withArabicNotificationContent(data.alerts as Alert[]);
       return {
-        alerts: data.alerts,
+        alerts,
         unreadCount:
           typeof data.unreadCount === "number"
             ? data.unreadCount
-            : data.alerts.filter((alert) => !alert.isRead).length,
+            : alerts.filter((alert) => !alert.isRead).length,
       };
     }
 
@@ -74,20 +83,22 @@ export const alertsApi = {
         ? data.notifications
         : [];
 
-    const alerts: Alert[] = notifications.map((notification) => ({
-      id: notification.id,
-      userId: notification.userId,
-      type: notification.type,
-      title: notification.title,
-      message: notification.message || "",
-      isRead: Boolean(notification.read),
-      metadata: {
-        caseId: notification.relatedCaseId || notification.relatedCase?.id,
-        regulationId:
-          notification.relatedRegulationId || notification.relatedRegulation?.id,
-      },
-      createdAt: notification.createdAt,
-    }));
+    const alerts: Alert[] = withArabicNotificationContent(
+      notifications.map((notification) => ({
+        id: notification.id,
+        userId: notification.userId,
+        type: notification.type,
+        title: notification.title,
+        message: notification.message || "",
+        isRead: Boolean(notification.read),
+        metadata: {
+          caseId: notification.relatedCaseId || notification.relatedCase?.id,
+          regulationId:
+            notification.relatedRegulationId || notification.relatedRegulation?.id,
+        },
+        createdAt: notification.createdAt,
+      }))
+    );
 
     return {
       alerts,

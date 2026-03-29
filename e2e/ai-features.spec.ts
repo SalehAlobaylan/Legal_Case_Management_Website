@@ -130,7 +130,7 @@ test.describe("AI Features", () => {
     await expect(page).toHaveURL(/.*dashboard.*/, { timeout: 15000 });
   });
 
-  test("should display AI assistant in case details", async ({ page }) => {
+  test("should display suggested regulations in case details", async ({ page }) => {
     await page.goto("/cases/new");
     const titleInput = page.getByLabel(/title|العنوان/i).or(page.getByPlaceholder(/title|العنوان/i));
     if (await titleInput.isVisible()) {
@@ -147,7 +147,7 @@ test.describe("AI Features", () => {
       if (await firstCase.isVisible()) {
         await firstCase.click();
 
-        const aiAssistant = page.getByText(/AI|assistant|مساعد|suggestion|اقتراح/i);
+        const aiAssistant = page.getByText(/AI|suggestion|match|اقتراح|مطابقة|Suggested/i);
         await expect(aiAssistant.first()).toBeVisible({ timeout: 5000 });
       }
     }

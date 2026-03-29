@@ -60,7 +60,7 @@ const translations: Record<Locale, Record<string, string>> = {
 
     // Dashboard
     "dashboard.welcome": "Welcome back",
-    "dashboard.aiAnalyzed": "Your AI assistant analyzed",
+    "dashboard.aiAnalyzed": "Analysis completed for",
     "dashboard.newCases": "new cases",
     "dashboard.whileAway": "while you were away",
     "dashboard.activeCases": "Active Cases",
@@ -100,6 +100,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "alerts.reviewMatches": "Review Matches",
     "alerts.viewAmendment": "View Amendment",
     "alerts.viewCase": "View Case",
+    "alerts.aiBadge": "Suggested",
 
     // Regulations
     "regulations.title": "Regulation Library",
@@ -160,7 +161,7 @@ const translations: Record<Locale, Record<string, string>> = {
 
     // Dashboard
     "dashboard.welcome": "مرحباً بعودتك",
-    "dashboard.aiAnalyzed": "قام مساعد الذكاء الاصطناعي بتحليل",
+    "dashboard.aiAnalyzed": "أُنجز تحليل المطابقة لـ",
     "dashboard.newCases": "قضايا جديدة",
     "dashboard.whileAway": "أثناء غيابك",
     "dashboard.activeCases": "القضايا النشطة",
@@ -200,6 +201,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "alerts.reviewMatches": "مراجعة التطابقات",
     "alerts.viewAmendment": "عرض التعديل",
     "alerts.viewCase": "عرض القضية",
+    "alerts.aiBadge": "مقترح",
 
     // Regulations
     "regulations.title": "مكتبة الأنظمة",

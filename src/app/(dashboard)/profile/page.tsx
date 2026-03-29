@@ -548,8 +548,8 @@ export default function ProfilePage() {
                                         <Sparkles className="h-6 w-6" />
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-sm font-bold text-[var(--color-text-primary)]">{isRTL ? "مساعدة الذكاء الاصطناعي" : "AI Assistance Rate"}</p>
-                                        <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{isRTL ? "الاقتراحات المقبولة" : "Suggestions Accepted"}</p>
+                                        <p className="text-sm font-bold text-[var(--color-text-primary)]">{t("settings.aiAssistanceRate")}</p>
+                                        <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{t("settings.suggestionsAccepted")}</p>
                                     </div>
                                     <span className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.aiSuggestionsAccepted}%</span>
                                 </div>
