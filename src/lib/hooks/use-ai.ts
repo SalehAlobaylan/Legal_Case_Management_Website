@@ -1,83 +1,150 @@
 /*
  * File: src/lib/hooks/use-ai.ts
- * Purpose: React hooks for AI features using TanStack Query
+ * Purpose: React hooks for AI features — streaming chat, case analysis, document summarization.
  */
 
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useRef, useState } from "react";
 import {
     aiApi,
-    ChatRequest,
-    ChatResponse,
-    ChatMessage,
-    CaseAnalysisRequest,
-    CaseAnalysisResponse,
-    DocumentSummaryRequest,
-    DocumentSummaryResponse,
+    streamChat,
+    chatSessionsApi,
+    type ChatRequest,
+    type ChatResponse,
+    type ChatMessage,
+    type CaseAnalysisRequest,
+    type CaseAnalysisResponse,
+    type DocumentSummaryRequest,
+    type DocumentSummaryResponse,
+    type StreamChatRequest,
 } from "@/lib/api/ai";
+import { useChatStore } from "@/lib/store/chat-store";
 import { useToast } from "@/components/ui/use-toast";
 
 /**
- * Hook for AI Chat with conversation history management
+ * Hook for streaming AI chat with Zustand store integration.
+ *
+ * Uses `useChatStore.getState()` inside callbacks to always read the
+ * latest store values (avoids stale closures from render-time snapshots).
  */
 export function useAiChat() {
-    const [conversationHistory, setConversationHistory] = useState<ChatMessage[]>(
-        []
-    );
-    const [isLoading, setIsLoading] = useState(false);
+    const store = useChatStore();
     const { toast } = useToast();
+    const abortRef = useRef<AbortController | null>(null);
+    const queryClient = useQueryClient();
 
-    const sendMessage = async (message: string, context?: ChatRequest["context"]) => {
-        setIsLoading(true);
+    const sendMessage = useCallback(
+        (message: string, caseId?: number) => {
+            const state = useChatStore.getState();
 
-        // Add user message to history
-        const userMessage: ChatMessage = {
-            role: "user",
-            content: message,
-            timestamp: new Date().toISOString(),
-        };
-        setConversationHistory((prev) => [...prev, userMessage]);
+            // Add user message to store
+            state.addUserMessage(message);
+            state.startStreaming();
 
-        try {
-            const response = await aiApi.chat({
+            // Consume pendingCaseId so it doesn't leak into future messages
+            const effectiveCaseId = caseId ?? state.consumePendingCaseId() ?? undefined;
+
+            const request: StreamChatRequest = {
                 message,
-                conversationHistory,
-                context,
-            });
-
-            // Add assistant response to history
-            const assistantMessage: ChatMessage = {
-                role: "assistant",
-                content: response.response,
-                timestamp: new Date().toISOString(),
+                sessionId: state.activeSessionId,
+                caseId: effectiveCaseId,
             };
-            setConversationHistory((prev) => [...prev, assistantMessage]);
 
-            return response;
-        } catch (error) {
-            toast({
-                title: "Chat Error",
-                description: "Could not complete the request. Please try again.",
-                variant: "destructive",
+            const controller = streamChat(request, {
+                onToken: (token) => {
+                    useChatStore.getState().appendStreamToken(token);
+                },
+                onCitations: (citations) => {
+                    useChatStore.getState().setStreamingCitations(citations);
+                },
+                onSessionId: (sessionId) => {
+                    if (!useChatStore.getState().activeSessionId) {
+                        useChatStore.getState().setSessionId(sessionId);
+                    }
+                },
+                onDone: () => {
+                    try {
+                        useChatStore.getState().finalizeStream();
+                    } catch (e) {
+                        console.error("[useAiChat] finalizeStream error:", e);
+                    }
+                    // Refresh session list so new conversations appear in history
+                    queryClient.invalidateQueries({ queryKey: ["chat-sessions"] });
+                },
+                onError: (errorMsg) => {
+                    try {
+                        useChatStore.getState().finalizeStream();
+                    } catch (e) {
+                        console.error("[useAiChat] finalizeStream error:", e);
+                    }
+                    toast({
+                        title: "Chat Error",
+                        description: errorMsg,
+                        variant: "destructive",
+                    });
+                },
             });
-            throw error;
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
-    const clearHistory = () => {
-        setConversationHistory([]);
-    };
+            abortRef.current = controller;
+        },
+        [toast, queryClient]
+    );
+
+    const stopStreaming = useCallback(() => {
+        abortRef.current?.abort();
+        useChatStore.getState().finalizeStream();
+    }, []);
 
     return {
         sendMessage,
-        conversationHistory,
-        clearHistory,
-        isLoading,
+        stopStreaming,
+        messages: store.messages,
+        isStreaming: store.isStreaming,
+        streamingContent: store.streamingContent,
+        streamingCitations: store.streamingCitations,
+        isOpen: store.isOpen,
+        openChat: store.openChat,
+        closeChat: store.closeChat,
+        clearSession: store.clearSession,
+        activeSessionId: store.activeSessionId,
     };
+}
+
+/**
+ * Hook for listing chat sessions.
+ */
+export function useChatSessions() {
+    return useQuery({
+        queryKey: ["chat-sessions"],
+        queryFn: () => chatSessionsApi.list(),
+        select: (data) => data.sessions,
+    });
+}
+
+/**
+ * Hook for loading a specific chat session.
+ */
+export function useChatSession(sessionId: number | null) {
+    return useQuery({
+        queryKey: ["chat-session", sessionId],
+        queryFn: () => chatSessionsApi.get(sessionId!),
+        enabled: !!sessionId,
+    });
+}
+
+/**
+ * Hook for deleting a chat session.
+ */
+export function useDeleteChatSession() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (sessionId: number) => chatSessionsApi.delete(sessionId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["chat-sessions"] });
+        },
+    });
 }
 
 /**
@@ -114,7 +181,6 @@ export function useSummarizeDocument(docId: number) {
     return useMutation<DocumentSummaryResponse, Error, DocumentSummaryRequest | undefined>({
         mutationFn: (request) => aiApi.summarizeDocument(docId, request),
         onSuccess: (data) => {
-            // Optionally cache the summary
             queryClient.setQueryData(["document-summary", docId], data);
             toast({
                 title: "Summary Generated",
@@ -133,7 +199,6 @@ export function useSummarizeDocument(docId: number) {
 
 /**
  * Hook to trigger document summarization by document ID
- * Returns a callable function for on-demand summarization
  */
 export function useDocumentSummarizer() {
     const { toast } = useToast();
@@ -166,10 +231,5 @@ export function useDocumentSummarizer() {
     const isLoading = (docId: number) => loadingDocs.has(docId);
     const getSummary = (docId: number) => summaries[docId];
 
-    return {
-        summarize,
-        isLoading,
-        getSummary,
-        summaries,
-    };
+    return { summarize, isLoading, getSummary, summaries };
 }

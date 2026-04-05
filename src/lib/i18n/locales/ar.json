@@ -986,8 +986,26 @@
         }
     },
     "header": {
-        "searchPlaceholder": "البحث في القضايا والأنظمة والمستندات...",
+        "searchPlaceholder": "ابحث أو اسأل سؤالاً قانونياً...",
         "notifications": "التنبيهات",
         "settings": "الإعدادات"
+    },
+    "chat": {
+        "title": "المساعد القانوني",
+        "placeholder": "اسأل سؤالاً قانونياً...",
+        "disclaimer": "هذه المعلومات للاطلاع والاسترشاد فقط ولا تعتبر استشارة قانونية رسمية. يرجى الرجوع إلى محامٍ مختص.",
+        "disclaimerShort": "ردود الذكاء الاصطناعي للاسترشاد فقط.",
+        "newChat": "محادثة جديدة",
+        "send": "إرسال",
+        "stop": "إيقاف",
+        "askAssistant": "اضغط Enter لسؤال المساعد",
+        "searchKeyword": "اضغط Enter للبحث",
+        "history": "المحادثات السابقة",
+        "askAboutCase": "اسأل عن هذه القضية",
+        "quickSummarize": "تلخيص القضية",
+        "quickRegulations": "البحث عن الأنظمة",
+        "backToChat": "العودة للمحادثة",
+        "noSessions": "لا توجد محادثات سابقة",
+        "messagesCount": "رسائل"
     }
 }

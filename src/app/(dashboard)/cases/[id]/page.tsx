@@ -73,6 +73,7 @@ import type {
 } from "@/lib/types/case";
 import { useToast } from "@/components/ui/use-toast";
 import { ProgressSteps } from "@/components/ui/progress-steps";
+import { useChatStore } from "@/lib/store/chat-store";
 
 
 
@@ -390,14 +391,24 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
                 Client: <span className="font-bold text-slate-800">{case_.client_info || "Unknown"}</span>
               </p>
             </div>
-            <Button
-              variant="outline"
-              onClick={() => router.push(`/cases/${caseId}/edit`)}
-              className="flex items-center gap-2"
-            >
-              <Edit2 className="h-4 w-4" />
-              {t("cases.editCase")}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => useChatStore.getState().openChat(undefined, caseId)}
+                className="flex items-center gap-2 border-[#D97706]/30 text-[#D97706] hover:bg-[#D97706]/5 hover:border-[#D97706]/50"
+              >
+                <Brain className="h-4 w-4" />
+                {t("chat.askAboutCase")}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push(`/cases/${caseId}/edit`)}
+                className="flex items-center gap-2"
+              >
+                <Edit2 className="h-4 w-4" />
+                {t("cases.editCase")}
+              </Button>
+            </div>
           </div>
 
           {/* Tab Navigation */}
@@ -486,6 +497,17 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
             <ArrowUpRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
             <span className="text-xs font-bold">Open Linking Studio</span>
           </button>
+
+          {/* Ask about this case — link to header button */}
+          <p className="mt-2 text-center text-[10px] text-slate-400">
+            {t("chat.askAboutCase")} →{" "}
+            <button
+              onClick={() => useChatStore.getState().openChat(undefined, caseId)}
+              className="text-[#D97706] hover:underline font-medium"
+            >
+              {t("chat.title")}
+            </button>
+          </p>
         </div>
 
         {/* Suggestions List */}

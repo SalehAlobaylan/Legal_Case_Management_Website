@@ -138,9 +138,17 @@ export const endpoints = {
     },
   },
 
+  // Search
+  search: {
+    unified: `${API_BASE}/api/search`,
+  },
+
   // AI Features
   ai: {
     chat: `${API_BASE}/api/ai/chat`,
+    chatStream: `${API_BASE}/api/ai/chat/stream`,
+    chatSessions: `${API_BASE}/api/ai/chat/sessions`,
+    chatSession: (id: number) => `${API_BASE}/api/ai/chat/sessions/${id}`,
     analyzeCase: (caseId: number) => `${API_BASE}/api/ai/cases/${caseId}/analyze`,
     summarizeDocument: (docId: number) => `${API_BASE}/api/documents/${docId}/summarize`,
   },

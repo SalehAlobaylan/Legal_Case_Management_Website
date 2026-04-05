@@ -35,6 +35,9 @@ import { Header } from "@/components/layout/header";
 import { NavigationDock } from "@/components/layout/navigation-dock";
 import { WebSocketProvider } from "@/components/providers/websocket-provider";
 import { useUnreadAlertsCount } from "@/lib/hooks/use-alerts";
+import { ChatPanel } from "@/components/features/chat/chat-panel";
+import { ChatFAB } from "@/components/features/chat/chat-fab";
+import { ChatErrorBoundary } from "@/components/features/chat/chat-error-boundary";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { data: unreadAlerts = 0 } = useUnreadAlertsCount();
@@ -54,6 +57,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
         {/* Floating Navigation Dock - Fixed position, outside main flow */}
         <NavigationDock unreadAlerts={unreadAlerts} />
+
+        {/* Chat FAB + Panel */}
+        <ChatErrorBoundary>
+          <ChatFAB />
+          <ChatPanel />
+        </ChatErrorBoundary>
       </div>
     </WebSocketProvider>
   );

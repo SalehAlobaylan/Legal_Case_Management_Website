@@ -986,8 +986,26 @@
         }
     },
     "header": {
-        "searchPlaceholder": "Search cases, regulations, or documents...",
+        "searchPlaceholder": "Search or ask a legal question...",
         "notifications": "Notifications",
         "settings": "Settings"
+    },
+    "chat": {
+        "title": "Legal Assistant",
+        "placeholder": "Ask a legal question...",
+        "disclaimer": "This information is for reference only and does not constitute formal legal advice. Please consult a qualified lawyer.",
+        "disclaimerShort": "AI responses are for reference only.",
+        "newChat": "New chat",
+        "send": "Send",
+        "stop": "Stop",
+        "askAssistant": "Press Enter to ask the assistant",
+        "searchKeyword": "Press Enter to search",
+        "history": "Chat history",
+        "askAboutCase": "Ask about this case",
+        "quickSummarize": "Summarize case",
+        "quickRegulations": "Find regulations",
+        "backToChat": "Back to chat",
+        "noSessions": "No previous conversations",
+        "messagesCount": "messages"
     }
 }
