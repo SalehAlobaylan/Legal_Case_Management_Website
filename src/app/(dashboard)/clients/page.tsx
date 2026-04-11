@@ -26,12 +26,14 @@ import {
   User,
   Download,
   Loader2,
+  LayoutList,
+  Kanban,
 } from "lucide-react";
 import { FilterPill, FilterPills } from "@/components/ui/filter-pills";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils/cn";
-import { ClientFormModal, type ClientFormData } from "@/components/features/clients/client-form-modal";
+import { ClientKanbanBoard } from "@/components/features/clients/client-kanban-board";
 import { useClients, useCreateClient, useExportClients } from "@/lib/hooks/use-clients";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import type { Client } from "@/lib/types/client";
@@ -72,7 +74,7 @@ export default function ClientsPage() {
   const [typeFilter, setTypeFilter] = React.useState("All");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [viewMode, setViewMode] = React.useState<"list" | "kanban">("list");
 
   const TYPE_FILTERS = ["All", "individual", "company"];
   const TYPE_LABELS: Record<string, string> = {
@@ -94,7 +96,6 @@ export default function ClientsPage() {
     search: debouncedSearch || undefined,
   });
 
-  const { mutate: createClient, isPending: isCreating } = useCreateClient();
   const { mutate: exportClients, isPending: isExporting } = useExportClients();
 
   const clients = clientsData?.clients || [];
@@ -107,27 +108,7 @@ export default function ClientsPage() {
     totalCases: clients.reduce((sum, c) => sum + (c.casesCount || 0), 0),
   }), [clients, clientsData?.total]);
 
-  const handleAddClient = (data: ClientFormData) => {
-    // Map UI types to API types
-    const typeMapping: Record<string, "individual" | "company"> = {
-      "Individual": "individual",
-      "Corporate": "company",
-      "SME": "company",
-      "Group": "company",
-    };
-
-    createClient({
-      name: data.name,
-      type: typeMapping[data.type] || "individual",
-      contactEmail: data.email,
-      contactPhone: data.phone,
-      notes: data.notes,
-    }, {
-      onSuccess: () => {
-        setIsModalOpen(false);
-      },
-    });
-  };
+  // Create client logic moved to components/features/clients/client-form.tsx
 
   if (isLoading) {
     return (
@@ -153,14 +134,6 @@ export default function ClientsPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Client Form Modal */}
-      <ClientFormModal
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        onSubmit={handleAddClient}
-        mode="create"
-      />
-
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
@@ -182,14 +155,13 @@ export default function ClientsPage() {
             {isExporting ? t("common.exporting") : t("common.export")}
           </Button>
           <Button
-            onClick={() => setIsModalOpen(true)}
-            disabled={isCreating}
+            onClick={() => router.push("/clients/new")}
             className="bg-[#D97706] hover:bg-[#B45309] text-white px-6 py-2.5 h-auto rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 font-bold flex items-center gap-2 transition-all"
           >
             <div className="bg-white/20 p-1 rounded-md">
               <Plus className="h-4 w-4" />
             </div>
-            {isCreating ? t("clients.creating") : t("clients.newClient")}
+            {t("clients.newClient")}
           </Button>
         </div>
       </div>
@@ -226,18 +198,48 @@ export default function ClientsPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-500 delay-200">
         {/* Filters & Search */}
         <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
-          {/* Type Filters */}
-          <FilterPills>
-            {TYPE_FILTERS.map((type) => (
-              <FilterPill
-                key={type}
-                active={typeFilter === type}
-                onClick={() => setTypeFilter(type)}
+          {/* Type Filters and View Toggle */}
+          <div className="flex items-center justify-between w-full md:w-auto flex-col md:flex-row gap-4 md:gap-8">
+            <div className="flex bg-slate-100/80 p-1 rounded-xl w-full md:w-auto overflow-hidden">
+              <button
+                onClick={() => setViewMode("list")}
+                className={cn(
+                  "flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                  viewMode === "list" 
+                    ? "bg-white text-[#D97706] shadow-sm ring-1 ring-slate-200" 
+                    : "text-slate-500 hover:text-slate-700"
+                )}
               >
-                {TYPE_LABELS[type] || type}
-              </FilterPill>
-            ))}
-          </FilterPills>
+                <LayoutList className="w-4 h-4" />
+                <span>{t("clients.viewMode.list")}</span>
+              </button>
+              <button
+                onClick={() => setViewMode("kanban")}
+                className={cn(
+                  "flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                  viewMode === "kanban" 
+                    ? "bg-white text-[#D97706] shadow-sm ring-1 ring-slate-200" 
+                    : "text-slate-500 hover:text-slate-700"
+                )}
+              >
+                <Kanban className="w-4 h-4" />
+                <span>{t("clients.viewMode.board")}</span>
+              </button>
+            </div>
+            
+            <FilterPills>
+              {TYPE_FILTERS.map((type) => (
+                <FilterPill
+                  key={type}
+                  active={typeFilter === type}
+                  onClick={() => setTypeFilter(type)}
+                >
+                  {TYPE_LABELS[type] || type}
+                </FilterPill>
+              ))}
+            </FilterPills>
+          </div>
+
 
           {/* Search & Filter */}
           <div className="flex items-center gap-2 w-full md:w-auto">
@@ -272,17 +274,22 @@ export default function ClientsPage() {
           </div>
         </div>
 
-        {/* Table or Empty State */}
+        {/* Table, Kanban or Empty State */}
         {clients.length === 0 ? (
           <EmptyState
             icon={Users}
             title={t("clients.noClients")}
             description={t("clients.noClientsDesc")}
-            action={{
-              label: t("clients.addFirstClient"),
-              onClick: () => setIsModalOpen(true),
-            }}
+            action={
+              !debouncedSearch
+                ? { label: t("clients.addFirstClient"), onClick: () => router.push("/clients/new") }
+                : undefined
+            }
           />
+        ) : viewMode === "kanban" ? (
+          <div className="p-6 bg-slate-50/50">
+            <ClientKanbanBoard clients={clients} isRTL={isRTL} />
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">

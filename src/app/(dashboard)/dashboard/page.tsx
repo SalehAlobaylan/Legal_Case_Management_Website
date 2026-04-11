@@ -1,537 +1,339 @@
-/**
- * File: src/app/(dashboard)/dashboard/page.tsx
- * Purpose: Dashboard page matching the Silah design system.
- *
- * Layout:
- * - Welcome section with AI analysis summary
- * - 4 Statistics cards
- * - Quick Actions bar
- * - Two-column section: Recent Cases + Regulation Updates
- * - Bottom row: Upcoming Deadlines + AI Activity Feed
- */
-
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  FileText,
-  BookOpen,
-  Sparkles,
-  ChevronRight,
-  AlertCircle,
-  Clock,
-  Scale,
-  Plus,
-  Users,
-  FolderOpen,
-  Calendar,
-  TrendingUp,
-  Search,
-  Bell,
-  ArrowUpRight,
-  CheckCircle,
-  Timer,
+  FileText, BookOpen, Users, ArrowUpRight, Scale, Briefcase, Bell,
+  CalendarDays, FileSignature, ExternalLink, Check, Plus
 } from "lucide-react";
 import { useCases } from "@/lib/hooks/use-cases";
-import { useDashboardStats, useRecentActivity } from "@/lib/hooks/use-dashboard";
+import { useClients } from "@/lib/hooks/use-clients";
+import { useRecentActivity } from "@/lib/hooks/use-dashboard";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useI18n } from "@/lib/hooks/use-i18n";
-import { type Case, CaseStatus } from "@/lib/types/case";
+import { formatDate } from "@/lib/utils/format";
+import { cn } from "@/lib/utils/cn";
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { data: cases, isLoading: casesLoading } = useCases();
-  const { data: stats, isLoading: statsLoading } = useDashboardStats();
+  const { data: clientsData, isLoading: clientsLoading } = useClients();
   const { data: activityData, isLoading: activityLoading } = useRecentActivity();
   const { t, isRTL } = useI18n();
 
-  const userName = user?.fullName?.split(" ")[0] || "Ahmed";
-  const isLoading = casesLoading || statsLoading;
+  // Local state for To-Dos panel
+  const [tasks, setTasks] = React.useState([
+    { id: 1, text: isRTL ? 'مراجعة المذكرة الجوابية في القضية 45' : 'Review defense statement for Case #45', completed: false },
+    { id: 2, text: isRTL ? 'اعتماد عقد التأسيس لشركة التقنية' : 'Approve articles of association for Tech Co.', completed: true },
+    { id: 3, text: isRTL ? 'تجديد الوكالة الشرعية للعميل أحمد' : 'Renew POA for Client Ahmed', completed: false },
+  ]);
+  const [newTaskText, setNewTaskText] = React.useState('');
 
-  // Status badge styles with translations
-  const getStatusStyle = (status: string) => {
-    const styles: Record<string, { bg: string; text: string; label: string }> = {
-      open: { bg: "bg-[#0F2942]/10", text: "text-[#0F2942]", label: t("cases.statuses.open") },
-      in_progress: { bg: "bg-[#D97706]/10", text: "text-[#D97706]", label: t("cases.statuses.in_progress") },
-      pending_hearing: { bg: "bg-[#D97706]/10", text: "text-[#D97706]", label: t("cases.statuses.pending_hearing") },
-      closed: { bg: "bg-slate-100", text: "text-slate-600", label: t("cases.statuses.closed") },
-      archived: { bg: "bg-slate-100", text: "text-slate-500", label: t("cases.statuses.archived") },
-    };
-    return styles[status] || styles.open;
-  };
-
-  // Case type labels with translations
-  const getTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      labor: t("cases.types.labor"),
-      civil: t("cases.types.civil"),
-      commercial: t("cases.types.commercial"),
-      criminal: t("cases.types.criminal"),
-      family: t("cases.types.family"),
-      administrative: t("cases.types.administrative"),
-    };
-    return labels[type] || type;
-  };
-
+  const userName = user?.fullName?.split(" ")[0] || (isRTL ? "أستاذي" : "Counsel");
+  
   const displayCases = cases || [];
-
-  const activeCasesCount = displayCases.length > 0
-    ? displayCases.filter(c => c.status !== CaseStatus.CLOSED && c.status !== CaseStatus.ARCHIVED).length
-    : 0;
-
-  const dashboardStats = stats || {
-    activeCases: activeCasesCount,
-    activeCasesTrend: "+12%",
-    pendingRegulations: 12,
-    pendingRegulationsTrend: "+8%",
-    aiDiscoveries: 89,
-    aiDiscoveriesTrend: "+15%",
-    casesUpdatedToday: 0,
-  };
-
-  // Clients count from cases (client_info is a string field, count unique non-empty values)
-  const uniqueClients = new Set(displayCases.map(c => c.client_info).filter(Boolean));
-
-  // Regulation updates
-  const regulationUpdates = activityData?.recentUpdates?.map(update => ({
-    id: update.id,
-    type: update.type === "regulation_amendment" ? "amendment" :
-      update.type === "system" ? "maintenance" : "update",
-    title: update.title,
-    description: update.description,
-    action: update.type === "regulation_amendment" ? t("dashboard.readAnalysis") : null,
-  })) || [
-    {
-      id: 1,
-      type: "amendment",
-      title: t("dashboard.newAmendment"),
-      description: t("dashboard.amendmentDesc"),
-      action: t("dashboard.readAnalysis"),
-    },
-    {
-      id: 2,
-      type: "maintenance",
-      title: t("dashboard.systemMaintenance"),
-      description: t("dashboard.scheduledFor"),
-      action: null,
-    },
+  const displayClients = clientsData?.clients || [];
+  const regulationUpdates = activityData?.recentUpdates?.filter(u => u.type === 'regulation_amendment') || [
+    { id: '1', title: isRTL ? 'تعديل نظام المعاملات المدنية' : 'Civil Transactions Law Amendment', description: isRTL ? 'تعديل في المادة 45' : 'Amendment in Article 45', date: new Date().toISOString(), type: 'regulation_amendment' },
+    { id: '2', title: isRTL ? 'تحديث نظام الشركات' : 'Corporate Law Update', description: isRTL ? 'نشر اللائحة المنظمة لعمل مجالس الإدارات' : 'Published Board of Directors operational bylaws', date: new Date(Date.now() - 86400000).toISOString(), type: 'regulation_amendment' }
   ];
 
-  const handleNewCase = () => {
-    router.push("/cases/new");
+  const upcomingHearings = displayCases
+    .filter(c => c.next_hearing && new Date(c.next_hearing).getTime() > new Date().getTime())
+    .sort((a, b) => new Date(a.next_hearing!).getTime() - new Date(b.next_hearing!).getTime())
+    .slice(0, 3);
+
+  const formatDateTime = (d: string | Date) => formatDate(d, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+
+  const pendingDocuments = [
+    { id: 1, name: isRTL ? 'مسودة عقد اتفاقية الصلح.pdf' : 'Settlement_Agreement_Draft.pdf', uploader: isRTL ? 'العميل: خالد الفهد' : 'Client: Khalid Alfahad', time: '1h ago' },
+    { id: 2, name: isRTL ? 'عقد تأسيس شركة الرواد.docx' : 'Alruwad_Articles_Of_Association.docx', uploader: isRTL ? 'مساعد قانوني: سارة' : 'Paralegal: Sara', time: '3h ago' },
+  ];
+
+  const legalPortals = [
+    { id: 1, name: isRTL ? 'ناجز (Najiz)' : 'Najiz Portal', url: 'https://najiz.sa', color: 'bg-emerald-50 text-emerald-700', hover: 'hover:bg-emerald-100 hover:border-emerald-200 border-emerald-100' },
+    { id: 2, name: isRTL ? 'معين (Muin)' : 'Muin System', url: 'https://muin.bog.gov.sa', color: 'bg-blue-50 text-blue-700', hover: 'hover:bg-blue-100 hover:border-blue-200 border-blue-100' },
+    { id: 3, name: isRTL ? 'وزارة العدل (MOJ)' : 'Ministry of Justice', url: 'https://moj.gov.sa', color: 'bg-amber-50 text-amber-700', hover: 'hover:bg-amber-100 hover:border-amber-200 border-amber-100' },
+  ];
+
+  const toggleTask = (id: number) => {
+    setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
   };
+
+  const addTask = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTaskText.trim()) return;
+    setTasks([...tasks, { id: Date.now(), text: newTaskText, completed: false }]);
+    setNewTaskText('');
+  };
+
+  const isLoading = casesLoading || clientsLoading || activityLoading;
 
   if (isLoading) {
     return (
-      <div className="space-y-8 animate-pulse">
-        <div className="flex justify-between items-end">
-          <div className="space-y-2">
-            <div className="h-9 w-64 bg-slate-200 rounded-lg" />
-            <div className="h-5 w-96 bg-slate-200 rounded-lg" />
-          </div>
-          <div className="h-12 w-36 bg-slate-200 rounded-xl" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-40 bg-slate-200 rounded-2xl" />
-          ))}
-        </div>
+      <div className="space-y-8 animate-pulse p-4">
+        <div className="h-32 w-full bg-slate-200 rounded-3xl" />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 h-80 bg-slate-200 rounded-2xl" />
-          <div className="h-80 bg-slate-200 rounded-2xl" />
+          <div className="h-96 bg-slate-200 rounded-3xl" />
+          <div className="h-96 bg-slate-200 rounded-3xl" />
+          <div className="h-96 bg-slate-200 rounded-3xl" />
         </div>
       </div>
     );
   }
 
   return (
-    <div>
-      {/* Welcome Section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-        <div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-[#0F2942] font-serif">
-            {t("dashboard.welcome", { name: userName })}
-          </h2>
-          <p className="text-slate-500 mt-2 text-sm sm:text-base">
-            {t("dashboard.aiAnalysis", { count: "3" }).split("3")[0]}
-            <span className="font-bold text-[#D97706]">3 {isRTL ? "" : "new cases"}</span>
-            {t("dashboard.aiAnalysis", { count: "3" }).split("3")[1] || ""}
+    <div className="space-y-8 pb-12 animate-in fade-in zoom-in-95 duration-500">
+      
+      {/* ── Hero Banner ── */}
+      <div className="relative overflow-hidden rounded-[2rem] bg-[#0F2942] p-8 md:p-10 shadow-lg text-white border border-[#1E3A56]">
+        <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 scale-150 pointer-events-none">
+          <Scale className="w-64 h-64 text-white" />
+        </div>
+        <div className="relative z-10">
+          <h1 className="text-3xl md:text-4xl font-bold font-serif mb-2">
+            {isRTL ? `أهلاً بك، ${userName}.` : `Welcome, ${userName}.`}
+          </h1>
+          <p className="text-blue-200/80 text-sm md:text-base font-medium max-w-2xl">
+            {isRTL 
+              ? "إليك مركز القيادة الخاص بك. تصفح القضايا والعملاء الجدد، وتابع المواعيد والمستندات بفاعلية تامة."
+              : "Here is your mission control. Browse cases, clients, follow up on hearings and documents efficiently."}
           </p>
         </div>
-        <button
-          onClick={handleNewCase}
-          className="bg-[#D97706] hover:bg-[#B45309] text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 font-bold flex items-center gap-2 text-sm whitespace-nowrap self-start sm:self-auto"
-        >
-          <div className="bg-white/20 p-1 rounded-md">
-            <Scale className="h-3.5 w-3.5" />
-          </div>
-          <span className="hidden sm:inline">{t("dashboard.newCase")}</span>
-          <span className="sm:hidden">{t("dashboard.newCase").split(" ")[0]}</span>
-        </button>
       </div>
 
-      {/* Stats Cards - 4 columns */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8 mt-8">
-        {/* Active Cases - Highlighted */}
-        <div className="p-4 md:p-6 rounded-2xl shadow-sm border bg-[#0F2942] border-[#0F2942] text-white">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2 md:p-3 rounded-xl bg-white/10">
-              <FileText className="h-5 w-5 md:h-6 md:w-6 text-[#D97706]" />
-            </div>
-            <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-md bg-[#D97706] text-white">
-              {dashboardStats.activeCasesTrend}
-            </span>
-          </div>
-          <h3 className="text-2xl md:text-3xl font-bold mb-1 font-serif text-white">{dashboardStats.activeCases}</h3>
-          <p className="text-xs md:text-sm font-bold text-blue-200">{t("dashboard.activeCases")}</p>
-          <p className="text-[10px] md:text-xs mt-1 text-blue-300">{t("dashboard.updatedToday", { count: String(dashboardStats.casesUpdatedToday) })}</p>
-        </div>
-
-        {/* Pending Regulations */}
-        <div className="p-4 md:p-6 rounded-2xl shadow-sm border bg-white border-slate-200 hover:border-[#D97706]/50 transition-shadow">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2 md:p-3 rounded-xl bg-slate-50">
-              <BookOpen className="h-5 w-5 md:h-6 md:w-6 text-[#0F2942]" />
-            </div>
-            <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-md bg-green-100 text-green-700">
-              {dashboardStats.pendingRegulationsTrend}
-            </span>
-          </div>
-          <h3 className="text-2xl md:text-3xl font-bold mb-1 font-serif text-[#0F2942]">{dashboardStats.pendingRegulations}</h3>
-          <p className="text-xs md:text-sm font-bold text-slate-700">{t("dashboard.pendingRegulations")}</p>
-          <p className="text-[10px] md:text-xs mt-1 text-slate-400">{t("dashboard.requiresReview")}</p>
-        </div>
-
-        {/* AI Discoveries */}
-        <div className="p-4 md:p-6 rounded-2xl shadow-sm border bg-white border-slate-200 hover:border-[#D97706]/50 transition-shadow">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2 md:p-3 rounded-xl bg-slate-50">
-              <Sparkles className="h-5 w-5 md:h-6 md:w-6 text-purple-600" />
-            </div>
-            <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-md bg-green-100 text-green-700">
-              {dashboardStats.aiDiscoveriesTrend}
-            </span>
-          </div>
-          <h3 className="text-2xl md:text-3xl font-bold mb-1 font-serif text-[#0F2942]">{dashboardStats.aiDiscoveries}</h3>
-          <p className="text-xs md:text-sm font-bold text-slate-700">{t("dashboard.aiDiscoveries")}</p>
-          <p className="text-[10px] md:text-xs mt-1 text-slate-400">{t("dashboard.regulationsMatched")}</p>
-        </div>
-
-        {/* Clients */}
-        <div className="p-4 md:p-6 rounded-2xl shadow-sm border bg-white border-slate-200 hover:border-[#D97706]/50 transition-shadow">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2 md:p-3 rounded-xl bg-slate-50">
-              <Users className="h-5 w-5 md:h-6 md:w-6 text-emerald-600" />
-            </div>
-          </div>
-          <h3 className="text-2xl md:text-3xl font-bold mb-1 font-serif text-[#0F2942]">{uniqueClients.size || 0}</h3>
-          <p className="text-xs md:text-sm font-bold text-slate-700">{t("dashboard.totalClients")}</p>
-          <p className="text-[10px] md:text-xs mt-1 text-slate-400">{t("dashboard.activeClients")}</p>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-        <button
-          onClick={() => router.push("/cases/new")}
-          className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 hover:border-[#D97706]/50 hover:shadow-md transition-all group"
-        >
-          <div className="p-2 rounded-lg bg-[#D97706]/10 group-hover:bg-[#D97706] transition-colors">
-            <Plus className="h-4 w-4 text-[#D97706] group-hover:text-white transition-colors" />
-          </div>
-          <span className="text-sm font-bold text-[#0F2942]">{t("dashboard.quickNewCase")}</span>
-        </button>
-        <button
-          onClick={() => router.push("/clients")}
-          className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 hover:border-[#D97706]/50 hover:shadow-md transition-all group"
-        >
-          <div className="p-2 rounded-lg bg-emerald-50 group-hover:bg-emerald-500 transition-colors">
-            <Users className="h-4 w-4 text-emerald-600 group-hover:text-white transition-colors" />
-          </div>
-          <span className="text-sm font-bold text-[#0F2942]">{t("dashboard.quickClients")}</span>
-        </button>
-        <button
-          onClick={() => router.push("/regulations")}
-          className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 hover:border-[#D97706]/50 hover:shadow-md transition-all group"
-        >
-          <div className="p-2 rounded-lg bg-blue-50 group-hover:bg-blue-500 transition-colors">
-            <Search className="h-4 w-4 text-blue-600 group-hover:text-white transition-colors" />
-          </div>
-          <span className="text-sm font-bold text-[#0F2942]">{t("dashboard.quickRegulations")}</span>
-        </button>
-        <button
-          onClick={() => router.push("/alerts")}
-          className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 hover:border-[#D97706]/50 hover:shadow-md transition-all group"
-        >
-          <div className="p-2 rounded-lg bg-purple-50 group-hover:bg-purple-500 transition-colors">
-            <Bell className="h-4 w-4 text-purple-600 group-hover:text-white transition-colors" />
-          </div>
-          <span className="text-sm font-bold text-[#0F2942]">{t("dashboard.quickAlerts")}</span>
-        </button>
-      </div>
-
-      {/* Two Column Section: Recent Cases + Regulation Updates */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
-        {/* Recent Cases - Card Style */}
-        <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 md:p-6">
-          <div className="flex justify-between items-center mb-4 md:mb-6">
-            <h3 className="font-bold text-base md:text-lg text-[#0F2942]">{t("dashboard.recentCases")}</h3>
-            <Link
-              href="/cases"
-              className="text-[#D97706] text-sm font-bold hover:underline flex items-center gap-1"
-            >
-              {t("dashboard.viewAll")} <ChevronRight className={`h-3.5 w-3.5 ${isRTL ? "rotate-180" : ""}`} />
-            </Link>
-          </div>
-
-          <div className="space-y-3 md:space-y-4">
-            {displayCases.length === 0 ? (
-              <div className="py-8 md:py-12 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-                <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3 md:mb-4">
-                  <FileText className="text-slate-400 h-6 w-6 md:h-7 md:w-7" />
-                </div>
-                <h3 className="font-bold text-[#0F2942] mb-2 text-sm md:text-base">
-                  {t("dashboard.noCases")}
-                </h3>
-                <p className="text-slate-500 text-xs md:text-sm mb-3 md:mb-4">
-                  {t("dashboard.noCasesDesc")}
-                </p>
-                <button
-                  onClick={handleNewCase}
-                  className="bg-[#D97706] hover:bg-[#B45309] text-white px-4 md:px-6 py-2 md:py-2.5 rounded-xl font-bold inline-flex items-center gap-2 transition-all text-xs md:text-sm"
-                >
-                  <Plus className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                  {t("dashboard.newCase")}
-                </button>
+      {/* ── System Overview (3 Columns) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Column 1: Recent Clients */}
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 flex flex-col overflow-hidden">
+          <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-emerald-50 p-2.5 rounded-xl">
+                <Users className="h-5 w-5 text-emerald-600" />
               </div>
-            ) : (
-              displayCases.slice(0, 5).map((case_) => {
-                const statusStyle = getStatusStyle(case_.status);
-                const typeLabel = getTypeLabel(case_.case_type);
-
-                return (
-                  <div
-                    key={case_.id}
-                    onClick={() => router.push(`/cases/${case_.id}`)}
-                    className="flex items-center justify-between p-3 md:p-4 hover:bg-slate-50 rounded-xl border border-transparent hover:border-[#D97706]/30 transition-all cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-3 md:gap-4 min-w-0">
-                      <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-[#0F2942] flex items-center justify-center text-white group-hover:bg-[#D97706] transition-colors shadow-md flex-shrink-0">
-                        <FileText className="h-4 w-4 md:h-5 md:w-5" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h4 className="font-bold text-[#0F2942] text-sm md:text-base truncate">{case_.title}</h4>
-                        <p className="text-xs text-slate-500 font-medium mt-0.5 truncate">
-                          {case_.case_number} •{" "}
-                          <span className="text-slate-400">{typeLabel}</span>
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
-                      <span
-                        className={`px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-bold whitespace-nowrap ${statusStyle.bg} ${statusStyle.text}`}
-                      >
-                        {statusStyle.label}
-                      </span>
-                      <div className="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-slate-300 group-hover:text-[#D97706] transition-colors">
-                        <ChevronRight className={`h-3.5 w-3.5 md:h-4 md:w-4 ${isRTL ? "rotate-180" : ""}`} />
-                      </div>
-                    </div>
+              <h3 className="text-lg font-bold text-[#0F2942]">{isRTL ? "العملاء مؤخراً" : "Recent Clients"}</h3>
+            </div>
+          </div>
+          <div className="flex-1 p-4 space-y-2">
+            {displayClients.slice(0, 5).map(client => (
+              <div key={client.id} onClick={() => router.push(`/clients/${client.id}`)} className="flex items-center justify-between p-3 rounded-2xl border border-transparent hover:border-slate-100 hover:bg-slate-50 cursor-pointer group transition-all">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="h-10 w-10 shrink-0 bg-slate-100 group-hover:bg-white rounded-full flex items-center justify-center font-bold text-[#0F2942] shadow-sm">
+                    {client.name.substring(0, 2).toUpperCase()}
                   </div>
-                );
-              })
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-sm text-[#0F2942] truncate">{client.name}</h4>
+                    <p className="text-xs text-slate-500 truncate">{client.type === 'company' ? (isRTL ? "شركة" : "Company") : (isRTL ? "فرد" : "Individual")}</p>
+                  </div>
+                </div>
+                <ArrowUpRight className={cn("h-4 w-4 text-slate-300 group-hover:text-emerald-600 shrink-0", isRTL && "rotate-180")} />
+              </div>
+            ))}
+            {displayClients.length === 0 && (
+              <div className="py-12 text-center text-slate-400">
+                <Users className="h-10 w-10 mx-auto opacity-20 mb-3" />
+                <p className="text-sm">{isRTL ? "لا يوجد عملاء" : "No clients"}</p>
+              </div>
             )}
           </div>
         </div>
 
-        {/* Regulation Updates */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 md:p-6 h-fit">
-          <div className="flex justify-between items-center mb-4 md:mb-6">
-            <h3 className="font-bold text-base md:text-lg text-[#0F2942]">
-              {t("dashboard.regulationUpdates")}
-            </h3>
-            <Link
-              href="/alerts"
-              className="text-[#D97706] text-xs font-bold hover:underline flex items-center gap-1"
-            >
-              {t("dashboard.viewAll")} <ChevronRight className={`h-3 w-3 ${isRTL ? "rotate-180" : ""}`} />
-            </Link>
+        {/* Column 2: Recent Cases */}
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 flex flex-col overflow-hidden">
+          <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-[#D97706]/10 p-2.5 rounded-xl">
+                <Briefcase className="h-5 w-5 text-[#D97706]" />
+              </div>
+              <h3 className="text-lg font-bold text-[#0F2942]">{isRTL ? "القضايا المفتوحة" : "Open Cases"}</h3>
+            </div>
           </div>
-
-          <div className="space-y-4 md:space-y-[32px]">
-            {regulationUpdates.map((update) => (
-              <div
-                key={update.id}
-                className={`flex gap-4 md:gap-6 p-3 md:p-[24px] rounded-xl transition-colors group ${
-                  update.type === "amendment"
-                    ? "hover:bg-orange-50/50"
-                    : "hover:bg-slate-50"
-                }`}
-              >
-                <div
-                  className={`mt-1 p-2 rounded-lg h-fit transition-colors flex-shrink-0 ${
-                    update.type === "amendment"
-                      ? "bg-orange-100 text-[#D97706] group-hover:bg-[#D97706] group-hover:text-white"
-                      : "bg-slate-100 text-slate-500"
-                  }`}
-                >
-                  {update.type === "amendment" ? (
-                    <AlertCircle className="h-4 w-4 md:h-[18px] md:w-[18px]" />
-                  ) : (
-                    <Clock className="h-4 w-4 md:h-[18px] md:w-[18px]" />
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-[#0F2942]">
-                    {update.title}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                    {update.description}
-                  </p>
-                  {update.action && (
-                    <button className="mt-2 text-xs text-[#D97706] font-bold hover:underline flex items-center gap-1">
-                      {update.action} <ChevronRight className={`h-2.5 w-2.5 ${isRTL ? "rotate-180" : ""}`} />
-                    </button>
-                  )}
+          <div className="flex-1 p-4 space-y-2">
+            {displayCases.slice(0, 5).map(c => (
+              <div key={c.id} onClick={() => router.push(`/cases/${c.id}`)} className="p-3 rounded-2xl border border-slate-100 bg-white hover:bg-[#0F2942] hover:text-white cursor-pointer group transition-all shadow-sm">
+                <h4 className="font-bold text-sm truncate mb-1">{c.title}</h4>
+                <div className="flex items-center justify-between text-xs text-slate-500 group-hover:text-slate-300">
+                  <span className="truncate max-w-[120px]">{c.client_info || (isRTL ? "عميل غير محدد" : "Unassigned")}</span>
+                  <span className="shrink-0">{formatDate(c.updated_at)}</span>
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Row: Case Distribution + AI Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-        {/* Case Status Overview */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 md:p-6">
-          <h3 className="font-bold text-base md:text-lg text-[#0F2942] mb-4 md:mb-6">
-            {t("dashboard.caseOverview")}
-          </h3>
-          <div className="space-y-4">
-            {/* Status bars */}
-            {[
-              { status: "open", color: "bg-[#0F2942]" },
-              { status: "in_progress", color: "bg-[#D97706]" },
-              { status: "pending_hearing", color: "bg-amber-500" },
-              { status: "closed", color: "bg-slate-400" },
-            ].map(({ status, color }) => {
-              const count = displayCases.filter(c => c.status === status).length;
-              const percentage = displayCases.length > 0 ? (count / displayCases.length) * 100 : 0;
-              const style = getStatusStyle(status);
-              return (
-                <div key={status}>
-                  <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-sm font-medium text-slate-700">{style.label}</span>
-                    <span className="text-sm font-bold text-[#0F2942]">{count}</span>
-                  </div>
-                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-500 ${color}`}
-                      style={{ width: `${Math.max(percentage, 2)}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-
             {displayCases.length === 0 && (
-              <p className="text-sm text-slate-400 italic text-center py-4">
-                {t("dashboard.noCasesYet")}
-              </p>
-            )}
-          </div>
-
-          {/* Case type breakdown */}
-          {displayCases.length > 0 && (
-            <div className="mt-6 pt-4 border-t border-slate-100">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">{t("dashboard.byType")}</p>
-              <div className="flex flex-wrap gap-2">
-                {["labor", "civil", "commercial", "criminal", "family", "administrative"].map(type => {
-                  const count = displayCases.filter(c => c.case_type === type).length;
-                  if (count === 0) return null;
-                  return (
-                    <span key={type} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-xs font-medium text-slate-700">
-                      {getTypeLabel(type)}
-                      <span className="font-bold text-[#0F2942]">{count}</span>
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* AI Activity Feed */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 md:p-6">
-          <div className="flex justify-between items-center mb-4 md:mb-6">
-            <h3 className="font-bold text-base md:text-lg text-[#0F2942]">
-              {t("dashboard.aiActivity")}
-            </h3>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 border border-green-100">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-[10px] font-bold text-green-700">{t("dashboard.aiActive")}</span>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {/* AI activity items - show last analysis results or fallback */}
-            {displayCases.slice(0, 4).map((case_, idx) => (
-              <div
-                key={case_.id}
-                className="flex gap-3 items-start p-3 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
-                onClick={() => router.push(`/cases/${case_.id}`)}
-              >
-                <div className={`p-1.5 rounded-lg shrink-0 mt-0.5 ${
-                  idx === 0 ? "bg-[#D97706]/10" : "bg-slate-100"
-                }`}>
-                  <Sparkles className={`h-3.5 w-3.5 ${idx === 0 ? "text-[#D97706]" : "text-slate-400"}`} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-[#0F2942] truncate">
-                    {t("dashboard.aiScanned")} <span className="font-bold">{case_.title}</span>
-                  </p>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    {case_.case_number} • {getTypeLabel(case_.case_type)}
-                  </p>
-                </div>
-                <ArrowUpRight className={`h-3.5 w-3.5 text-slate-300 shrink-0 ${isRTL ? "rotate-180" : ""}`} />
-              </div>
-            ))}
-
-            {displayCases.length === 0 && (
-              <div className="text-center py-8">
-                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
-                  <Sparkles className="h-6 w-6 text-slate-300" />
-                </div>
-                <p className="text-sm text-slate-400">{t("dashboard.noAiActivity")}</p>
-                <p className="text-xs text-slate-300 mt-1">{t("dashboard.aiActivityHint")}</p>
+              <div className="py-12 text-center text-slate-400">
+                <Briefcase className="h-10 w-10 mx-auto opacity-20 mb-3" />
+                <p className="text-sm">{isRTL ? "لا يوجد قضايا" : "No cases"}</p>
               </div>
             )}
           </div>
+        </div>
 
-          {displayCases.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-slate-100">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-xs font-medium text-slate-600">
-                    {t("dashboard.aiProcessedCount", { count: String(displayCases.length) })}
+        {/* Column 3: Regulation Updates */}
+        <div className="bg-slate-50/50 rounded-3xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
+          <div className="p-6 border-b border-slate-200 flex items-center justify-between bg-white">
+            <div className="flex items-center gap-3">
+              <div className="bg-blue-100 p-2.5 rounded-xl">
+                <BookOpen className="h-5 w-5 text-blue-700" />
+              </div>
+              <h3 className="text-lg font-bold text-[#0F2942]">{isRTL ? "تحديثات الأنظمة" : "Regulation Updates"}</h3>
+            </div>
+          </div>
+          <div className="flex-1 p-4 space-y-3">
+            {regulationUpdates.slice(0,4).map((update, idx) => (
+              <div key={update.id || idx} className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-2 mb-2">
+                  <Bell className="h-3.5 w-3.5 text-blue-600" />
+                  <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">
+                    {isRTL ? "إصدار أو تعديل" : "New Version / Amendment"}
                   </span>
                 </div>
-                <Link
-                  href="/cases"
-                  className="text-xs font-bold text-[#D97706] hover:underline"
-                >
-                  {t("dashboard.viewAll")}
-                </Link>
+                <h4 className="font-bold text-[#0F2942] text-sm leading-snug mb-1">{update.title}</h4>
+                <p className="text-xs text-slate-500 font-medium leading-relaxed">{update.description}</p>
               </div>
-            </div>
-          )}
+            ))}
+            {regulationUpdates.length === 0 && (
+              <div className="py-12 text-center text-slate-400">
+                <BookOpen className="h-10 w-10 mx-auto opacity-20 mb-3" />
+                <p className="text-sm">{isRTL ? "لا يوجد تحديثات مؤخراً" : "No recent updates"}</p>
+              </div>
+            )}
+          </div>
         </div>
+
       </div>
+
+      {/* ── Functional Panels Grid (Phase 6 additions) ── */}
+      <h2 className="text-2xl font-bold font-serif text-[#0F2942] pt-4 border-t border-slate-200">{isRTL ? "لوحة العمليات اليومية" : "Daily Operations"}</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+        {/* 1. Upcoming Hearings */}
+        <div className="bg-white rounded-3xl border border-[#D97706]/20 shadow-sm shadow-[#D97706]/5 overflow-hidden flex flex-col">
+          <div className="bg-[#D97706]/5 p-5 border-b border-[#D97706]/10 flex items-center gap-3">
+            <div className="bg-[#D97706]/20 p-2 rounded-lg text-[#D97706]">
+              <CalendarDays className="h-5 w-5" />
+            </div>
+            <h3 className="font-bold text-[#0F2942]">{isRTL ? "المواعيد والجلسات" : "Hearings & Deadlines"}</h3>
+          </div>
+          <div className="p-4 space-y-3 flex-1 overflow-y-auto">
+            {upcomingHearings.length > 0 ? upcomingHearings.map(c => (
+              <div key={c.id} className="p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer hover:border-[#D97706] hover:bg-orange-50/50 transition-colors group">
+                <time className="text-xs font-bold text-[#D97706] block mb-1">
+                  {formatDateTime(c.next_hearing!)}
+                </time>
+                <div className="text-sm font-bold text-[#0F2942] mb-1 truncate">{c.title}</div>
+                <div className="text-[10px] text-slate-500 font-medium flex justify-between items-center">
+                  <span className="truncate">{c.court_jurisdiction || (isRTL ? "المحكمة العامة" : "General Court")}</span>
+                  <ArrowUpRight className={cn("h-3 w-3 text-slate-300 group-hover:text-[#D97706]", isRTL && "rotate-180")} />
+                </div>
+              </div>
+            )) : (
+              <div className="py-6 text-center text-slate-400">
+                <p className="text-xs">{isRTL ? "لا يوجد جلسات قريبة" : "No upcoming hearings"}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 2. Required Document Reviews */}
+        <div className="bg-white rounded-3xl border border-red-200 shadow-sm shadow-red-100/50 overflow-hidden flex flex-col">
+          <div className="bg-red-50 p-5 border-b border-red-100 flex items-center gap-3">
+            <div className="bg-red-200/50 p-2 rounded-lg text-red-600">
+              <FileSignature className="h-5 w-5" />
+            </div>
+            <h3 className="font-bold text-[#0F2942]">{isRTL ? "مستندات للمراجعة" : "Required Reviews"}</h3>
+          </div>
+          <div className="p-4 space-y-3 flex-1 overflow-y-auto">
+            {pendingDocuments.map(doc => (
+              <div key={doc.id} className="p-3 bg-white rounded-xl border border-slate-200 shadow-sm flex gap-3 cursor-pointer hover:border-red-300 transition-colors">
+                <div className="mt-0.5 shrink-0">
+                  <FileText className="h-5 w-5 text-red-400" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-sm font-bold text-[#0F2942] truncate hover:text-red-600 transition-colors">{doc.name}</div>
+                  <div className="text-[10px] text-slate-500 mt-1">{doc.uploader} • {doc.time}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 3. External Legal Portals */}
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+          <div className="bg-slate-50 p-5 border-b border-slate-200 flex items-center gap-3">
+            <div className="bg-slate-200 p-2 rounded-lg text-slate-600">
+              <ExternalLink className="h-5 w-5" />
+            </div>
+            <h3 className="font-bold text-[#0F2942]">{isRTL ? "البوابات العدلية" : "Legal Portals"}</h3>
+          </div>
+          <div className="p-4 space-y-3 flex-1">
+            {legalPortals.map(portal => (
+              <a 
+                key={portal.id} 
+                href={portal.url} 
+                target="_blank" 
+                rel="noreferrer"
+                className={cn("flex flex-col p-3 rounded-xl border transition-all cursor-pointer group", portal.color, portal.hover)}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-sm">{portal.name}</span>
+                  <ArrowUpRight className={cn("h-4 w-4 opacity-50 group-hover:opacity-100", isRTL && "rotate-180")} />
+                </div>
+                <span className="text-[10px] opacity-70 truncate">{portal.url}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* 4. Interactive To-Do List */}
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+          <div className="bg-[#0F2942] p-5 flex items-center justify-between text-white">
+            <div className="flex items-center gap-3">
+              <div className="bg-white/10 p-2 rounded-lg">
+                <Check className="h-5 w-5" />
+              </div>
+              <h3 className="font-bold">{isRTL ? "مهامي اليومية" : "My To-Dos"}</h3>
+            </div>
+            <span className="text-xs font-bold bg-white/20 px-2 py-1 rounded-lg">{tasks.filter(t=>!t.completed).length}</span>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {tasks.map(task => (
+              <div 
+                key={task.id} 
+                onClick={() => toggleTask(task.id)}
+                className="flex items-start gap-3 p-4 border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors"
+              >
+                <div className={cn("mt-0.5 w-5 h-5 rounded-md border-2 shrink-0 flex items-center justify-center transition-all", task.completed ? "bg-emerald-500 border-emerald-500" : "border-slate-300")}>
+                  {task.completed && <Check className="h-3.5 w-3.5 text-white" />}
+                </div>
+                <span className={cn("text-sm font-medium leading-snug", task.completed ? "text-slate-400 line-through" : "text-[#0F2942]")}>
+                  {task.text}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="p-3 bg-slate-50 border-t border-slate-100">
+            <form onSubmit={addTask} className="relative">
+              <input
+                type="text"
+                value={newTaskText}
+                onChange={(e) => setNewTaskText(e.target.value)}
+                placeholder={isRTL ? "مهمة سريعة..." : "Quick task..."}
+                className={cn("w-full bg-white border border-slate-200 rounded-xl py-2 px-3 text-sm focus:outline-none focus:border-[#0F2942] pr-10")}
+              />
+              <button 
+                type="submit" 
+                disabled={!newTaskText.trim()}
+                className="absolute left-2 top-1/2 -translate-y-1/2 p-1 bg-[#0F2942] text-white rounded-md disabled:opacity-50"
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+
     </div>
   );
 }

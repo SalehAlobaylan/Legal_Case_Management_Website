@@ -8,7 +8,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { clientsApi, type ClientFilters } from "@/lib/api/clients";
-import type { CreateClientInput } from "@/lib/types/client";
+import type { CreateClientInput, CreateClientActivityInput } from "@/lib/types/client";
 
 /**
  * Hook for fetching clients list
@@ -121,5 +121,42 @@ export function useSendMessageToClient() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
+  });
+}
+
+/**
+ * Hook for fetching activities for a client
+ */
+export function useClientActivities(clientId: number) {
+  return useQuery({
+    queryKey: ["client-activities", clientId],
+    queryFn: () => clientsApi.getClientActivities(clientId),
+    enabled: !!clientId,
+  });
+}
+
+/**
+ * Hook for creating a new client activity
+ */
+export function useCreateClientActivity() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, input }: { id: number; input: CreateClientActivityInput }) =>
+      clientsApi.createClientActivity(id, input),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["client-activities", variables.id] });
+    },
+  });
+}
+
+/**
+ * Hook for fetching documents for a client
+ */
+export function useClientDocuments(clientId: number) {
+  return useQuery({
+    queryKey: ["client-documents", clientId],
+    queryFn: () => clientsApi.getClientDocuments(clientId),
+    enabled: !!clientId,
   });
 }

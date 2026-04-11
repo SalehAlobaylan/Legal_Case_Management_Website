@@ -89,6 +89,8 @@ export const endpoints = {
     cases: (id: number) => `${API_BASE}/api/clients/${id}/cases`,
     export: `${API_BASE}/api/clients/export`,
     message: (id: number) => `${API_BASE}/api/clients/${id}/message`,
+    activities: (id: number) => `${API_BASE}/api/clients/${id}/activities`,
+    documents: (id: number) => `${API_BASE}/api/clients/${id}/documents`,
   },
 
   // Billing

@@ -6,12 +6,14 @@
 
 import { apiClient } from "./client";
 import { endpoints } from "./endpoints";
-import type { Client, CreateClientInput } from "@/lib/types/client";
+import type { Client, CreateClientInput, ClientActivity, CreateClientActivityInput, ClientDocument } from "@/lib/types/client";
 import type { Case } from "@/lib/types/case";
 
 export interface ClientFilters {
   type?: "individual" | "company";
   search?: string;
+  leadStatus?: string;
+  tag?: string;
   page?: number;
   limit?: number;
 }
@@ -31,6 +33,8 @@ export const clientsApi = {
     const params = new URLSearchParams();
     if (filters?.type) params.append("type", filters.type);
     if (filters?.search) params.append("search", filters.search);
+    if (filters?.leadStatus) params.append("leadStatus", filters.leadStatus);
+    if (filters?.tag) params.append("tag", filters.tag);
     if (filters?.page) params.append("page", String(filters.page));
     if (filters?.limit) params.append("limit", String(filters.limit));
 
@@ -102,5 +106,29 @@ export const clientsApi = {
       { message, type: type || "general" }
     );
     return data;
+  },
+
+  /**
+   * Get activities for a specific client
+   */
+  async getClientActivities(id: number): Promise<ClientActivity[]> {
+    const { data } = await apiClient.get<{ activities: ClientActivity[] }>(endpoints.clients.activities(id));
+    return data.activities;
+  },
+
+  /**
+   * Create an activity for a client
+   */
+  async createClientActivity(id: number, input: CreateClientActivityInput): Promise<ClientActivity> {
+    const { data } = await apiClient.post<{ activity: ClientActivity }>(endpoints.clients.activities(id), input);
+    return data.activity;
+  },
+
+  /**
+   * Get documents for a specific client
+   */
+  async getClientDocuments(id: number): Promise<ClientDocument[]> {
+    const { data } = await apiClient.get<{ documents: ClientDocument[] }>(endpoints.clients.documents(id));
+    return data.documents;
   },
 };

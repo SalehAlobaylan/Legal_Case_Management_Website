@@ -13,12 +13,8 @@ import {
   Zap,
   Users,
   FileText,
-  Globe,
-  Award,
-  ArrowRight,
   Shield,
   Search,
-  FolderOpen,
   BarChart3,
   Clock,
   Languages,
@@ -28,119 +24,8 @@ import { LanguageToggle } from "@/components/layout/language-toggle";
 
 // --- Helper Components ---
 
-const FeatureCard = ({
-  icon,
-  title,
-  desc,
-  color,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  desc: string;
-  color: string;
-}) => (
-  <div className="group p-8 rounded-3xl border border-slate-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-white relative overflow-hidden">
-    <div
-      className={`absolute top-0 right-0 p-24 ${color} opacity-[0.03] rounded-bl-full group-hover:scale-150 transition-transform duration-700`}
-    ></div>
-    <div
-      className={`w-14 h-14 rounded-2xl ${color} flex items-center justify-center shadow-lg mb-6 group-hover:scale-110 transition-transform`}
-    >
-      {icon}
-    </div>
-    <h3 className="text-xl font-bold text-[#0F2942] mb-3">{title}</h3>
-    <p className="text-slate-500 leading-relaxed text-sm">{desc}</p>
-  </div>
-);
-
-const PricingCard = ({
-  name,
-  price,
-  period,
-  description,
-  features,
-  highlighted = false,
-  ctaText,
-  t,
-}: {
-  name: string;
-  price: string;
-  period: string;
-  description: string;
-  features: string[];
-  highlighted?: boolean;
-  ctaText: string;
-  t: (key: string) => string;
-}) => (
-  <div
-    className={`relative p-8 rounded-3xl border transition-all duration-300 hover:-translate-y-1 ${
-      highlighted
-        ? "bg-[#0F2942] text-white border-[#0F2942] shadow-2xl scale-105"
-        : "bg-white border-slate-200 shadow-lg hover:shadow-xl"
-    }`}
-  >
-    {highlighted && (
-      <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#D97706] text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
-        {t("landing.mostPopular")}
-      </div>
-    )}
-    <h3
-      className={`text-xl font-bold mb-2 ${highlighted ? "text-white" : "text-[#0F2942]"}`}
-    >
-      {name}
-    </h3>
-    <p
-      className={`text-sm mb-6 ${highlighted ? "text-blue-200" : "text-slate-500"}`}
-    >
-      {description}
-    </p>
-    <div className="mb-6">
-      <span
-        className={`text-4xl font-bold ${highlighted ? "text-white" : "text-[#0F2942]"}`}
-      >
-        {price}
-      </span>
-      <span
-        className={`text-sm ${highlighted ? "text-blue-200" : "text-slate-400"}`}
-      >
-        {period}
-      </span>
-    </div>
-    <ul className="space-y-3 mb-8">
-      {features.map((feature, idx) => (
-        <li
-          key={idx}
-          className={`flex items-center gap-3 text-sm ${highlighted ? "text-blue-100" : "text-slate-600"}`}
-        >
-          <Check
-            className={`h-4 w-4 ${highlighted ? "text-[#D97706]" : "text-green-500"}`}
-          />
-          {feature}
-        </li>
-      ))}
-    </ul>
-    <Link href="/register">
-      <Button
-        className={`w-full py-3 h-auto rounded-xl font-bold transition-all ${
-          highlighted
-            ? "bg-[#D97706] hover:bg-[#B45309] text-white"
-            : "bg-[#0F2942] hover:bg-[#1E3A56] text-white"
-        }`}
-      >
-        {ctaText}
-      </Button>
-    </Link>
-  </div>
-);
-
-const StatCard = ({ value, label }: { value: string; label: string }) => (
-  <div className="text-center">
-    <div className="text-4xl md:text-5xl font-bold text-white mb-2">
-      {value}
-    </div>
-    <div className="text-white/70 text-sm font-medium">{label}</div>
-  </div>
-);
+// [HIDDEN FOR GRADUATION PRESENTATION — re-enable when payment is ready]
+// const PricingCard = ({ ... }) => ( ... );
 
 export default function LandingPage() {
   const { t, isRTL } = useI18n();
@@ -153,629 +38,305 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F2942] text-white overflow-hidden relative selection:bg-[#D97706] selection:text-white flex flex-col">
-      {/* Abstract Background Shapes */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
-        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-[#D97706]/10 rounded-full blur-[120px]"></div>
-        <div className="absolute top-[40%] -right-[10%] w-[40%] h-[40%] bg-[#1E3A56]/40 rounded-full blur-[100px]"></div>
-      </div>
-
-      {/* Navbar */}
-      <nav className="relative z-20 flex justify-between items-center px-6 md:px-8 py-6 max-w-7xl mx-auto w-full">
-        <Link href="/" className="flex items-center gap-3 cursor-pointer group">
-          <div className="bg-white rounded-xl p-1.5 shadow-lg shadow-orange-900/20 group-hover:scale-105 transition-transform">
-            <Image
-              src="/silah-logo.svg"
-              alt="Silah"
-              width={32}
-              height={32}
-              className="h-8 w-auto"
-            />
-          </div>
-          <h1 className="font-bold text-2xl tracking-wide font-serif text-white">
-            {t("landing.appName")}
-          </h1>
-        </Link>
-        <div className="flex items-center gap-4 md:gap-6">
-          <button
-            onClick={() => scrollToSection("features")}
-            className="hidden md:block text-sm font-medium text-white/80 hover:text-white transition-colors"
-          >
-            {t("landing.features")}
-          </button>
-          <button
-            onClick={() => scrollToSection("solutions")}
-            className="hidden md:block text-sm font-medium text-white/80 hover:text-white transition-colors"
-          >
-            {t("landing.solutions")}
-          </button>
-          <button
-            onClick={() => scrollToSection("pricing")}
-            className="hidden md:block text-sm font-medium text-white/80 hover:text-white transition-colors"
-          >
-            {t("landing.pricing")}
-          </button>
-          <LanguageToggle
-            variant="icon"
-            className="text-white/80 hover:text-white hover:bg-white/10"
-          />
-          <Link
-            href="/login"
-            className="text-white/80 hover:text-white text-sm font-bold transition-colors"
-          >
-            {t("auth.signIn")}
-          </Link>
-          <Link href="/register">
-            <Button className="bg-[#D97706] hover:bg-[#B45309] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-orange-900/20 hover:shadow-orange-900/40">
-              {t("landing.getStarted")}
-            </Button>
-          </Link>
+    <div className="min-h-screen bg-white text-[#0F2942] overflow-hidden relative selection:bg-[#D97706] selection:text-white flex flex-col">
+      {/* Navbar + Hero wrapper with navy gradient */}
+      <div className="bg-gradient-to-b from-[#0F2942] via-[#0F2942] to-[#f8fafc] relative">
+        {/* Background accents */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <div className="absolute -top-[10%] -right-[10%] w-[50%] h-[60%] bg-[#D97706]/10 rounded-full blur-[120px]"></div>
+          <div className="absolute top-[40%] -left-[10%] w-[40%] h-[40%] bg-[#1E3A56]/40 rounded-full blur-[100px]"></div>
         </div>
-      </nav>
 
-      {/* Hero Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-8 pt-10 md:pt-14 pb-20 flex flex-col items-center text-center">
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold font-serif mb-6 leading-tight animate-in fade-in slide-in-from-bottom-8 duration-700 drop-shadow-2xl text-white">
-          {t("landing.heroTitle")}{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D97706] to-[#fb923c]">
-            {t("landing.heroHighlight")}
-          </span>
-        </h1>
-        <p className="text-lg text-white/80 max-w-2xl mb-8 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700">
-          {t("landing.heroDescription")}
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700 w-full sm:w-auto">
-          <Link href="/register">
-            <Button className="bg-[#D97706] hover:bg-[#B45309] text-white px-8 py-3 h-auto rounded-2xl font-bold text-base shadow-xl shadow-orange-900/40 transition-all hover:scale-105 flex items-center justify-center gap-2 group w-full sm:w-auto">
-              {t("landing.startFreeTrial")}{" "}
-              <ChevronRight
-                size={18}
-                className={`group-hover:translate-x-1 transition-transform ${isRTL ? "rotate-180 group-hover:-translate-x-1" : ""}`}
+        {/* Navbar */}
+        <nav className="relative z-20 flex justify-between items-center px-6 md:px-8 py-5 max-w-7xl mx-auto w-full">
+          <Link href="/" className="flex items-center gap-3 cursor-pointer group">
+            <div className="bg-white rounded-xl p-1.5 shadow-lg shadow-orange-900/20 group-hover:scale-105 transition-transform">
+              <Image
+                src="/silah-logo.svg"
+                alt="Silah"
+                width={32}
+                height={32}
+                className="h-8 w-auto"
               />
-            </Button>
+            </div>
+            <h1 className="font-bold text-2xl tracking-wide font-serif text-white">
+              {t("landing.appName")}
+            </h1>
           </Link>
-        </div>
+          <div className="flex items-center gap-4 md:gap-6">
+            <button
+              onClick={() => scrollToSection("features")}
+              className="hidden md:block text-sm font-medium text-white/70 hover:text-white transition-colors"
+            >
+              {t("landing.features")}
+            </button>
+            <button
+              onClick={() => scrollToSection("how-it-works")}
+              className="hidden md:block text-sm font-medium text-white/70 hover:text-white transition-colors"
+            >
+              {t("landing.technologyLabel")}
+            </button>
+            {/* [HIDDEN FOR GRADUATION PRESENTATION] Pricing nav link
+            <button
+              onClick={() => scrollToSection("pricing")}
+              className="hidden md:block text-sm font-medium text-white/70 hover:text-white transition-colors"
+            >
+              {t("landing.pricing")}
+            </button>
+            */}
+            <LanguageToggle
+              variant="icon"
+              className="text-white/70 hover:text-white hover:bg-white/10"
+            />
+            <Link
+              href="/login"
+              className="text-white/80 hover:text-white text-sm font-bold transition-colors"
+            >
+              {t("auth.signIn")}
+            </Link>
+            <Link href="/register">
+              <Button className="bg-[#D97706] hover:bg-[#B45309] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-orange-900/20">
+                {t("landing.getStarted")}
+              </Button>
+            </Link>
+          </div>
+        </nav>
 
-        {/* Hero Visual / Glass Card */}
-        <div className="mt-16 w-full max-w-6xl h-[600px] md:h-auto md:aspect-[21/9] bg-gradient-to-br from-white/10 to-white/5 rounded-t-[32px] border-t border-l border-r border-white/20 backdrop-blur-md shadow-2xl p-2 md:p-4 animate-in fade-in slide-in-from-bottom-12 duration-1000 relative overflow-hidden mx-4">
-          <div className="absolute inset-0 bg-[#f8fafc] rounded-t-[24px] top-2 left-2 right-2 flex flex-col overflow-hidden shadow-inner">
-            {/* Mock Header */}
-            <div className="h-14 bg-white border-b border-slate-200 flex items-center px-6 justify-between shrink-0">
-              <div className="flex gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                <div className="w-3 h-3 rounded-full bg-amber-400"></div>
-                <div className="w-3 h-3 rounded-full bg-green-400"></div>
+        {/* ════════════════════════════════════════ */}
+        {/* HERO — Split layout: text + app preview */}
+        {/* ════════════════════════════════════════ */}
+        <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-8 pt-12 md:pt-20 pb-10 md:pb-80">
+          <div className={`flex flex-col lg:flex-row items-center gap-12 lg:gap-16 ${isRTL ? "lg:flex-row-reverse" : ""}`}>
+            {/* Text side */}
+            <div className={`flex-1 ${isRTL ? "text-right" : "text-left"}`}>
+              
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-serif mb-6 leading-[1.1] text-white">
+                {t("landing.heroTitle")}{" "}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D97706] to-[#fb923c]">
+                  {t("landing.heroHighlight")}
+                </span>
+              </h1>
+              <p className="text-base md:text-lg text-white/70 max-w-xl mb-8 leading-relaxed">
+                {t("landing.heroDescription")}
+              </p>
+            <div className={`flex flex-col sm:flex-row gap-4 ${isRTL ? "sm:flex-row-reverse" : ""}`}>
+              <Link href="/register">
+                <Button className="bg-[#D97706] hover:bg-[#B45309] text-white px-8 py-3.5 h-auto rounded-2xl font-bold text-base shadow-xl shadow-orange-900/20 transition-all hover:scale-105 flex items-center justify-center gap-2 group w-full sm:w-auto">
+                  {t("landing.startFreeTrial")}{" "}
+                  <ChevronRight
+                    size={18}
+                    className={`group-hover:translate-x-1 transition-transform ${isRTL ? "rotate-180 group-hover:-translate-x-1" : ""}`}
+                  />
+                </Button>
+              </Link>
+              <button
+                onClick={() => scrollToSection("how-it-works")}
+                className="px-6 py-3.5 rounded-2xl font-bold text-sm text-white border border-white/20 hover:border-white/40 hover:bg-white/10 transition-all"
+              >
+                {t("landing.technologyLabel")}
+              </button>
+            </div>
+
+            {/* Inline stats */}
+            <div className={`flex flex-wrap gap-4 sm:gap-6 mt-8 pt-6 border-t border-white/10 ${isRTL ? "flex-row-reverse" : ""}`}>
+              <div className="flex-1 min-w-[120px]">
+                <div className="text-xl sm:text-2xl font-bold text-white leading-tight mb-1">{isRTL ? "OCR عربي" : "Arabic OCR"}</div>
+                <div className="text-[10px] sm:text-xs text-white/50 font-medium leading-snug">{isRTL ? "ماسح مستندات عربي من شركة عمق" : "Powered by Deep Document Scanner"}</div>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="h-2 w-32 bg-slate-100 rounded-full"></div>
-                <div className="w-8 h-8 rounded-full bg-slate-100"></div>
+              <div className="flex-1 min-w-[120px]">
+                <div className="text-xl sm:text-2xl font-bold text-white leading-tight mb-1">{isRTL ? "+20 نظام" : "20+ Systems"}</div>
+                <div className="text-[10px] sm:text-xs text-white/50 font-medium leading-snug">{isRTL ? "أكثر من 20 نظام متكامل لخدمتك" : "More than 20 systems in the platform"}</div>
+              </div>
+              <div className="flex-1 min-w-[120px]">
+                <div className="text-xl sm:text-2xl font-bold text-white leading-tight mb-1">{isRTL ? "50 ألف قضية" : "About 50K Cases"}</div>
+                <div className="text-[10px] sm:text-xs text-white/50 font-medium leading-snug">{isRTL ? "دُربت لتناسب النظام السعودي" : "Trained on about 50k Saudi legal cases"}</div>
               </div>
             </div>
-            {/* Mock Body */}
-            <div className="flex-1 p-6 md:p-8 bg-slate-50 flex gap-6 overflow-hidden relative">
-              {/* Overlay indicating AI Processing */}
-              <div
-                className={`hidden md:flex absolute top-10 ${isRTL ? "left-10" : "right-10"} z-20 bg-white/90 backdrop-blur border border-[#D97706]/20 p-4 rounded-xl shadow-lg animate-in slide-in-from-right duration-1000 items-center gap-4`}
-              >
-                <div className="bg-[#D97706]/10 p-2 rounded-lg">
-                  <Sparkles size={20} className="text-[#D97706]" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-[#0F2942]">
-                    {t("landing.aiComplete")}
-                  </p>
-                  <p className="text-[10px] text-slate-500">
-                    {t("landing.foundRegulations")}
-                  </p>
-                </div>
+          </div>
+
+          {/* App preview side */}
+          <div className="flex-1 w-full max-w-xl lg:max-w-none">
+            <div className="bg-white rounded-2xl border border-white/20 shadow-2xl shadow-black/20 overflow-hidden">
+              {/* Window chrome */}
+              <div className="h-10 bg-slate-50 border-b border-slate-200 flex items-center px-4 gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-400"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-amber-400"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-green-400"></div>
               </div>
-
-              {/* Sidebar Mock */}
-              <div className="w-16 bg-white rounded-xl border border-slate-200 hidden md:flex flex-col items-center py-4 gap-4 shrink-0">
-                <div className="w-8 h-8 rounded-lg bg-[#0F2942] mb-4"></div>
-                <div className="w-8 h-8 rounded-lg bg-slate-100"></div>
-                <div className="w-8 h-8 rounded-lg bg-slate-100"></div>
-                <div className="w-8 h-8 rounded-lg bg-slate-100"></div>
-              </div>
-
-              {/* Main Content Mock - Case Analysis */}
-              <div className="flex-1 space-y-6">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700">
-                        OPEN
-                      </span>
-                      <span className="text-xs text-slate-400 font-mono">
-                        #CASE-2025-001
-                      </span>
-                    </div>
-                    <h3 className="font-bold text-[#0F2942] text-lg">
-                      {t("landing.heroCaseTitle")}
-                    </h3>
-                    <p className="text-xs text-slate-500 max-w-md leading-relaxed">
-                      {t("landing.heroCaseDesc")}
-                    </p>
-                  </div>
-                </div>
-
-                {/* AI Analysis Section */}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex-1 p-5 space-y-4">
+              {/* App mock */}
+              <div className="p-5 md:p-6 bg-slate-50">
+                {/* Case header */}
+                <div className="mb-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <Sparkles size={16} className="text-[#D97706]" />
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700">OPEN</span>
+                    <span className="text-xs text-slate-400 font-mono">#CASE-2025-001</span>
+                  </div>
+                  <h3 className="font-bold text-[#0F2942] text-base mb-1">
+                    {t("landing.heroCaseTitle")}
+                  </h3>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    {t("landing.heroCaseDesc")}
+                  </p>
+                </div>
+
+                {/* AI suggestions */}
+                <div className="bg-white rounded-xl border border-slate-200 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles size={14} className="text-[#D97706]" />
                     <h4 className="font-bold text-[#0F2942] text-sm">
                       {t("landing.heroAiAnalysis")}
                     </h4>
+                    <span className="ml-auto text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                      {t("landing.aiComplete")}
+                    </span>
                   </div>
-
-                  <div className="space-y-3">
-                    {/* Regulation 1 */}
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center group hover:border-[#D97706]/30 transition-colors">
+                  <div className="space-y-2">
+                    <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 flex justify-between items-center">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-[#0F2942]">
-                          <Scale size={14} />
+                        <div className="w-7 h-7 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-[#0F2942]">
+                          <Scale size={12} />
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-[#0F2942]">
-                            {t("landing.heroSuggestion1")}
-                          </p>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">
-                              {t("landing.heroMatch")}
-                            </span>
-                          </div>
+                          <p className="text-sm font-bold text-[#0F2942]">{t("landing.heroSuggestion1")}</p>
+                          <span className="text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">{t("landing.heroMatch")}</span>
                         </div>
                       </div>
-                      <Check size={16} className="text-green-500" />
+                      <Check size={14} className="text-green-500" />
                     </div>
-
-                    {/* Regulation 2 */}
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center group hover:border-[#D97706]/30 transition-colors">
+                    <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 flex justify-between items-center">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-[#0F2942]">
-                          <Scale size={14} />
+                        <div className="w-7 h-7 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-[#0F2942]">
+                          <Scale size={12} />
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-[#0F2942]">
-                            {t("landing.heroSuggestion2")}
-                          </p>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold text-[#D97706] bg-orange-50 px-1.5 py-0.5 rounded flex items-center gap-1">
-                              <Bell size={8} /> {t("landing.heroUpdateBadge")}
-                            </span>
-                          </div>
+                          <p className="text-sm font-bold text-[#0F2942]">{t("landing.heroSuggestion2")}</p>
+                          <span className="text-[10px] font-bold text-[#D97706] bg-orange-50 px-1.5 py-0.5 rounded flex items-center gap-1 w-fit">
+                            <Bell size={8} /> {t("landing.heroUpdateBadge")}
+                          </span>
                         </div>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 w-7 p-0 rounded-full hover:bg-slate-200"
-                      >
-                        <ChevronRight
-                          size={14}
-                          className={isRTL ? "rotate-180" : ""}
-                        />
-                      </Button>
+                      <ChevronRight size={14} className={`text-slate-400 ${isRTL ? "rotate-180" : ""}`} />
                     </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Right Panel Mock */}
-              <div className="w-72 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hidden lg:block shrink-0">
-                <div className="flex items-center gap-2 mb-6">
-                  <div className="w-6 h-6 bg-[#D97706] rounded"></div>
-                  <div className="w-24 h-4 bg-slate-800 rounded"></div>
-                </div>
-                <div className="space-y-4">
-                  <div className="h-32 bg-slate-50 rounded-xl border border-green-100 relative overflow-hidden">
-                    <div
-                      className={`absolute top-0 ${isRTL ? "right-0" : "left-0"} w-1 h-full bg-green-500`}
-                    ></div>
-                  </div>
-                  <div className="h-32 bg-slate-50 rounded-xl border border-slate-200 opacity-50"></div>
+                  <p className="text-[10px] text-slate-400 mt-3 text-center">{t("landing.foundRegulations")}</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Platform Stats */}
-      <div className="bg-[#1E3A56] py-16 px-6 md:px-8 relative z-20">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
-          <StatCard
-            value={isRTL ? "عربي + EN" : "AR + EN"}
-            label={t("landing.capabilityBilingual")}
-          />
-          <StatCard
-            value="< 500ms"
-            label={t("landing.capabilityResponse")}
-          />
-          <StatCard
-            value="BGE-M3"
-            label={t("landing.capabilityEmbeddings")}
-          />
-          <StatCard
-            value="24/7"
-            label={t("landing.capabilityMonitoring")}
-          />
-        </div>
       </div>
 
-      {/* Platform Features */}
-      <div
-        id="features"
-        className="bg-white text-[#0F2942] py-24 px-6 md:px-8 relative z-20"
-      >
+      {/* ══════════════════════ */}
+      {/* FEATURES — Clean grid */}
+      {/* ══════════════════════ */}
+      <div id="features" className="bg-white py-20 md:py-24 px-6 md:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <span className="inline-block text-[#D97706] text-sm font-bold uppercase tracking-widest mb-4">
-              {t("landing.featuresLabel")}
-            </span>
-            <h2 className="text-3xl md:text-5xl font-bold font-serif mb-6">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl font-bold font-serif text-[#0F2942] mb-4">
               {t("landing.featuresTitle")}
             </h2>
-            <p className="text-slate-500 text-lg max-w-2xl mx-auto leading-relaxed">
+            <p className="text-slate-500 text-base max-w-2xl mx-auto leading-relaxed">
               {t("landing.featuresSubtitle")}
             </p>
           </div>
 
-          {/* Main Features */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
-            <FeatureCard
-              icon={<Sparkles className="text-white" size={28} />}
-              title={t("landing.aiMatching")}
-              desc={t("landing.aiMatchingDesc")}
-              color="bg-[#D97706]"
-            />
-            <FeatureCard
-              icon={<Bell className="text-white" size={28} />}
-              title={t("landing.regulationAlerts")}
-              desc={t("landing.regulationAlertsDesc")}
-              color="bg-[#0F2942]"
-            />
-            <FeatureCard
-              icon={<LayoutDashboard className="text-white" size={28} />}
-              title={t("landing.caseManagement")}
-              desc={t("landing.caseManagementDesc")}
-              color="bg-[#1E3A56]"
-            />
-          </div>
-
-          {/* Additional Features Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="p-6 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-colors group">
-              <FileText className="h-8 w-8 text-[#D97706] mb-4 group-hover:scale-110 transition-transform" />
-              <h4 className="font-bold text-[#0F2942] mb-2">
-                {t("landing.documentProcessing")}
-              </h4>
-              <p className="text-sm text-slate-500">
-                {t("landing.documentProcessingDesc")}
-              </p>
-            </div>
-            <div className="p-6 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-colors group">
-              <Zap className="h-8 w-8 text-[#D97706] mb-4 group-hover:scale-110 transition-transform" />
-              <h4 className="font-bold text-[#0F2942] mb-2">
-                {t("landing.realTimeUpdates")}
-              </h4>
-              <p className="text-sm text-slate-500">
-                {t("landing.realTimeUpdatesDesc")}
-              </p>
-            </div>
-            <div className="p-6 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-colors group">
-              <Users className="h-8 w-8 text-[#D97706] mb-4 group-hover:scale-110 transition-transform" />
-              <h4 className="font-bold text-[#0F2942] mb-2">
-                {t("landing.teamManagement")}
-              </h4>
-              <p className="text-sm text-slate-500">
-                {t("landing.teamManagementDesc")}
-              </p>
-            </div>
-            <div className="p-6 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-colors group">
-              <FolderOpen className="h-8 w-8 text-[#D97706] mb-4 group-hover:scale-110 transition-transform" />
-              <h4 className="font-bold text-[#0F2942] mb-2">
-                {t("landing.documentStorage")}
-              </h4>
-              <p className="text-sm text-slate-500">
-                {t("landing.documentStorageDesc")}
-              </p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              { icon: <Sparkles size={22} />, title: t("landing.aiMatching"), desc: t("landing.aiMatchingDesc"), color: "bg-[#D97706]" },
+              { icon: <Bell size={22} />, title: t("landing.regulationAlerts"), desc: t("landing.regulationAlertsDesc"), color: "bg-[#0F2942]" },
+              { icon: <LayoutDashboard size={22} />, title: t("landing.caseManagement"), desc: t("landing.caseManagementDesc"), color: "bg-[#1E3A56]" },
+              { icon: <FileText size={22} />, title: t("landing.documentProcessing"), desc: t("landing.documentProcessingDesc"), color: "bg-[#D97706]" },
+              { icon: <Zap size={22} />, title: t("landing.realTimeUpdates"), desc: t("landing.realTimeUpdatesDesc"), color: "bg-[#0F2942]" },
+              { icon: <Users size={22} />, title: t("landing.teamManagement"), desc: t("landing.teamManagementDesc"), color: "bg-[#1E3A56]" },
+            ].map((feature, idx) => (
+              <div key={idx} className="group bg-white p-6 rounded-2xl border border-slate-100 hover:border-[#D97706]/20 hover:shadow-lg transition-all duration-300">
+                <div className={`w-11 h-11 rounded-xl ${feature.color} flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform`}>
+                  {feature.icon}
+                </div>
+                <h3 className="text-lg font-bold text-[#0F2942] mb-2">{feature.title}</h3>
+                <p className="text-slate-500 text-sm leading-relaxed">{feature.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Who Uses Silah */}
-      <div id="solutions" className="bg-slate-50 py-24 px-6 md:px-8">
+      {/* ═══════════════════════════════ */}
+      {/* HOW IT WORKS — 3-step pipeline */}
+      {/* ═══════════════════════════════ */}
+      <div id="how-it-works" className="bg-gradient-to-b from-[#f0f4fa] to-white py-20 md:py-24 px-6 md:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <span className="inline-block text-[#D97706] text-sm font-bold uppercase tracking-widest mb-4">
-              {t("landing.solutionsLabel")}
-            </span>
-            <h2 className="text-3xl md:text-5xl font-bold font-serif text-[#0F2942] mb-6">
-              {t("landing.solutionsTitle")}
-            </h2>
-            <p className="text-slate-500 text-lg max-w-2xl mx-auto">
-              {t("landing.solutionsSubtitle")}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Law Firms */}
-            <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100 hover:shadow-xl transition-all group">
-              <div className="flex items-start gap-6">
-                <div className="bg-[#0F2942] p-4 rounded-2xl text-white group-hover:bg-[#D97706] transition-colors">
-                  <Scale size={32} />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-[#0F2942] mb-3">
-                    {t("landing.lawFirms")}
-                  </h3>
-                  <p className="text-slate-500 leading-relaxed mb-4">
-                    {t("landing.lawFirmsDesc")}
-                  </p>
-                  <Link
-                    href="/register"
-                    className="inline-flex items-center gap-2 text-[#D97706] font-bold text-sm hover:underline"
-                  >
-                    {t("landing.learnMore")}{" "}
-                    <ArrowRight
-                      size={16}
-                      className={isRTL ? "rotate-180" : ""}
-                    />
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Corporate Legal */}
-            <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100 hover:shadow-xl transition-all group">
-              <div className="flex items-start gap-6">
-                <div className="bg-[#0F2942] p-4 rounded-2xl text-white group-hover:bg-[#D97706] transition-colors">
-                  <Globe size={32} />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-[#0F2942] mb-3">
-                    {t("landing.legalDepts")}
-                  </h3>
-                  <p className="text-slate-500 leading-relaxed mb-4">
-                    {t("landing.legalDeptsDesc")}
-                  </p>
-                  <Link
-                    href="/register"
-                    className="inline-flex items-center gap-2 text-[#D97706] font-bold text-sm hover:underline"
-                  >
-                    {t("landing.learnMore")}{" "}
-                    <ArrowRight
-                      size={16}
-                      className={isRTL ? "rotate-180" : ""}
-                    />
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Solo Practitioners */}
-            <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100 hover:shadow-xl transition-all group">
-              <div className="flex items-start gap-6">
-                <div className="bg-[#0F2942] p-4 rounded-2xl text-white group-hover:bg-[#D97706] transition-colors">
-                  <Users size={32} />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-[#0F2942] mb-3">
-                    {t("landing.soloLawyers")}
-                  </h3>
-                  <p className="text-slate-500 leading-relaxed mb-4">
-                    {t("landing.soloLawyersDesc")}
-                  </p>
-                  <Link
-                    href="/register"
-                    className="inline-flex items-center gap-2 text-[#D97706] font-bold text-sm hover:underline"
-                  >
-                    {t("landing.learnMore")}{" "}
-                    <ArrowRight
-                      size={16}
-                      className={isRTL ? "rotate-180" : ""}
-                    />
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Consultants */}
-            <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100 hover:shadow-xl transition-all group">
-              <div className="flex items-start gap-6">
-                <div className="bg-[#0F2942] p-4 rounded-2xl text-white group-hover:bg-[#D97706] transition-colors">
-                  <Award size={32} />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-[#0F2942] mb-3">
-                    {t("landing.consultants")}
-                  </h3>
-                  <p className="text-slate-500 leading-relaxed mb-4">
-                    {t("landing.consultantsDesc")}
-                  </p>
-                  <Link
-                    href="/register"
-                    className="inline-flex items-center gap-2 text-[#D97706] font-bold text-sm hover:underline"
-                  >
-                    {t("landing.learnMore")}{" "}
-                    <ArrowRight
-                      size={16}
-                      className={isRTL ? "rotate-180" : ""}
-                    />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* How the AI Works */}
-      <div className="bg-white py-24 px-6 md:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <span className="inline-block text-[#D97706] text-sm font-bold uppercase tracking-widest mb-4">
+          <div className="text-center mb-14">
+            <span className="inline-block text-[#D97706] text-xs font-bold uppercase tracking-widest mb-3">
               {t("landing.technologyLabel")}
             </span>
-            <h2 className="text-3xl md:text-5xl font-bold font-serif text-[#0F2942] mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold font-serif text-[#0F2942] mb-4">
               {t("landing.technologyTitle")}
             </h2>
-            <p className="text-slate-500 text-lg max-w-2xl mx-auto">
+            <p className="text-slate-500 text-base max-w-2xl mx-auto leading-relaxed">
               {t("landing.technologySubtitle")}
             </p>
           </div>
 
-          {/* Pipeline Steps */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-all group relative">
-              <div className="absolute -top-4 left-8 bg-[#D97706] text-white text-xs font-bold w-8 h-8 rounded-full flex items-center justify-center shadow-lg">
-                1
+          {/* Steps */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            {[
+              { step: "1", icon: <Search size={24} />, title: t("landing.step1Title"), desc: t("landing.step1Desc") },
+              { step: "2", icon: <BarChart3 size={24} />, title: t("landing.step2Title"), desc: t("landing.step2Desc") },
+              { step: "3", icon: <Shield size={24} />, title: t("landing.step3Title"), desc: t("landing.step3Desc") },
+            ].map((item, idx) => (
+              <div key={idx} className="relative bg-[#0F2942] p-7 rounded-2xl group hover:bg-[#1E3A56] transition-all shadow-lg">
+                <div className="absolute -top-3 left-7 bg-[#D97706] text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shadow-md">
+                  {item.step}
+                </div>
+                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-[#D97706] mb-4 group-hover:scale-110 transition-transform">
+                  {item.icon}
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
+                <p className="text-white/60 text-sm leading-relaxed">{item.desc}</p>
               </div>
-              <div className="w-14 h-14 rounded-2xl bg-[#D97706] flex items-center justify-center shadow-lg mb-6 group-hover:scale-110 transition-transform">
-                <Search className="text-white" size={28} />
-              </div>
-              <h3 className="text-xl font-bold text-[#0F2942] mb-3">
-                {t("landing.step1Title")}
-              </h3>
-              <p className="text-slate-500 leading-relaxed">
-                {t("landing.step1Desc")}
-              </p>
-            </div>
-            <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-all group relative">
-              <div className="absolute -top-4 left-8 bg-[#0F2942] text-white text-xs font-bold w-8 h-8 rounded-full flex items-center justify-center shadow-lg">
-                2
-              </div>
-              <div className="w-14 h-14 rounded-2xl bg-[#0F2942] flex items-center justify-center shadow-lg mb-6 group-hover:scale-110 transition-transform">
-                <BarChart3 className="text-white" size={28} />
-              </div>
-              <h3 className="text-xl font-bold text-[#0F2942] mb-3">
-                {t("landing.step2Title")}
-              </h3>
-              <p className="text-slate-500 leading-relaxed">
-                {t("landing.step2Desc")}
-              </p>
-            </div>
-            <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 hover:border-[#D97706]/30 transition-all group relative">
-              <div className="absolute -top-4 left-8 bg-[#1E3A56] text-white text-xs font-bold w-8 h-8 rounded-full flex items-center justify-center shadow-lg">
-                3
-              </div>
-              <div className="w-14 h-14 rounded-2xl bg-[#1E3A56] flex items-center justify-center shadow-lg mb-6 group-hover:scale-110 transition-transform">
-                <Shield className="text-white" size={28} />
-              </div>
-              <h3 className="text-xl font-bold text-[#0F2942] mb-3">
-                {t("landing.step3Title")}
-              </h3>
-              <p className="text-slate-500 leading-relaxed">
-                {t("landing.step3Desc")}
-              </p>
-            </div>
+            ))}
           </div>
 
-          {/* Key Technical Details */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="flex items-center gap-4 p-5 bg-slate-50 rounded-xl border border-slate-100">
-              <Languages className="h-10 w-10 text-[#D97706] shrink-0" />
-              <div>
-                <h4 className="font-bold text-[#0F2942] text-sm">{t("landing.techBilingual")}</h4>
-                <p className="text-xs text-slate-500">{t("landing.techBilingualDesc")}</p>
+          {/* Tech highlights */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              { icon: <Languages size={20} />, title: t("landing.techBilingual"), desc: t("landing.techBilingualDesc") },
+              { icon: <Clock size={20} />, title: t("landing.techSpeed"), desc: t("landing.techSpeedDesc") },
+              { icon: <Shield size={20} />, title: t("landing.techSecurity"), desc: t("landing.techSecurityDesc") },
+            ].map((item, idx) => (
+              <div key={idx} className="flex items-center gap-4 p-4 bg-white rounded-xl border border-slate-200">
+                <div className="text-[#D97706] shrink-0">{item.icon}</div>
+                <div>
+                  <h4 className="font-bold text-[#0F2942] text-sm">{item.title}</h4>
+                  <p className="text-xs text-slate-500">{item.desc}</p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-4 p-5 bg-slate-50 rounded-xl border border-slate-100">
-              <Clock className="h-10 w-10 text-[#D97706] shrink-0" />
-              <div>
-                <h4 className="font-bold text-[#0F2942] text-sm">{t("landing.techSpeed")}</h4>
-                <p className="text-xs text-slate-500">{t("landing.techSpeedDesc")}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 p-5 bg-slate-50 rounded-xl border border-slate-100">
-              <Shield className="h-10 w-10 text-[#D97706] shrink-0" />
-              <div>
-                <h4 className="font-bold text-[#0F2942] text-sm">{t("landing.techSecurity")}</h4>
-                <p className="text-xs text-slate-500">{t("landing.techSecurityDesc")}</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Pricing */}
-      <div id="pricing" className="bg-slate-50 py-24 px-6 md:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <span className="inline-block text-[#D97706] text-sm font-bold uppercase tracking-widest mb-4">
-              {t("landing.pricingLabel")}
-            </span>
-            <h2 className="text-3xl md:text-5xl font-bold font-serif text-[#0F2942] mb-6">
-              {t("landing.pricingTitle")}
-            </h2>
-            <p className="text-slate-500 text-lg max-w-2xl mx-auto">
-              {t("landing.pricingSubtitle")}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-            <PricingCard
-              name={t("landing.starterPlan")}
-              price={t("landing.starterPrice")}
-              period={t("landing.perMonth")}
-              description={t("landing.starterDesc")}
-              features={[
-                t("landing.starterFeature1"),
-                t("landing.starterFeature2"),
-                t("landing.starterFeature3"),
-                t("landing.starterFeature4"),
-              ]}
-              ctaText={t("landing.getStarted")}
-              t={t}
-            />
-            <PricingCard
-              name={t("landing.professionalPlan")}
-              price={t("landing.professionalPrice")}
-              period={t("landing.perMonth")}
-              description={t("landing.professionalDesc")}
-              features={[
-                t("landing.proFeature1"),
-                t("landing.proFeature2"),
-                t("landing.proFeature3"),
-                t("landing.proFeature4"),
-                t("landing.proFeature5"),
-              ]}
-              highlighted
-              ctaText={t("landing.startFreeTrial")}
-              t={t}
-            />
-            <PricingCard
-              name={t("landing.enterprisePlan")}
-              price={t("landing.enterprisePrice")}
-              period={t("landing.perMonth")}
-              description={t("landing.enterpriseDesc")}
-              features={[
-                t("landing.entFeature1"),
-                t("landing.entFeature2"),
-                t("landing.entFeature3"),
-                t("landing.entFeature4"),
-                t("landing.entFeature5"),
-              ]}
-              ctaText={t("landing.contactSales")}
-              t={t}
-            />
-          </div>
-        </div>
+      {/* [HIDDEN FOR GRADUATION PRESENTATION] Pricing section — re-enable when payment is ready
+      <div id="pricing" className="bg-slate-50 py-20 md:py-24 px-6 md:px-8">
+        ...
       </div>
+      */}
 
-      {/* Call to Action */}
-      <div className="bg-[#0F2942] py-24 px-6 md:px-8 relative overflow-hidden">
-        <div
-          className={`absolute top-0 ${isRTL ? "left-0 -skew-x-12 -translate-x-20" : "right-0 skew-x-12 translate-x-20"} w-1/2 h-full bg-[#1E3A56]/30 transform`}
-        ></div>
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h2 className="text-4xl md:text-5xl font-bold font-serif mb-6 text-white">
+      {/* ═════════════════ */}
+      {/* CTA — Final push */}
+      {/* ═════════════════ */}
+      <div className="bg-[#0F2942] py-20 md:py-24 px-6 md:px-8 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+          <div className={`absolute top-0 ${isRTL ? "left-0" : "right-0"} w-1/3 h-full bg-[#1E3A56]/30`}></div>
+          <div className="absolute -top-[30%] -left-[10%] w-[40%] h-[60%] bg-[#D97706]/10 rounded-full blur-[100px]"></div>
+        </div>
+        <div className="max-w-3xl mx-auto text-center relative z-10">
+          <h2 className="text-3xl md:text-5xl font-bold font-serif mb-5 text-white">
             {t("landing.ctaTitle")}
           </h2>
-          <p className="text-white/70 text-lg mb-10 max-w-2xl mx-auto">
+          <p className="text-white/70 text-base md:text-lg mb-8 max-w-xl mx-auto leading-relaxed">
             {t("landing.ctaDescription")}
           </p>
           <Link href="/register">
@@ -783,162 +344,64 @@ export default function LandingPage() {
               {t("landing.createFreeAccount")}
             </Button>
           </Link>
-          <p className="text-white/50 text-sm mt-6">
+          {/* [HIDDEN FOR GRADUATION PRESENTATION] No credit card line
+          <p className="text-white/40 text-sm mt-5">
             {t("landing.noCreditCard")}
           </p>
+          */}
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="bg-[#0a1c2e] py-16 px-8 border-t border-white/5">
+      {/* ════════ */}
+      {/* FOOTER   */}
+      {/* ════════ */}
+      <div className="bg-[#0a1c2e] py-14 px-8 border-t border-white/5">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-            {/* Company */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
             <div>
-              <h4 className="font-bold text-white mb-4">
-                {t("landing.footerCompany")}
-              </h4>
+              <h4 className="font-bold text-white mb-4 text-sm">{t("landing.footerCompany")}</h4>
               <ul className="space-y-2">
-                <li>
-                  <Link
-                    href="#"
-                    className="text-white/60 hover:text-white transition-colors text-sm"
-                  >
-                    {t("landing.footerAbout")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="#"
-                    className="text-white/60 hover:text-white transition-colors text-sm"
-                  >
-                    {t("landing.footerCareers")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="#"
-                    className="text-white/60 hover:text-white transition-colors text-sm"
-                  >
-                    {t("landing.footerPress")}
-                  </Link>
-                </li>
+                <li><Link href="#" className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.footerAbout")}</Link></li>
+                <li><Link href="#" className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.footerCareers")}</Link></li>
+                <li><Link href="#" className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.footerPress")}</Link></li>
               </ul>
             </div>
-            {/* Product */}
             <div>
-              <h4 className="font-bold text-white mb-4">
-                {t("landing.footerProduct")}
-              </h4>
+              <h4 className="font-bold text-white mb-4 text-sm">{t("landing.footerProduct")}</h4>
               <ul className="space-y-2">
-                <li>
-                  <button
-                    onClick={() => scrollToSection("features")}
-                    className="text-white/60 hover:text-white transition-colors text-sm"
-                  >
-                    {t("landing.features")}
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => scrollToSection("pricing")}
-                    className="text-white/60 hover:text-white transition-colors text-sm"
-                  >
-                    {t("landing.pricing")}
-                  </button>
-                </li>
-                <li>
-                  <Link
-                    href="#"
-                    className="text-white/60 hover:text-white transition-colors text-sm"
-                  >
-                    {t("landing.footerIntegrations")}
-                  </Link>
-                </li>
+                <li><button onClick={() => scrollToSection("features")} className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.features")}</button></li>
+                {/* [HIDDEN FOR GRADUATION PRESENTATION] Pricing footer link
+                <li><button onClick={() => scrollToSection("pricing")} className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.pricing")}</button></li>
+                */}
+                <li><Link href="#" className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.footerIntegrations")}</Link></li>
               </ul>
             </div>
-            {/* Resources */}
             <div>
-              <h4 className="font-bold text-white mb-4">
-                {t("landing.footerResources")}
-              </h4>
+              <h4 className="font-bold text-white mb-4 text-sm">{t("landing.footerResources")}</h4>
               <ul className="space-y-2">
-                <li>
-                  <Link
-                    href="#"
-                    className="text-white/60 hover:text-white transition-colors text-sm"
-                  >
-                    {t("landing.footerDocs")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="#"
-                    className="text-white/60 hover:text-white transition-colors text-sm"
-                  >
-                    {t("landing.footerHelp")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="#"
-                    className="text-white/60 hover:text-white transition-colors text-sm"
-                  >
-                    {t("landing.footerBlog")}
-                  </Link>
-                </li>
+                <li><Link href="#" className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.footerDocs")}</Link></li>
+                <li><Link href="#" className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.footerHelp")}</Link></li>
+                <li><Link href="#" className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.footerBlog")}</Link></li>
               </ul>
             </div>
-            {/* Legal */}
             <div>
-              <h4 className="font-bold text-white mb-4">
-                {t("landing.footerLegal")}
-              </h4>
+              <h4 className="font-bold text-white mb-4 text-sm">{t("landing.footerLegal")}</h4>
               <ul className="space-y-2">
-                <li>
-                  <Link
-                    href="#"
-                    className="text-white/60 hover:text-white transition-colors text-sm"
-                  >
-                    {t("landing.privacyPolicy")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="#"
-                    className="text-white/60 hover:text-white transition-colors text-sm"
-                  >
-                    {t("landing.termsOfService")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="#"
-                    className="text-white/60 hover:text-white transition-colors text-sm"
-                  >
-                    {t("landing.footerSecurity")}
-                  </Link>
-                </li>
+                <li><Link href="#" className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.privacyPolicy")}</Link></li>
+                <li><Link href="#" className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.termsOfService")}</Link></li>
+                <li><Link href="#" className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.footerSecurity")}</Link></li>
               </ul>
             </div>
           </div>
 
-          <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
               <div className="bg-white rounded-lg p-1">
-                <Image
-                  src="/silah-logo.svg"
-                  alt="Silah"
-                  width={24}
-                  height={24}
-                  className="h-6 w-6"
-                />
+                <Image src="/silah-logo.svg" alt="Silah" width={20} height={20} className="h-5 w-5" />
               </div>
-              <span className="font-bold text-white">
-                {t("landing.appName")}
-              </span>
+              <span className="font-bold text-white text-sm">{t("landing.appName")}</span>
             </div>
-            <p className="text-white/40 text-sm">{t("landing.copyright")}</p>
+            <p className="text-white/30 text-xs">{t("landing.copyright")}</p>
           </div>
         </div>
       </div>

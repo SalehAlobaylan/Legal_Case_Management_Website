@@ -32,6 +32,10 @@ import { cn } from "@/lib/utils/cn";
 import { useClient, useClientCases, useSendMessageToClient } from "@/lib/hooks/use-clients";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ClientActivityTimeline } from "@/components/features/clients/client-activity-timeline";
+import { ClientDocuments } from "@/components/features/clients/client-documents";
+import { ClientFinancials } from "@/components/features/clients/client-financials";
 import {
   Dialog,
   DialogContent,
@@ -235,180 +239,160 @@ export default function ClientDetailPage() {
           </div>
         </div>
 
-        {/* Notes Section */}
-        {client.notes && (
-          <div className="p-5 bg-amber-50/50 rounded-xl border border-amber-100 mb-8">
-            <p className="text-[10px] text-amber-600 font-bold uppercase tracking-wider mb-2">
-              Notes
-            </p>
-            <p className="text-sm text-slate-600 leading-relaxed">{client.notes}</p>
-          </div>
-        )}
-
-        {/* Message Button */}
-        <Button
-          onClick={() => setMessageDialogOpen(true)}
-          className="w-full bg-[#D97706] hover:bg-[#B45309] text-white px-6 py-4 rounded-xl font-bold flex items-center justify-center gap-3 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-base"
-        >
-          <MessageSquare className="h-5 w-5" />
-          {t("clients.sendMessageToClient")}
-        </Button>
-
-        {/* Message Dialog */}
-        <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
-          <DialogContent size="default" className="bg-white dark:bg-white">
-            <DialogHeader icon={<MessageSquare className="h-5 w-5" />}>
-              <DialogTitle className="text-slate-900">{t("clients.sendMessageTo")} {client.name}</DialogTitle>
-            </DialogHeader>
-            <DialogBody>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-bold text-slate-800 mb-2 block">{t("clients.message")}</label>
-                  <textarea
-                    value={messageText}
-                    onChange={(e) => setMessageText(e.target.value)}
-                    placeholder={t("clients.messagePlaceholder")}
-                    dir="auto"
-                    className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/10 min-h-[120px] resize-none"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-bold text-slate-800 mb-2 block">{t("clients.messageType")}</label>
-                  <select
-                    className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] bg-white"
-                    defaultValue="general"
-                    dir={isRTL ? "rtl" : "ltr"}
-                  >
-                    <option value="general">{t("clients.messageTypeGeneral")}</option>
-                    <option value="case_update">{t("clients.messageTypeCaseUpdate")}</option>
-                    <option value="hearing_reminder">{t("clients.messageTypeHearingReminder")}</option>
-                    <option value="document_request">{t("clients.messageTypeDocumentRequest")}</option>
-                  </select>
-                </div>
-              </div>
-            </DialogBody>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setMessageDialogOpen(false);
-                  setMessageText("");
-                }}
-                disabled={isSendingMessage}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={() => {
-                  sendMessage(
-                    { id: clientId, message: messageText, type: "general" },
-                    {
-                      onSuccess: () => {
-                        setMessageDialogOpen(false);
-                        setMessageText("");
-                      },
-                    }
-                  );
-                }}
-                disabled={isSendingMessage || !messageText.trim()}
-                className="bg-[#D97706] hover:bg-[#B45309]"
-              >
-                {isSendingMessage ? t("clients.sending") : t("clients.sendMessage")}
-              </Button>
-            </DialogFooter>
-            <DialogCloseIconButton />
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Associated Cases */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-500 delay-200">
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="font-bold text-lg text-[#0F2942]">
-            {t("clients.associatedCases")} ({isLoadingCases ? "..." : clientCases?.length || 0})
-          </h3>
-          {clientCases && clientCases.length > 0 && (
-            <Button
-              variant="link"
-              className="text-[#D97706] text-sm font-bold hover:underline p-0 h-auto"
-              onClick={() => router.push("/cases")}
-            >
-              {t("clients.viewAllCases")} <ChevronRight className={cn("h-4 w-4", isRTL ? "rotate-180 mr-1" : "ml-1")} />
-            </Button>
-          )}
         </div>
 
-        {isLoadingCases ? (
-          <div className="p-12 text-center">
-            <Loader2 className="h-6 w-6 animate-spin text-[#D97706] mx-auto" />
-            <p className="text-slate-500 text-sm mt-2">{t("cases.loadingCases")}</p>
-          </div>
-        ) : !clientCases || clientCases.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-              <FileText className="text-slate-400 h-7 w-7" />
-            </div>
-            <h4 className="font-bold text-[#0F2942] mb-2">No Cases Yet</h4>
-            <p className="text-slate-500 text-sm mb-6">
-              This client doesn&apos;t have any associated cases.
-            </p>
-            <Button
-              onClick={() => router.push("/cases/new")}
-              className="bg-[#D97706] hover:bg-[#B45309] text-white px-6 py-2.5 rounded-xl font-bold"
-            >
-              Create New Case
-            </Button>
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-100">
-            {clientCases.map((caseItem, index) => (
-              <div
-                key={caseItem.id}
-                onClick={() => router.push(`/cases/${caseItem.id}`)}
-                className={cn(
-                  "p-6 hover:bg-slate-50 transition-all cursor-pointer group",
-                  "animate-in fade-in slide-in-from-left-2 duration-300"
-                )}
-                style={{ animationDelay: `${index * 50}ms` }}
+        <div className="mt-8">
+          <Tabs defaultValue="overview">
+            <TabsList className="w-full justify-start border-b border-slate-200 rounded-none bg-transparent h-auto p-0 mb-8 gap-8 overflow-x-auto">
+              <TabsTrigger 
+                value="overview" 
+                className="bg-transparent! rounded-none border-b-2 border-transparent data-[state=active]:border-[#D97706] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 py-3 font-semibold text-slate-500 data-[state=active]:text-[#D97706]"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-[#0F2942] flex items-center justify-center text-white group-hover:bg-[#D97706] transition-colors shadow-md">
-                      <FileText className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-[#0F2942] group-hover:text-[#D97706] transition-colors">
-                        {caseItem.title}
-                      </h4>
-                      <p className="text-xs text-slate-500 mt-1">
-                        {caseItem.case_number} • {caseItem.case_type?.replace(/_/g, " ")}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span
-                      className={cn(
-                        "px-3 py-1.5 rounded-full text-xs font-bold",
-                        caseItem.status === "open" || caseItem.status === "in_progress"
-                          ? "bg-[#0F2942]/10 text-[#0F2942]"
-                          : caseItem.status === "pending_hearing"
-                            ? "bg-[#D97706]/10 text-[#D97706]"
-                            : "bg-slate-200 text-slate-600"
-                      )}
-                    >
-                      {caseItem.status?.replace(/_/g, " ")}
-                    </span>
-                    <span className="text-xs text-slate-400">
-                      {caseItem.updated_at ? new Date(caseItem.updated_at).toLocaleDateString() : ""}
-                    </span>
-                    <ChevronRight className="h-5 w-5 text-slate-300 group-hover:text-[#D97706] group-hover:translate-x-1 transition-all" />
-                  </div>
+                {t("clients.overviewCases")}
+              </TabsTrigger>
+              <TabsTrigger 
+                value="timeline" 
+                className="bg-transparent! rounded-none border-b-2 border-transparent data-[state=active]:border-[#D97706] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 py-3 font-semibold text-slate-500 data-[state=active]:text-[#D97706]"
+              >
+                {t("clients.activityTimeline")}
+              </TabsTrigger>
+              <TabsTrigger 
+                value="documents" 
+                className="bg-transparent! rounded-none border-b-2 border-transparent data-[state=active]:border-[#D97706] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 py-3 font-semibold text-slate-500 data-[state=active]:text-[#D97706]"
+              >
+                {t("clients.documentsVault")}
+              </TabsTrigger>
+              <TabsTrigger 
+                value="financials" 
+                className="bg-transparent! rounded-none border-b-2 border-transparent data-[state=active]:border-[#D97706] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 py-3 font-semibold text-slate-500 data-[state=active]:text-[#D97706]"
+              >
+                {t("clients.financials.tab")}
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview" className="mt-0 space-y-8 animate-in fade-in duration-500">
+              {/* Notes Section */}
+              {client.notes && (
+                <div className="p-5 bg-amber-50/50 rounded-xl border border-amber-100">
+                  <p className="text-[10px] text-amber-600 font-bold uppercase tracking-wider mb-2">
+                    {t("clients.overview.notes")}
+                  </p>
+                  <p className="text-sm text-slate-600 leading-relaxed">{client.notes}</p>
                 </div>
+              )}
+
+              {/* Message Button */}
+              <Button
+                onClick={() => setMessageDialogOpen(true)}
+                className="w-full bg-[#D97706] hover:bg-[#B45309] text-white px-6 py-4 rounded-xl font-bold flex items-center justify-center gap-3 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-base"
+              >
+                <MessageSquare className="h-5 w-5" />
+                {t("clients.sendMessageToClient")}
+              </Button>
+
+              {/* Associated Cases */}
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                  <h3 className="font-bold text-lg text-[#0F2942]">
+                    {t("clients.associatedCases")} ({isLoadingCases ? "..." : clientCases?.length || 0})
+                  </h3>
+                  {clientCases && clientCases.length > 0 && (
+                    <Button
+                      variant="link"
+                      className="text-[#D97706] text-sm font-bold hover:underline p-0 h-auto"
+                      onClick={() => router.push("/cases")}
+                    >
+                      {t("clients.viewAllCases")} <ChevronRight className={cn("h-4 w-4", isRTL ? "rotate-180 mr-1" : "ml-1")} />
+                    </Button>
+                  )}
+                </div>
+
+                {isLoadingCases ? (
+                  <div className="p-12 text-center">
+                    <Loader2 className="h-6 w-6 animate-spin text-[#D97706] mx-auto" />
+                    <p className="text-slate-500 text-sm mt-2">{t("cases.loadingCases")}</p>
+                  </div>
+                ) : !clientCases || clientCases.length === 0 ? (
+                  <div className="p-12 text-center">
+                    <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                      <FileText className="text-slate-400 h-7 w-7" />
+                    </div>
+                    <h4 className="font-bold text-[#0F2942] mb-2">{t("clients.overview.noCasesYet")}</h4>
+                    <p className="text-slate-500 text-sm mb-6">
+                      {t("clients.overview.noCasesDesc")}
+                    </p>
+                    <Button
+                      onClick={() => router.push("/cases/new")}
+                      className="bg-[#D97706] hover:bg-[#B45309] text-white px-6 py-2.5 rounded-xl font-bold"
+                    >
+                      {t("clients.overview.createNewCase")}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-slate-100">
+                    {clientCases.map((caseItem, index) => (
+                      <div
+                        key={caseItem.id}
+                        onClick={() => router.push(`/cases/${caseItem.id}`)}
+                        className={cn(
+                          "p-6 hover:bg-slate-50 transition-all cursor-pointer group",
+                          "animate-in fade-in slide-in-from-left-2 duration-300"
+                        )}
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-[#0F2942] flex items-center justify-center text-white group-hover:bg-[#D97706] transition-colors shadow-md">
+                              <FileText className="h-5 w-5" />
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-[#0F2942] group-hover:text-[#D97706] transition-colors">
+                                {caseItem.title}
+                              </h4>
+                              <p className="text-xs text-slate-500 mt-1">
+                                {caseItem.case_number} • {caseItem.case_type?.replace(/_/g, " ")}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <span
+                              className={cn(
+                                "px-3 py-1.5 rounded-full text-xs font-bold",
+                                caseItem.status === "open" || caseItem.status === "in_progress"
+                                  ? "bg-[#0F2942]/10 text-[#0F2942]"
+                                  : caseItem.status === "pending_hearing"
+                                    ? "bg-[#D97706]/10 text-[#D97706]"
+                                    : "bg-slate-200 text-slate-600"
+                              )}
+                            >
+                              {caseItem.status?.replace(/_/g, " ")}
+                            </span>
+                            <span className="text-xs text-slate-400">
+                              {caseItem.updated_at ? new Date(caseItem.updated_at).toLocaleDateString() : ""}
+                            </span>
+                            <ChevronRight className="h-5 w-5 text-slate-300 group-hover:text-[#D97706] group-hover:translate-x-1 transition-all" />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            </TabsContent>
+
+            <TabsContent value="timeline" className="mt-0 animate-in fade-in duration-500">
+              <ClientActivityTimeline clientId={clientId} />
+            </TabsContent>
+
+            <TabsContent value="documents" className="mt-0 animate-in fade-in duration-500">
+              <ClientDocuments clientId={clientId} />
+            </TabsContent>
+            
+            <TabsContent value="financials" className="mt-0 animate-in fade-in duration-500">
+              <ClientFinancials />
+            </TabsContent>
+          </Tabs>
+        </div>
     </div>
   );
 }

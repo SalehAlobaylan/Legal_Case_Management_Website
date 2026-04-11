@@ -58,9 +58,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         {/* Floating Navigation Dock - Fixed position, outside main flow */}
         <NavigationDock unreadAlerts={unreadAlerts} />
 
-        {/* Chat FAB + Panel */}
+        {/* Chat Panel (triggered from search bar AI button) */}
         <ChatErrorBoundary>
-          <ChatFAB />
+          {/* ChatFAB removed — AI chat is now integrated inside the search bar */}
           <ChatPanel />
         </ChatErrorBoundary>
       </div>
