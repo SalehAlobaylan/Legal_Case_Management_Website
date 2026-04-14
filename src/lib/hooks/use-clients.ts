@@ -113,13 +113,44 @@ export function useSendMessageToClient() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, message, type }: {
+    mutationFn: ({ id, message, type, channel, subject }: {
       id: number;
       message: string;
-      type?: "case_update" | "hearing_reminder" | "document_request" | "general";
-    }) => clientsApi.sendMessageToClient(id, message, type),
-    onSuccess: () => {
+      type?: "case_update" | "hearing_reminder" | "document_request" | "invoice_notice" | "general";
+      channel?: "in_app" | "email" | "sms" | "whatsapp";
+      subject?: string;
+    }) => clientsApi.sendMessageToClient(id, message, type, channel, subject),
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["client-messages", variables.id] });
+    },
+  });
+}
+
+export function useClientMessages(clientId: number) {
+  return useQuery({
+    queryKey: ["client-messages", clientId],
+    queryFn: () => clientsApi.getClientMessages(clientId),
+    enabled: !!clientId,
+  });
+}
+
+export function useMarkClientMessageRead(clientId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (messageId: number) => clientsApi.markMessageRead(clientId, messageId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["client-messages", clientId] });
+    },
+  });
+}
+
+export function useRetryClientMessage(clientId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (messageId: number) => clientsApi.retryMessage(clientId, messageId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["client-messages", clientId] });
     },
   });
 }
@@ -158,5 +189,38 @@ export function useClientDocuments(clientId: number) {
     queryKey: ["client-documents", clientId],
     queryFn: () => clientsApi.getClientDocuments(clientId),
     enabled: !!clientId,
+  });
+}
+
+export function useUploadClientDocument(clientId: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (file: File) => clientsApi.uploadClientDocument(clientId, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["client-documents", clientId] });
+    },
+  });
+}
+
+export function useDeleteClientDocument(clientId: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (docId: number) => clientsApi.deleteClientDocument(clientId, docId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["client-documents", clientId] });
+    },
+  });
+}
+
+export function useCreateClientInvoice() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: clientsApi.createInvoice,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+    },
   });
 }

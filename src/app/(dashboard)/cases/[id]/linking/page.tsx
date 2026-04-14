@@ -108,8 +108,8 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
         verifyLink.mutate(linkId, {
             onSuccess: () => {
                 toast({
-                    title: "Link Verified",
-                    description: "This regulation has been linked to the case evidence.",
+                    title: t("ai.linkVerified"),
+                    description: t("ai.linkVerifiedDesc"),
                 });
             },
         });
@@ -126,8 +126,8 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
                     setSelectedLinkId(remaining.length > 0 ? remaining[0].id : null);
                 }
                 toast({
-                    title: "Link Dismissed",
-                    description: "This suggestion has been removed.",
+                    title: t("ai.linkDismissed"),
+                    description: t("ai.linkDismissedDesc"),
                 });
             },
         });
@@ -140,8 +140,8 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
                 onSuccess: (result) => {
                     if (result.created > 0) {
                         toast({
-                            title: "Subscribed",
-                            description: "You will be notified of regulation updates.",
+                            title: t("ai.subscribedTitle"),
+                            description: t("ai.subscribedDesc"),
                         });
                     }
                 },
@@ -154,14 +154,14 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
             onSuccess: (result) => {
                 const count = result.links?.length || 0;
                 toast({
-                    title: "Suggestions Generated",
-                    description: `Found ${count} potential regulation match${count !== 1 ? "es" : ""}.`,
+                    title: t("ai.suggestionsGeneratedTitle"),
+                    description: t("ai.suggestionsGeneratedDesc", { count }),
                 });
             },
             onError: () => {
                 toast({
-                    title: "Generation Failed",
-                    description: "Unable to generate suggestions. Please try again.",
+                    title: t("ai.generationFailedTitle"),
+                    description: t("ai.generationFailedDesc"),
                     variant: "destructive",
                 });
             },
@@ -218,7 +218,7 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
                             >
                                 <ChevronRight className="rotate-180 h-3.5 w-3.5" />
                             </div>
-                            Back to Case
+                            {t("ai.backToCase")}
                         </button>
 
                         <div className="h-6 w-px bg-slate-200 shrink-0" />
@@ -231,7 +231,7 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
                                 </div>
                                 <div className="min-w-0">
                                     <h1 className="text-base font-bold text-[#0F2942] truncate">
-                                        Case Linking Studio
+                                        {t("ai.linkingStudio")}
                                     </h1>
                                     <p className="text-[10px] text-slate-500 truncate">
                                         {case_.title} • #{case_.case_number}
@@ -250,7 +250,7 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
                                     {aiLinks?.length || 0}
                                 </p>
                                 <p className="text-[9px] text-slate-500 uppercase font-bold tracking-wider">
-                                    Total
+                                    {t("ai.totalLinks")}
                                 </p>
                             </div>
                             <div className="h-8 w-px bg-slate-200" />
@@ -259,7 +259,7 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
                                     {pendingCount}
                                 </p>
                                 <p className="text-[9px] text-slate-500 uppercase font-bold tracking-wider">
-                                    Pending
+                                    {t("ai.pendingLinks")}
                                 </p>
                             </div>
                             <div className="h-8 w-px bg-slate-200" />
@@ -268,7 +268,7 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
                                     {verifiedCount}
                                 </p>
                                 <p className="text-[9px] text-slate-500 uppercase font-bold tracking-wider">
-                                    Verified
+                                    {t("ai.verifiedLinks")}
                                 </p>
                             </div>
                         </div>
@@ -284,7 +284,9 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
                             ) : (
                                 <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
                             )}
-                            {isGenerating ? "Generating..." : "Generate Suggestions"}
+                            {isGenerating
+                                ? t("ai.generatingStudio")
+                                : t("ai.generateSuggestionsStudio")}
                         </Button>
                     </div>
                 </div>
@@ -311,7 +313,7 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
                         <div className="text-center">
                             <Loader2 className="h-8 w-8 animate-spin text-[#D97706] mx-auto mb-3" />
                             <p className="text-sm text-slate-500 font-medium">
-                                Loading regulation links...
+                                {t("ai.loadingRegulationLinks")}
                             </p>
                         </div>
                     </div>
@@ -333,12 +335,10 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
                                     <LayoutGrid className="h-8 w-8 text-slate-400" />
                                 </div>
                                 <h3 className="text-lg font-bold text-[#0F2942] mb-2">
-                                    No Regulation Links Yet
+                                    {t("ai.noRegulationLinks")}
                                 </h3>
                                 <p className="text-sm text-slate-500 mb-6 leading-relaxed">
-                                    Generate AI-powered regulation suggestions to find potential
-                                    matches for this case. The AI will analyze your case details and
-                                    uploaded documents.
+                                    {t("ai.noRegulationLinksDesc")}
                                 </p>
                                 <Button
                                     onClick={handleGenerate}
@@ -346,7 +346,7 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
                                     className="bg-[#D97706] hover:bg-[#B45309] text-white font-bold"
                                 >
                                     <Sparkles className="h-4 w-4 mr-2" />
-                                    Generate Suggestions
+                                    {t("ai.generateSuggestionsStudio")}
                                 </Button>
                             </div>
                         )}
@@ -379,10 +379,10 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
                                             <Sparkles className="h-6 w-6 text-slate-400" />
                                         </div>
                                         <p className="text-sm text-slate-500 font-medium">
-                                            Select a regulation link to review
+                                            {t("ai.selectLinkToReview")}
                                         </p>
                                         <p className="text-xs text-slate-400 mt-1">
-                                            Click on any link in the sidebar to see full details
+                                            {t("ai.selectLinkToReviewDesc")}
                                         </p>
                                     </div>
                                 </div>

@@ -379,16 +379,16 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
           <div className="flex justify-between items-start mb-8">
             <div>
               <Badge variant="warning" className="mb-4">
-                {case_.case_type?.replace(/_/g, " ") || "General"}
+                {case_.case_type?.replace(/_/g, " ") || t("cases.types.general")}
               </Badge>
               <h1 className="text-4xl font-bold text-[#0F2942] font-serif">
                 {case_.title}
               </h1>
               <p className="text-sm text-slate-500 mt-2 font-medium">
-                Case ID:{" "}
+                {t("cases.caseIdLabel")}:{" "}
                 <span className="font-mono text-slate-700">#{case_.case_number}</span>
                 {" • "}
-                Client: <span className="font-bold text-slate-800">{case_.client_info || "Unknown"}</span>
+                {t("cases.clientLabel")}: <span className="font-bold text-slate-800">{case_.client_info || t("common.unknown")}</span>
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -431,7 +431,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
               onClick={() => setActiveTab("linking")}
               count={aiLinks?.length}
             >
-              Case Linking
+              {t("ai.caseLinking")}
             </TabButton>
           </div>
 
@@ -470,8 +470,8 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
                 <Sparkles className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="font-bold text-[#0F2942] leading-none">AI Assistant</h3>
-                <p className="text-xs text-slate-500 mt-1">Regulation Matching</p>
+                <h3 className="font-bold text-[#0F2942] leading-none">{t("ai.assistantTitle")}</h3>
+                <p className="text-xs text-slate-500 mt-1">{t("ai.regulationMatchingSubtitle")}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -485,7 +485,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
                 disabled={isGenerating}
                 className="text-xs"
               >
-                {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : "Refresh"}
+                {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : t("common.refresh")}
               </Button>
             </div>
           </div>
@@ -495,7 +495,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
             className="mt-3 w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-[#0F2942]/5 hover:bg-[#0F2942]/10 border border-[#0F2942]/10 hover:border-[#0F2942]/20 transition-all text-[#0F2942] group"
           >
             <ArrowUpRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-            <span className="text-xs font-bold">Open Linking Studio</span>
+            <span className="text-xs font-bold">{t("ai.openLinkingStudio")}</span>
           </button>
 
           {/* Ask about this case — link to header button */}
@@ -575,13 +575,13 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
               <Search className="h-5 w-5 text-slate-400 group-hover:text-[#D97706]" />
             </div>
             <p className="text-sm font-bold text-slate-600 mb-1">
-              Not finding what you need?
+              {t("ai.manualSearchTitle")}
             </p>
             <p className="text-xs text-slate-400 mb-4">
-              The AI might have missed something.
+              {t("ai.manualSearchDesc")}
             </p>
             <span className="text-xs font-bold text-[#D97706] group-hover:underline">
-              Search Regulations Manually
+              {t("ai.manualSearchAction")}
             </span>
           </div>
         </div>
@@ -719,11 +719,10 @@ function getLinkRegulationId(link: CaseRegulationLink): number | null {
 }
 
 function getLinkRegulationTitle(link: CaseRegulationLink): string {
+  const id = getLinkRegulationId(link);
   return (
     link.regulation?.title ||
-    (getLinkRegulationId(link)
-      ? `Regulation #${getLinkRegulationId(link)}`
-      : "Regulation")
+    (id ? `#${id}` : "")
   );
 }
 
@@ -848,18 +847,18 @@ function DetailsTab({ case_ }: DetailsTabProps) {
         <li className="flex items-start gap-3">
           <CheckCircle className="h-[18px] w-[18px] text-green-600 mt-1 shrink-0" />
           <span className="text-slate-700">
-            Full payment of End-of-Service Benefit (SAR 145,000).
+            {t("cases.clientRequirement1")}
           </span>
         </li>
         <li className="flex items-start gap-3">
           <CheckCircle className="h-[18px] w-[18px] text-green-600 mt-1 shrink-0" />
           <span className="text-slate-700">
-            Compensation for arbitrary dismissal (3 months salary).
+            {t("cases.clientRequirement2")}
           </span>
         </li>
         <li className="flex items-start gap-3">
           <CheckCircle className="h-[18px] w-[18px] text-green-600 mt-1 shrink-0" />
-          <span className="text-slate-700">Certificate of Service.</span>
+          <span className="text-slate-700">{t("cases.clientRequirement3")}</span>
         </li>
       </ul>
     </div>
@@ -921,9 +920,9 @@ function CaseLinkingTab({
             <Sparkles className="h-5 w-5" />
           </div>
           <div className="text-left">
-            <p className="font-bold text-sm">Case Linking Studio</p>
+            <p className="font-bold text-sm">{t("ai.linkingStudio")}</p>
             <p className="text-xs text-white/70 mt-0.5">
-              Deep review, manage, and verify all regulation links
+              {t("ai.deepReview")}
             </p>
           </div>
         </div>
@@ -937,7 +936,7 @@ function CaseLinkingTab({
         <div className="bg-white rounded-xl border border-slate-200 p-4 text-center">
           <p className="text-2xl font-bold text-[#0F2942]">{aiLinks.length}</p>
           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1">
-            Total Links
+            {t("ai.totalLinks")}
           </p>
         </div>
         <div className="bg-white rounded-xl border border-green-200 p-4 text-center">
@@ -945,7 +944,7 @@ function CaseLinkingTab({
             {verifiedLinks.length}
           </p>
           <p className="text-[10px] text-green-600 font-bold uppercase tracking-wider mt-1">
-            Verified
+            {t("ai.verifiedLinks")}
           </p>
         </div>
         <div className="bg-white rounded-xl border border-amber-200 p-4 text-center">
@@ -953,13 +952,13 @@ function CaseLinkingTab({
             {pendingLinks.length}
           </p>
           <p className="text-[10px] text-amber-600 font-bold uppercase tracking-wider mt-1">
-            Pending
+            {t("ai.pendingLinks")}
           </p>
         </div>
         <div className="bg-white rounded-xl border border-blue-200 p-4 text-center">
           <p className="text-2xl font-bold text-blue-600">{avgScore}%</p>
           <p className="text-[10px] text-blue-600 font-bold uppercase tracking-wider mt-1">
-            Avg Score
+            {t("ai.avgScore")}
           </p>
         </div>
       </div>
@@ -971,27 +970,27 @@ function CaseLinkingTab({
             <Link2 className="h-6 w-6 text-slate-400" />
           </div>
           <p className="text-sm text-slate-600 font-medium mb-1">
-            No regulation links yet
+            {t("ai.noRegulationLinks")}
           </p>
           <p className="text-xs text-slate-400">
-            Use the AI Assistant to generate regulation matches
+            {t("ai.noRegulationLinksDesc")}
           </p>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-6 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Linked Regulations
+              {t("ai.linkedRegulations")}
             </span>
             <span className="text-[10px] font-bold bg-[#0F2942]/10 text-[#0F2942] px-2 py-0.5 rounded-md">
-              {aiLinks.length} total
+              {t("ai.totalWithCount", { count: aiLinks.length })}
             </span>
           </div>
           <div className="divide-y divide-slate-100">
             {aiLinks.map((link) => {
               const title =
                 link.regulation?.title ||
-                `Regulation #${link.regulation_id ?? link.regulationId}`;
+                `#${link.regulation_id ?? link.regulationId}`;
               const regNum =
                 link.regulation?.regulation_number ||
                 link.regulation?.regulationNumber;
@@ -1036,11 +1035,11 @@ function CaseLinkingTab({
                     </span>
                     {link.verified ? (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-green-100 text-green-700">
-                        Verified
+                        {t("ai.verified")}
                       </span>
                     ) : (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-700">
-                        Pending
+                        {t("common.pending")}
                       </span>
                     )}
                   </div>
@@ -1366,7 +1365,7 @@ function DocumentsTab({
         <p className="font-bold text-slate-700 group-hover:text-[#0F2942]">
           {isUploading ? t("cases.uploading") : t("cases.uploadDocuments")}
         </p>
-        <p className="text-xs mt-1">PDF, DOC, or images up to 10MB</p>
+        <p className="text-xs mt-1">{t("documents.uploadHint")}</p>
       </div>
 
       {/* Documents Table */}
@@ -1387,19 +1386,19 @@ function DocumentsTab({
               <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">
-                    Name
+                    {t("table.name")}
                   </th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">
-                    Type
+                    {t("table.type")}
                   </th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">
-                    Date
+                    {t("table.date")}
                   </th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">
-                    Size
+                    {t("table.size")}
                   </th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right">
-                    Actions
+                    {t("common.actions")}
                   </th>
                 </tr>
               </thead>
@@ -1631,7 +1630,7 @@ function SuggestionCard({ link, onVerify, onDismiss, isVerifying, isDismissing, 
                 key={`${item.fragment_id || index}`}
                 className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-bold text-slate-600"
               >
-                {item.document_name || `Document #${item.document_id || "?"}`}
+                {item.document_name || t("ai.documentNumber", { id: item.document_id || "?" })}
               </span>
             ))}
           </div>
@@ -1649,21 +1648,21 @@ function SuggestionCard({ link, onVerify, onDismiss, isVerifying, isDismissing, 
               ) : (
                 <CheckCircle className="h-3.5 w-3.5" />
               )}
-              Link to Case
+              {t("ai.linkToCase")}
             </button>
             <button
               onClick={onDismiss}
               disabled={isDismissing}
               className="flex-1 bg-white border border-slate-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-slate-600 text-xs py-2.5 rounded-xl font-bold transition-all disabled:opacity-50"
             >
-              Dismiss
+              {t("ai.dismiss")}
             </button>
           </div>
         )}
 
         {isVerified && (
           <div className="text-xs text-green-700 font-bold mt-2 flex items-center gap-1 bg-green-50 p-2 rounded-lg justify-center border border-green-100">
-            Linked to Case Evidence.
+            {t("ai.linkedToEvidence")}
           </div>
         )}
       </div>

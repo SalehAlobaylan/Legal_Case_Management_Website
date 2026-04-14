@@ -9,9 +9,20 @@ import { endpoints } from "./endpoints";
 import { toArabicNotificationContent } from "./alert-content-ar";
 import type { Alert } from "@/lib/types/alert";
 
+function sanitizeAlertText(input: string): string {
+  return input
+    .replace(/<system-reminder>[\s\S]*?<\/system-reminder>/gi, "")
+    .replace(/Your operational mode has changed from plan to build\.[\s\S]*?as needed\./gi, "")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 function withArabicNotificationContent(alerts: Alert[]): Alert[] {
   return alerts.map((a) => {
-    const { title, message } = toArabicNotificationContent(a.title, a.message);
+    const cleanTitle = sanitizeAlertText(a.title || "");
+    const cleanMessage = sanitizeAlertText(a.message || "");
+    const { title, message } = toArabicNotificationContent(cleanTitle, cleanMessage);
     return { ...a, title, message };
   });
 }
@@ -56,8 +67,10 @@ export const alertsApi = {
   /**
    * Get list of alerts for the current user
    */
-  async getAlerts(): Promise<AlertsResponse> {
-    const { data } = await apiClient.get<AlertsApiResponse>(endpoints.alerts.list);
+  async getAlerts(params?: { unreadOnly?: boolean; limit?: number; offset?: number }): Promise<AlertsResponse> {
+    const { data } = await apiClient.get<AlertsApiResponse>(endpoints.alerts.list, {
+      params,
+    });
 
     if (
       data &&
@@ -118,6 +131,10 @@ export const alertsApi = {
    */
   async markAllAsRead(): Promise<void> {
     await apiClient.patch(endpoints.alerts.markAllRead);
+  },
+
+  async deleteAlert(alertId: number): Promise<void> {
+    await apiClient.delete(endpoints.alerts.delete(alertId));
   },
 
   /**

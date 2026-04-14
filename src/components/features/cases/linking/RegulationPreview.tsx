@@ -17,6 +17,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
 import { cn } from "@/lib/utils/cn";
+import { useI18n } from "@/lib/hooks/use-i18n";
 import type { LinkLineMatch } from "@/lib/types/case";
 
 interface RegulationPreviewProps {
@@ -74,6 +75,7 @@ export function RegulationPreview({
     lineMatches = [],
     className,
 }: RegulationPreviewProps) {
+    const { t } = useI18n();
     const [isExpanded, setIsExpanded] = React.useState(false);
     const {
         data: version,
@@ -86,10 +88,7 @@ export function RegulationPreview({
         [lineMatches]
     );
 
-    const contentLines = React.useMemo(() => {
-        if (!version?.contentText) return [];
-        return version.contentText.split("\n");
-    }, [version?.contentText]);
+    const contentLines = version?.contentText ? version.contentText.split("\n") : [];
 
     const displayLines = isExpanded ? contentLines : contentLines.slice(0, 30);
     const hasMore = contentLines.length > 30;
@@ -126,7 +125,7 @@ export function RegulationPreview({
                             target="_blank"
                             rel="noopener noreferrer"
                             className="p-1 hover:bg-slate-200 rounded text-slate-500 hover:text-[#0F2942] transition-colors"
-                            title="Open source"
+                            title={t("ai.openSource")}
                         >
                             <ExternalLink className="h-3.5 w-3.5" />
                         </a>
@@ -140,7 +139,7 @@ export function RegulationPreview({
                     <div className="flex items-center justify-center py-12">
                         <Loader2 className="h-5 w-5 animate-spin text-[#D97706] mr-2" />
                         <span className="text-sm text-slate-500">
-                            Loading regulation text...
+                            {t("ai.loadingRegulationText")}
                         </span>
                     </div>
                 )}
@@ -148,10 +147,10 @@ export function RegulationPreview({
                 {error && (
                     <div className="text-center py-8 px-4">
                         <p className="text-sm text-red-600 font-medium">
-                            Unable to load regulation content
+                            {t("ai.unableToLoadRegulationContent")}
                         </p>
                         <p className="text-xs text-slate-400 mt-1">
-                            The regulation text may not be available yet
+                            {t("ai.regulationTextMayNotBeAvailable")}
                         </p>
                     </div>
                 )}
@@ -159,10 +158,10 @@ export function RegulationPreview({
                 {!isLoading && !error && contentLines.length === 0 && (
                     <div className="text-center py-8 px-4">
                         <p className="text-sm text-slate-500 font-medium">
-                            No content available
+                            {t("regulations.noContentAvailable")}
                         </p>
                         <p className="text-xs text-slate-400 mt-1">
-                            This regulation version has no extracted text content
+                            {t("ai.noExtractedTextContent")}
                         </p>
                     </div>
                 )}
@@ -211,12 +210,12 @@ export function RegulationPreview({
                         {isExpanded ? (
                             <>
                                 <ChevronUp className="h-3.5 w-3.5" />
-                                Show less
+                                {t("ai.showLess")}
                             </>
                         ) : (
                             <>
                                 <ChevronDown className="h-3.5 w-3.5" />
-                                Show all {contentLines.length} lines
+                                {t("ai.showAllLines", { count: contentLines.length })}
                             </>
                         )}
                     </button>
@@ -228,8 +227,7 @@ export function RegulationPreview({
                 <div className="px-4 py-2 bg-amber-50 border-t border-amber-100 flex items-center gap-2">
                     <div className="h-3 w-1 bg-[#D97706] rounded-full" />
                     <span className="text-[10px] font-semibold text-amber-700">
-                        {highlightedLines.size} line
-                        {highlightedLines.size !== 1 ? "s" : ""} matched with this case
+                        {t("ai.linesMatchedWithCase", { count: highlightedLines.size })}
                     </span>
                 </div>
             )}

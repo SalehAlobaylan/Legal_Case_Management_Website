@@ -6,11 +6,18 @@
 
 import { apiClient } from "./client";
 import { endpoints } from "./endpoints";
-import type { Client, CreateClientInput, ClientActivity, CreateClientActivityInput, ClientDocument } from "@/lib/types/client";
+import type {
+  Client,
+  CreateClientInput,
+  ClientActivity,
+  CreateClientActivityInput,
+  ClientDocument,
+  ClientMessage,
+} from "@/lib/types/client";
 import type { Case } from "@/lib/types/case";
 
 export interface ClientFilters {
-  type?: "individual" | "company";
+  type?: "individual" | "corporate" | "sme" | "group";
   search?: string;
   leadStatus?: string;
   tag?: string;
@@ -40,7 +47,10 @@ export const clientsApi = {
 
     const url = params.toString() ? `${endpoints.clients.list}?${params}` : endpoints.clients.list;
     const { data } = await apiClient.get<ClientsResponse>(url);
-    return data;
+    return {
+      ...data,
+      clients: data.clients.map(normalizeClient),
+    };
   },
 
   /**
@@ -48,7 +58,7 @@ export const clientsApi = {
    */
   async getClientById(id: number): Promise<Client> {
     const { data } = await apiClient.get<{ client: Client }>(endpoints.clients.detail(id));
-    return data.client;
+    return normalizeClient(data.client);
   },
 
   /**
@@ -63,16 +73,28 @@ export const clientsApi = {
    * Create a new client
    */
   async createClient(input: CreateClientInput): Promise<Client> {
-    const { data } = await apiClient.post<{ client: Client }>(endpoints.clients.create, input);
-    return data.client;
+    const payload = {
+      ...input,
+      type: input.type === "company" ? "corporate" : input.type,
+      email: input.email ?? input.contactEmail,
+      phone: input.phone ?? input.contactPhone,
+    };
+    const { data } = await apiClient.post<{ client: Client }>(endpoints.clients.create, payload);
+    return normalizeClient(data.client);
   },
 
   /**
    * Update an existing client
    */
   async updateClient(id: number, input: Partial<CreateClientInput>): Promise<Client> {
-    const { data } = await apiClient.put<{ client: Client }>(endpoints.clients.update(id), input);
-    return data.client;
+    const payload = {
+      ...input,
+      type: input.type === "company" ? "corporate" : input.type,
+      email: input.email ?? input.contactEmail,
+      phone: input.phone ?? input.contactPhone,
+    };
+    const { data } = await apiClient.put<{ client: Client }>(endpoints.clients.update(id), payload);
+    return normalizeClient(data.client);
   },
 
   /**
@@ -86,7 +108,7 @@ export const clientsApi = {
    * Export clients to CSV
    */
   async exportClients(format: "csv" = "csv"): Promise<Blob> {
-    const response = await apiClient.get(endpoints.clients.export, {
+    const response = await apiClient.get<Blob>(endpoints.clients.export, {
       params: { format },
       responseType: "blob",
     });
@@ -99,13 +121,34 @@ export const clientsApi = {
   async sendMessageToClient(
     id: number,
     message: string,
-    type?: "case_update" | "hearing_reminder" | "document_request" | "general"
-  ): Promise<{ success: boolean; message: string }> {
+    type?: "case_update" | "hearing_reminder" | "document_request" | "invoice_notice" | "general",
+    channel?: "in_app" | "email" | "sms" | "whatsapp",
+    subject?: string
+  ): Promise<{ success: boolean; message: string; messageRecord?: ClientMessage }> {
     const { data } = await apiClient.post(
       endpoints.clients.message(id),
-      { message, type: type || "general" }
+      { message, type: type || "general", channel: channel || "in_app", subject }
     );
     return data;
+  },
+
+  async getClientMessages(id: number): Promise<ClientMessage[]> {
+    const { data } = await apiClient.get<{ messages: ClientMessage[] }>(endpoints.clients.messages(id));
+    return data.messages;
+  },
+
+  async markMessageRead(clientId: number, messageId: number): Promise<ClientMessage> {
+    const { data } = await apiClient.post<{ message: ClientMessage }>(
+      endpoints.clients.markMessageRead(clientId, messageId)
+    );
+    return data.message;
+  },
+
+  async retryMessage(clientId: number, messageId: number): Promise<ClientMessage> {
+    const { data } = await apiClient.post<{ message: ClientMessage }>(
+      endpoints.clients.retryMessage(clientId, messageId)
+    );
+    return data.message;
   },
 
   /**
@@ -129,6 +172,61 @@ export const clientsApi = {
    */
   async getClientDocuments(id: number): Promise<ClientDocument[]> {
     const { data } = await apiClient.get<{ documents: ClientDocument[] }>(endpoints.clients.documents(id));
-    return data.documents;
+    return data.documents.map((d) => ({
+      ...d,
+      downloadUrl: endpoints.clients.downloadDocument(id, d.id),
+    }));
+  },
+
+  async uploadClientDocument(id: number, file: File): Promise<ClientDocument> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const { data } = await apiClient.post<{ document: ClientDocument }>(
+      endpoints.clients.documents(id),
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    return {
+      ...data.document,
+      downloadUrl: endpoints.clients.downloadDocument(id, data.document.id),
+    };
+  },
+
+  async deleteClientDocument(id: number, docId: number): Promise<void> {
+    await apiClient.delete(endpoints.clients.deleteDocument(id, docId));
+  },
+
+  async createInvoice(input: {
+    clientId: number;
+    amount: number;
+    dueDate: string;
+    currency?: string;
+    description?: string;
+  }): Promise<{ id: number }> {
+    const { data } = await apiClient.post<{ invoice: { id: number } }>(
+      endpoints.billing.createInvoice,
+      input
+    );
+    return data.invoice;
   },
 };
+
+function normalizeClient(client: Client): Client {
+  const normalizedType =
+    client.type === "company" ? "corporate" : client.type;
+
+  return {
+    ...client,
+    type: normalizedType,
+    email: client.email ?? client.contactEmail,
+    phone: client.phone ?? client.contactPhone,
+    contactEmail: client.contactEmail ?? client.email,
+    contactPhone: client.contactPhone ?? client.phone,
+  };
+}

@@ -33,6 +33,46 @@ export interface RecentActivityResponse {
     recentUpdates: RecentUpdate[];
 }
 
+export interface DailyTask {
+    id: number;
+    text: string;
+    completed: boolean;
+    position: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface DailyOperationsResponse {
+    upcomingHearings: Array<{
+        id: number;
+        title: string;
+        nextHearing: string;
+        courtJurisdiction?: string | null;
+    }>;
+    documentsForReview: Array<{
+        id: number;
+        caseId: number;
+        caseTitle: string;
+        documentName: string;
+        uploadedBy: string;
+        createdAt: string;
+        reviewStatus: "pending" | "in_review";
+        priorityLevel: "critical" | "high" | "normal";
+        importanceScore: number;
+        reasons: string[];
+        hasRegulationChange: boolean;
+        hearingSoon: boolean;
+    }>;
+    legalPortals: Array<{
+        id: string;
+        nameAr: string;
+        nameEn: string;
+        url: string;
+        tone: "emerald" | "blue" | "amber";
+    }>;
+    dailyTasks: DailyTask[];
+}
+
 // API Functions
 export const dashboardApi = {
     /**
@@ -51,5 +91,42 @@ export const dashboardApi = {
             endpoints.dashboard.recentActivity
         );
         return response.data;
+    },
+
+    getDailyOperations: async (): Promise<DailyOperationsResponse> => {
+        const response = await apiClient.get<DailyOperationsResponse>(
+            endpoints.dashboard.dailyOperations
+        );
+        return response.data;
+    },
+
+    createTask: async (text: string): Promise<DailyTask> => {
+        const response = await apiClient.post<{ task: DailyTask }>(
+            endpoints.dashboard.createTask,
+            { text }
+        );
+        return response.data.task;
+    },
+
+    updateTask: async (
+        id: number,
+        patch: Partial<{ text: string; completed: boolean; position: number }>
+    ): Promise<DailyTask> => {
+        const response = await apiClient.patch<{ task: DailyTask }>(
+            endpoints.dashboard.updateTask(id),
+            patch
+        );
+        return response.data.task;
+    },
+
+    deleteTask: async (id: number): Promise<void> => {
+        await apiClient.delete(endpoints.dashboard.deleteTask(id));
+    },
+
+    updateDocumentReview: async (
+        id: number,
+        input: { status: "pending" | "in_review" | "approved" | "rejected"; notes?: string }
+    ): Promise<void> => {
+        await apiClient.patch(endpoints.dashboard.updateDocumentReview(id), input);
     },
 };

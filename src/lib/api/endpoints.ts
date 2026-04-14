@@ -28,6 +28,11 @@ export const endpoints = {
   dashboard: {
     stats: `${API_BASE}/api/dashboard/stats`,
     recentActivity: `${API_BASE}/api/dashboard/recent-activity`,
+    dailyOperations: `${API_BASE}/api/dashboard/daily-operations`,
+    createTask: `${API_BASE}/api/dashboard/tasks`,
+    updateTask: (id: number) => `${API_BASE}/api/dashboard/tasks/${id}`,
+    deleteTask: (id: number) => `${API_BASE}/api/dashboard/tasks/${id}`,
+    updateDocumentReview: (id: number) => `${API_BASE}/api/dashboard/documents/${id}/review`,
   },
 
   // Cases
@@ -89,13 +94,34 @@ export const endpoints = {
     cases: (id: number) => `${API_BASE}/api/clients/${id}/cases`,
     export: `${API_BASE}/api/clients/export`,
     message: (id: number) => `${API_BASE}/api/clients/${id}/message`,
+    messages: (id: number) => `${API_BASE}/api/clients/${id}/messages`,
+    markMessageRead: (id: number, messageId: number) => `${API_BASE}/api/clients/${id}/messages/${messageId}/read`,
+    retryMessage: (id: number, messageId: number) => `${API_BASE}/api/clients/${id}/messages/${messageId}/retry`,
     activities: (id: number) => `${API_BASE}/api/clients/${id}/activities`,
     documents: (id: number) => `${API_BASE}/api/clients/${id}/documents`,
+    deleteDocument: (id: number, docId: number) => `${API_BASE}/api/clients/${id}/documents/${docId}`,
+    downloadDocument: (id: number, docId: number) => `${API_BASE}/api/clients/${id}/documents/${docId}/download`,
+  },
+
+  // Intake forms (private + public)
+  intake: {
+    forms: `${API_BASE}/api/intake-forms`,
+    form: (id: number) => `${API_BASE}/api/intake-forms/${id}`,
+    publicForm: (formId: number) => `${API_BASE}/api/public/intake/${formId}`,
+    publicSubmit: (formId: number) => `${API_BASE}/api/public/intake/${formId}`,
+  },
+
+  // Automation rules
+  automations: {
+    list: `${API_BASE}/api/automations`,
+    create: `${API_BASE}/api/automations`,
+    update: (id: number) => `${API_BASE}/api/automations/${id}`,
   },
 
   // Billing
   billing: {
     invoices: `${API_BASE}/api/billing/invoices`,
+    createInvoice: `${API_BASE}/api/billing/invoices`,
     subscribe: `${API_BASE}/api/billing/subscribe`,
     subscription: `${API_BASE}/api/billing/subscription`,
     invoicePdf: (id: number) => `${API_BASE}/api/billing/invoices/${id}/pdf`,
@@ -107,6 +133,7 @@ export const endpoints = {
     unreadCount: `${API_BASE}/api/alerts/unread-count`,
     markRead: (id: number) => `${API_BASE}/api/alerts/${id}/read`,
     markAllRead: `${API_BASE}/api/alerts/read-all`,
+    delete: (id: number) => `${API_BASE}/api/alerts/${id}`,
   },
 
   // User Profile

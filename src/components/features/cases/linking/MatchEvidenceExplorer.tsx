@@ -9,6 +9,7 @@
 import * as React from "react";
 import { ArrowRight, FileText, Hash } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { useI18n } from "@/lib/hooks/use-i18n";
 import type { LinkLineMatch, LinkEvidence } from "@/lib/types/case";
 
 interface MatchEvidenceExplorerProps {
@@ -20,17 +21,18 @@ interface MatchEvidenceExplorerProps {
 interface LineMatchCardProps {
     match: LinkLineMatch;
     index: number;
+    t: (key: string, values?: Record<string, string | number>) => string;
 }
 
-function LineMatchCard({ match, index }: LineMatchCardProps) {
+function LineMatchCard({ match, index, t }: LineMatchCardProps) {
     const lineStart =
         typeof match.line_start === "number" ? match.line_start : null;
     const lineEnd = typeof match.line_end === "number" ? match.line_end : null;
     const lineLabel =
         lineStart && lineEnd
-            ? `Lines ${lineStart}–${lineEnd}`
+            ? `${t("ai.lines")} ${lineStart}-${lineEnd}`
             : lineStart
-                ? `Line ${lineStart}`
+                ? `${t("ai.lines")} ${lineStart}`
                 : null;
 
     const pairScore = Math.round((match.pair_score || 0) * 100);
@@ -42,7 +44,7 @@ function LineMatchCard({ match, index }: LineMatchCardProps) {
             <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-200">
                 <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        Match #{index + 1}
+                        {t("ai.matchNumber", { index: index + 1 })}
                     </span>
                     {match.article_ref && (
                         <span className="rounded-md bg-[#0F2942]/10 px-2 py-0.5 text-[10px] font-bold text-[#0F2942]">
@@ -57,10 +59,10 @@ function LineMatchCard({ match, index }: LineMatchCardProps) {
                 </div>
                 <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold text-slate-500">
-                        Score: <span className="text-[#0F2942]">{pairScore}%</span>
+                        {t("ai.pairScore")}: <span className="text-[#0F2942]">{pairScore}%</span>
                     </span>
                     <span className="text-[10px] font-bold text-slate-500">
-                        Weight: <span className="text-amber-600">{contribution}%</span>
+                        {t("ai.weight")}: <span className="text-amber-600">{contribution}%</span>
                     </span>
                 </div>
             </div>
@@ -72,7 +74,7 @@ function LineMatchCard({ match, index }: LineMatchCardProps) {
                     <div className="flex items-center gap-1.5 mb-2">
                         <div className="h-2 w-2 rounded-full bg-blue-500" />
                         <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600">
-                            Case Text
+                            {t("ai.caseText")}
                         </span>
                     </div>
                     <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
@@ -85,7 +87,7 @@ function LineMatchCard({ match, index }: LineMatchCardProps) {
                     <div className="flex items-center gap-1.5 mb-2">
                         <div className="h-2 w-2 rounded-full bg-emerald-500" />
                         <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
-                            Regulation Text
+                            {t("ai.regulationText")}
                         </span>
                     </div>
                     <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
@@ -98,7 +100,7 @@ function LineMatchCard({ match, index }: LineMatchCardProps) {
             <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
                 <div className="flex items-center gap-2">
                     <span className="text-[10px] font-semibold text-slate-500 shrink-0">
-                        Contribution
+                        {t("ai.contribution")}
                     </span>
                     <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
                         <div
@@ -117,9 +119,10 @@ function LineMatchCard({ match, index }: LineMatchCardProps) {
 
 interface DocumentEvidenceCardProps {
     evidence: LinkEvidence;
+    t: (key: string, values?: Record<string, string | number>) => string;
 }
 
-function DocumentEvidenceCard({ evidence }: DocumentEvidenceCardProps) {
+function DocumentEvidenceCard({ evidence, t }: DocumentEvidenceCardProps) {
     const score = Math.round((evidence.score || 0) * 100);
 
     return (
@@ -129,15 +132,15 @@ function DocumentEvidenceCard({ evidence }: DocumentEvidenceCardProps) {
             </div>
             <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-[#0F2942] truncate">
-                    {evidence.document_name || `Document #${evidence.document_id || "?"}`}
+                    {evidence.document_name || t("ai.documentNumber", { id: evidence.document_id || "?" })}
                 </p>
                 <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-[10px] text-slate-500">
-                        Fragment: <span className="font-mono">{evidence.fragment_id}</span>
+                        {t("ai.fragment")}: <span className="font-mono">{evidence.fragment_id}</span>
                     </span>
                     <span className="text-[10px] text-slate-400">•</span>
                     <span className="text-[10px] font-bold text-slate-600">
-                        Source: {evidence.source}
+                        {t("ai.source")}: {evidence.source}
                     </span>
                 </div>
             </div>
@@ -154,7 +157,7 @@ function DocumentEvidenceCard({ evidence }: DocumentEvidenceCardProps) {
                 >
                     {score}%
                 </span>
-                <p className="text-[10px] text-slate-400">relevance</p>
+                <p className="text-[10px] text-slate-400">{t("ai.relevance")}</p>
             </div>
         </div>
     );
@@ -165,6 +168,7 @@ export function MatchEvidenceExplorer({
     documentEvidence,
     className,
 }: MatchEvidenceExplorerProps) {
+    const { t } = useI18n();
     const [showAll, setShowAll] = React.useState(false);
     const displayedMatches = showAll ? lineMatches : lineMatches.slice(0, 5);
     const hasMore = lineMatches.length > 5;
@@ -178,11 +182,10 @@ export function MatchEvidenceExplorer({
                         <div className="flex items-center gap-2">
                             <ArrowRight className="h-4 w-4 text-[#0F2942]" />
                             <h4 className="text-sm font-bold text-[#0F2942]">
-                                Why This Matches
+                                {t("ai.whyThisMatch")}
                             </h4>
                             <span className="text-[10px] font-bold bg-[#0F2942]/10 text-[#0F2942] px-2 py-0.5 rounded-md">
-                                {lineMatches.length} match
-                                {lineMatches.length !== 1 ? "es" : ""}
+                                {t("ai.matchesCount", { count: lineMatches.length })}
                             </span>
                         </div>
                     </div>
@@ -192,6 +195,7 @@ export function MatchEvidenceExplorer({
                                 key={`${match.case_fragment_id || "m"}-${index}`}
                                 match={match}
                                 index={index}
+                                t={t}
                             />
                         ))}
                     </div>
@@ -200,7 +204,7 @@ export function MatchEvidenceExplorer({
                             onClick={() => setShowAll(true)}
                             className="mt-3 w-full text-center text-xs font-bold text-[#D97706] hover:text-[#B45309] py-2 rounded-lg border border-dashed border-[#D97706]/30 hover:border-[#D97706] hover:bg-orange-50 transition-all"
                         >
-                            Show all {lineMatches.length} matches
+                            {t("ai.showAllMatches", { count: lineMatches.length })}
                         </button>
                     )}
                 </div>
@@ -212,11 +216,10 @@ export function MatchEvidenceExplorer({
                     <div className="flex items-center gap-2 mb-3">
                         <Hash className="h-4 w-4 text-[#0F2942]" />
                         <h4 className="text-sm font-bold text-[#0F2942]">
-                            Document Evidence
+                            {t("ai.documentEvidence")}
                         </h4>
                         <span className="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md">
-                            {documentEvidence.length} source
-                            {documentEvidence.length !== 1 ? "s" : ""}
+                            {t("ai.sourcesCount", { count: documentEvidence.length })}
                         </span>
                     </div>
                     <div className="space-y-2">
@@ -224,6 +227,7 @@ export function MatchEvidenceExplorer({
                             <DocumentEvidenceCard
                                 key={`${evidence.fragment_id || index}`}
                                 evidence={evidence}
+                                t={t}
                             />
                         ))}
                     </div>
@@ -233,10 +237,10 @@ export function MatchEvidenceExplorer({
             {lineMatches.length === 0 && documentEvidence.length === 0 && (
                 <div className="text-center py-8 bg-slate-50 rounded-xl border border-slate-200">
                     <p className="text-sm text-slate-500 font-medium">
-                        No detailed match evidence available
+                        {t("ai.noDetailedMatchEvidence")}
                     </p>
                     <p className="text-xs text-slate-400 mt-1">
-                        This link may have been created using an older matching algorithm
+                        {t("ai.noDetailedMatchEvidenceDesc")}
                     </p>
                 </div>
             )}

@@ -8,6 +8,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils/cn";
+import { useI18n } from "@/lib/hooks/use-i18n";
 import type { LinkScoreBreakdown } from "@/lib/types/case";
 
 interface ScoreBreakdownChartProps {
@@ -57,27 +58,28 @@ export function ScoreBreakdownChart({
     breakdown,
     className,
 }: ScoreBreakdownChartProps) {
+    const { t } = useI18n();
     const bars = [
         {
-            label: "Semantic Match",
+            label: t("ai.scoreSemanticMatch"),
             value: breakdown.semantic_max || 0,
             color: "text-blue-600",
             bgColor: "bg-blue-100",
         },
         {
-            label: "Support Coverage",
+            label: t("ai.scoreSupportCoverage"),
             value: breakdown.support_coverage || 0,
             color: "text-emerald-600",
             bgColor: "bg-emerald-100",
         },
         {
-            label: "Lexical Overlap",
+            label: t("ai.scoreLexicalOverlap"),
             value: breakdown.lexical_overlap || 0,
             color: "text-violet-600",
             bgColor: "bg-violet-100",
         },
         {
-            label: "Category Prior",
+            label: t("ai.scoreCategoryPrior"),
             value: breakdown.category_prior || 0,
             color: "text-amber-600",
             bgColor: "bg-amber-100",
@@ -98,7 +100,7 @@ export function ScoreBreakdownChart({
             {/* Final score separator */}
             <div className="border-t border-slate-200 pt-4">
                 <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-[#0F2942]">Final Score</span>
+                    <span className="text-sm font-bold text-[#0F2942]">{t("ai.finalScore")}</span>
                     <div className="flex items-center gap-2">
                         <div className="h-3 w-24 rounded-full bg-slate-100 overflow-hidden">
                             <div

@@ -28,6 +28,8 @@ import {
   Loader2,
   LayoutList,
   Kanban,
+  ClipboardList,
+  Workflow,
 } from "lucide-react";
 import { FilterPill, FilterPills } from "@/components/ui/filter-pills";
 import { Button } from "@/components/ui/button";
@@ -46,7 +48,10 @@ const getTypeIcon = (type: string) => {
   switch (type) {
     case "individual":
       return User;
+    case "corporate":
     case "company":
+    case "sme":
+    case "group":
       return Building2;
     default:
       return User;
@@ -57,8 +62,13 @@ const getTypeColor = (type: string) => {
   switch (type) {
     case "individual":
       return "text-blue-600 bg-blue-50 border-blue-200";
+    case "corporate":
     case "company":
       return "text-purple-600 bg-purple-50 border-purple-200";
+    case "sme":
+      return "text-emerald-600 bg-emerald-50 border-emerald-200";
+    case "group":
+      return "text-amber-700 bg-amber-50 border-amber-200";
     default:
       return "text-slate-600 bg-slate-50 border-slate-200";
   }
@@ -76,11 +86,13 @@ export default function ClientsPage() {
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
   const [viewMode, setViewMode] = React.useState<"list" | "kanban">("list");
 
-  const TYPE_FILTERS = ["All", "individual", "company"];
+  const TYPE_FILTERS = ["All", "individual", "corporate", "sme", "group"];
   const TYPE_LABELS: Record<string, string> = {
     All: t("common.all"),
     individual: t("clients.types.individual"),
-    company: t("clients.types.company"),
+    corporate: t("clients.types.corporate"),
+    sme: t("clients.types.sme"),
+    group: t("clients.types.group"),
   };
 
   // Debounce search
@@ -92,7 +104,7 @@ export default function ClientsPage() {
   }, [searchTerm]);
 
   const { data: clientsData, isLoading, error, refetch } = useClients({
-    type: typeFilter !== "All" ? (typeFilter as "individual" | "company") : undefined,
+    type: typeFilter !== "All" ? (typeFilter as "individual" | "corporate" | "sme" | "group") : undefined,
     search: debouncedSearch || undefined,
   });
 
@@ -145,6 +157,22 @@ export default function ClientsPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            className="px-4 py-2.5 rounded-xl font-bold flex items-center gap-2"
+            onClick={() => router.push("/clients/intake")}
+          >
+            <ClipboardList className="h-4 w-4" />
+            {isRTL ? "نماذج الاستقبال" : "Intake Forms"}
+          </Button>
+          <Button
+            variant="outline"
+            className="px-4 py-2.5 rounded-xl font-bold flex items-center gap-2"
+            onClick={() => router.push("/clients/automations")}
+          >
+            <Workflow className="h-4 w-4" />
+            {isRTL ? "أتمتة التواصل" : "Automations"}
+          </Button>
           <Button
             variant="outline"
             className="px-4 py-2.5 rounded-xl font-bold flex items-center gap-2"
@@ -345,9 +373,11 @@ interface ClientRowProps {
 }
 
 function ClientRow({ client, onView, index, t, isRTL }: ClientRowProps) {
-  const { name, id, type, contactPhone, contactEmail, casesCount } = client;
+  const { name, id, type, contactPhone, contactEmail, phone, email, casesCount } = client;
   const initial = name.charAt(0).toUpperCase();
   const TypeIcon = getTypeIcon(type);
+  const displayPhone = contactPhone || phone;
+  const displayEmail = contactEmail || email;
 
   return (
     <tr
@@ -389,23 +419,29 @@ function ClientRow({ client, onView, index, t, isRTL }: ClientRowProps) {
           )}
         >
           <TypeIcon className="h-3.5 w-3.5" />
-          {type === "company" ? t("clients.types.company") : t("clients.types.individual")}
+          {type === "individual"
+            ? t("clients.types.individual")
+            : type === "sme"
+              ? t("clients.types.sme")
+              : type === "group"
+                ? t("clients.types.group")
+                : t("clients.types.corporate")}
         </span>
       </td>
 
       {/* Contact */}
       <td className="px-6 py-4">
         <div className="space-y-1">
-          {contactPhone && (
+          {displayPhone && (
             <p className="text-sm text-slate-600 flex items-center gap-2">
               <Phone className="h-3.5 w-3.5 text-slate-400" />
-              {contactPhone}
+              {displayPhone}
             </p>
           )}
-          {contactEmail && (
+          {displayEmail && (
             <p className="text-xs text-slate-400 flex items-center gap-2">
               <Mail className="h-3.5 w-3.5" />
-              {contactEmail}
+              {displayEmail}
             </p>
           )}
         </div>

@@ -25,6 +25,9 @@ interface WebSocketState {
   // Last event received timestamp
   lastEventAt: Date | null;
   setLastEventAt: (date: Date) => void;
+
+  socket: any | null;
+  setSocket: (socket: any | null) => void;
 }
 
 export const useWebSocketStore = create<WebSocketState>((set) => ({
@@ -41,4 +44,7 @@ export const useWebSocketStore = create<WebSocketState>((set) => ({
   
   lastEventAt: null,
   setLastEventAt: (date) => set({ lastEventAt: date }),
+
+  socket: null,
+  setSocket: (socket) => set({ socket }),
 }));

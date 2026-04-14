@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -10,12 +11,11 @@ import {
   LayoutDashboard,
   ChevronRight,
   Check,
-  Zap,
-  Users,
   FileText,
   Shield,
   Search,
   BarChart3,
+  History,
   Clock,
   Languages,
 } from "lucide-react";
@@ -24,11 +24,169 @@ import { LanguageToggle } from "@/components/layout/language-toggle";
 
 // --- Helper Components ---
 
+type HeroRow = {
+  icon: "scale" | "bell" | "history" | "search" | "file";
+  title: string;
+  badge: string;
+  tone: "green" | "orange" | "blue";
+  done?: boolean;
+};
+
+type HeroExample = {
+  key: string;
+  status: string;
+  caseId: string;
+  title: string;
+  description: string;
+  panelTitle: string;
+  panelStatus: string;
+  footer: string;
+  rows: HeroRow[];
+};
+
 // [HIDDEN FOR GRADUATION PRESENTATION — re-enable when payment is ready]
 // const PricingCard = ({ ... }) => ( ... );
 
 export default function LandingPage() {
   const { t, isRTL } = useI18n();
+  const [activeExample, setActiveExample] = useState(0);
+  const [isPreviewPaused, setIsPreviewPaused] = useState(false);
+
+  const heroExamples = useMemo<HeroExample[]>(() => [
+    {
+      key: "linking",
+      status: t("landing.heroStatusOpen"),
+      caseId: "#CASE-2025-001",
+      title: t("landing.heroCaseTitle"),
+      description: t("landing.heroCaseDesc"),
+      panelTitle: t("landing.heroAiAnalysis"),
+      panelStatus: t("landing.aiComplete"),
+      footer: t("landing.foundRegulations"),
+      rows: [
+        {
+          icon: "scale",
+          title: t("landing.heroSuggestion1"),
+          badge: t("landing.heroMatch"),
+          tone: "green",
+          done: true,
+        },
+        {
+          icon: "scale",
+          title: t("landing.heroSuggestion2"),
+          badge: t("landing.heroUpdateBadge"),
+          tone: "orange",
+        },
+      ],
+    },
+    {
+      key: "alerts",
+      status: t("landing.heroStatusMonitoring"),
+      caseId: "#ALERTS-14",
+      title: t("landing.heroAlertsTitle"),
+      description: t("landing.heroAlertsDesc"),
+      panelTitle: t("landing.heroAlertsPanelTitle"),
+      panelStatus: t("landing.heroAlertsPanelStatus"),
+      footer: t("landing.heroAlertsFooter"),
+      rows: [
+        {
+          icon: "bell",
+          title: t("landing.heroAlertItem1Title"),
+          badge: t("landing.heroAlertItem1Badge"),
+          tone: "orange",
+        },
+        {
+          icon: "bell",
+          title: t("landing.heroAlertItem2Title"),
+          badge: t("landing.heroAlertItem2Badge"),
+          tone: "blue",
+          done: true,
+        },
+      ],
+    },
+    {
+      key: "versions",
+      status: t("landing.heroStatusReview"),
+      caseId: "#REG-VER-08",
+      title: t("landing.heroVersionTitle"),
+      description: t("landing.heroVersionDesc"),
+      panelTitle: t("landing.heroVersionPanelTitle"),
+      panelStatus: t("landing.heroVersionPanelStatus"),
+      footer: t("landing.heroVersionFooter"),
+      rows: [
+        {
+          icon: "history",
+          title: t("landing.heroVersionItem1Title"),
+          badge: t("landing.heroVersionItem1Badge"),
+          tone: "blue",
+          done: true,
+        },
+        {
+          icon: "file",
+          title: t("landing.heroVersionItem2Title"),
+          badge: t("landing.heroVersionItem2Badge"),
+          tone: "green",
+        },
+      ],
+    },
+    {
+      key: "search",
+      status: t("landing.heroStatusReady"),
+      caseId: "#SEARCH-22",
+      title: t("landing.heroSearchTitle"),
+      description: t("landing.heroSearchDesc"),
+      panelTitle: t("landing.heroSearchPanelTitle"),
+      panelStatus: t("landing.heroSearchPanelStatus"),
+      footer: t("landing.heroSearchFooter"),
+      rows: [
+        {
+          icon: "search",
+          title: t("landing.heroSearchItem1Title"),
+          badge: t("landing.heroSearchItem1Badge"),
+          tone: "green",
+        },
+        {
+          icon: "file",
+          title: t("landing.heroSearchItem2Title"),
+          badge: t("landing.heroSearchItem2Badge"),
+          tone: "orange",
+          done: true,
+        },
+      ],
+    },
+  ], [t]);
+
+  useEffect(() => {
+    if (isPreviewPaused || heroExamples.length <= 1) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setActiveExample((prev) => (prev + 1) % heroExamples.length);
+    }, 4500);
+
+    return () => window.clearInterval(timer);
+  }, [heroExamples.length, isPreviewPaused]);
+
+  const moveToExample = (nextIndex: number) => {
+    const total = heroExamples.length;
+    setActiveExample(((nextIndex % total) + total) % total);
+  };
+
+  const badgeToneClass: Record<HeroRow["tone"], string> = {
+    green: "text-green-600 bg-green-50",
+    orange: "text-[#D97706] bg-orange-50",
+    blue: "text-blue-600 bg-blue-50",
+  };
+
+  const getRowIcon = (kind: HeroRow["icon"]) => {
+    if (kind === "bell") return <Bell size={12} />;
+    if (kind === "history") return <History size={12} />;
+    if (kind === "search") return <Search size={12} />;
+    if (kind === "file") return <FileText size={12} />;
+    return <Scale size={12} />;
+  };
+
+  const currentExample = heroExamples[activeExample] ?? heroExamples[0];
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -140,85 +298,95 @@ export default function LandingPage() {
             {/* Inline stats */}
             <div className={`flex flex-wrap gap-4 sm:gap-6 mt-8 pt-6 border-t border-white/10 ${isRTL ? "flex-row-reverse" : ""}`}>
               <div className="flex-1 min-w-[120px]">
-                <div className="text-xl sm:text-2xl font-bold text-white leading-tight mb-1">{isRTL ? "OCR عربي" : "Arabic OCR"}</div>
-                <div className="text-[10px] sm:text-xs text-white/50 font-medium leading-snug">{isRTL ? "ماسح مستندات عربي من شركة عمق" : "Powered by Deep Document Scanner"}</div>
+                <div className="text-xl sm:text-2xl font-bold text-white leading-tight mb-1">{t("landing.metric1Title")}</div>
+                <div className="text-[10px] sm:text-xs text-white/50 font-medium leading-snug">{t("landing.metric1Desc")}</div>
               </div>
               <div className="flex-1 min-w-[120px]">
-                <div className="text-xl sm:text-2xl font-bold text-white leading-tight mb-1">{isRTL ? "+20 نظام" : "20+ Systems"}</div>
-                <div className="text-[10px] sm:text-xs text-white/50 font-medium leading-snug">{isRTL ? "أكثر من 20 نظام متكامل لخدمتك" : "More than 20 systems in the platform"}</div>
+                <div className="text-xl sm:text-2xl font-bold text-white leading-tight mb-1">{t("landing.metric2Title")}</div>
+                <div className="text-[10px] sm:text-xs text-white/50 font-medium leading-snug">{t("landing.metric2Desc")}</div>
               </div>
               <div className="flex-1 min-w-[120px]">
-                <div className="text-xl sm:text-2xl font-bold text-white leading-tight mb-1">{isRTL ? "50 ألف قضية" : "About 50K Cases"}</div>
-                <div className="text-[10px] sm:text-xs text-white/50 font-medium leading-snug">{isRTL ? "دُربت لتناسب النظام السعودي" : "Trained on about 50k Saudi legal cases"}</div>
+                <div className="text-xl sm:text-2xl font-bold text-white leading-tight mb-1">{t("landing.metric3Title")}</div>
+                <div className="text-[10px] sm:text-xs text-white/50 font-medium leading-snug">{t("landing.metric3Desc")}</div>
               </div>
             </div>
           </div>
 
           {/* App preview side */}
           <div className="flex-1 w-full max-w-xl lg:max-w-none">
-            <div className="bg-white rounded-2xl border border-white/20 shadow-2xl shadow-black/20 overflow-hidden">
+            <div
+              className="bg-white rounded-2xl border border-white/20 shadow-2xl shadow-black/20 overflow-hidden"
+              onMouseEnter={() => setIsPreviewPaused(true)}
+              onMouseLeave={() => setIsPreviewPaused(false)}
+              onFocusCapture={() => setIsPreviewPaused(true)}
+              onBlurCapture={() => setIsPreviewPaused(false)}
+            >
               {/* Window chrome */}
               <div className="h-10 bg-slate-50 border-b border-slate-200 flex items-center px-4 gap-2">
                 <div className="w-2.5 h-2.5 rounded-full bg-red-400"></div>
                 <div className="w-2.5 h-2.5 rounded-full bg-amber-400"></div>
                 <div className="w-2.5 h-2.5 rounded-full bg-green-400"></div>
               </div>
-              {/* App mock */}
               <div className="p-5 md:p-6 bg-slate-50">
-                {/* Case header */}
                 <div className="mb-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700">OPEN</span>
-                    <span className="text-xs text-slate-400 font-mono">#CASE-2025-001</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700">
+                      {currentExample.status}
+                    </span>
+                    <span className="text-xs text-slate-400 font-mono">{currentExample.caseId}</span>
                   </div>
-                  <h3 className="font-bold text-[#0F2942] text-base mb-1">
-                    {t("landing.heroCaseTitle")}
-                  </h3>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    {t("landing.heroCaseDesc")}
-                  </p>
+                  <h3 className="font-bold text-[#0F2942] text-base mb-1">{currentExample.title}</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed">{currentExample.description}</p>
                 </div>
 
-                {/* AI suggestions */}
                 <div className="bg-white rounded-xl border border-slate-200 p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Sparkles size={14} className="text-[#D97706]" />
-                    <h4 className="font-bold text-[#0F2942] text-sm">
-                      {t("landing.heroAiAnalysis")}
-                    </h4>
+                    <h4 className="font-bold text-[#0F2942] text-sm">{currentExample.panelTitle}</h4>
                     <span className="ml-auto text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
-                      {t("landing.aiComplete")}
+                      {currentExample.panelStatus}
                     </span>
                   </div>
                   <div className="space-y-2">
-                    <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 flex justify-between items-center">
-                      <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-[#0F2942]">
-                          <Scale size={12} />
+                    {currentExample.rows.map((row, rowIndex) => (
+                      <div
+                        key={`${currentExample.key}-${rowIndex}`}
+                        className="p-3 bg-slate-50 rounded-lg border border-slate-100 flex justify-between items-center"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-7 h-7 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-[#0F2942]">
+                            {getRowIcon(row.icon)}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-[#0F2942]">{row.title}</p>
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${badgeToneClass[row.tone]}`}>
+                              {row.badge}
+                            </span>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-bold text-[#0F2942]">{t("landing.heroSuggestion1")}</p>
-                          <span className="text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">{t("landing.heroMatch")}</span>
-                        </div>
+                        {row.done ? (
+                          <Check size={14} className="text-green-500" />
+                        ) : (
+                          <ChevronRight size={14} className={`text-slate-400 ${isRTL ? "rotate-180" : ""}`} />
+                        )}
                       </div>
-                      <Check size={14} className="text-green-500" />
-                    </div>
-                    <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 flex justify-between items-center">
-                      <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-[#0F2942]">
-                          <Scale size={12} />
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-[#0F2942]">{t("landing.heroSuggestion2")}</p>
-                          <span className="text-[10px] font-bold text-[#D97706] bg-orange-50 px-1.5 py-0.5 rounded flex items-center gap-1 w-fit">
-                            <Bell size={8} /> {t("landing.heroUpdateBadge")}
-                          </span>
-                        </div>
-                      </div>
-                      <ChevronRight size={14} className={`text-slate-400 ${isRTL ? "rotate-180" : ""}`} />
-                    </div>
+                    ))}
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-3 text-center">{t("landing.foundRegulations")}</p>
+                  <p className="text-[10px] text-slate-400 mt-3 text-center">{currentExample.footer}</p>
+                </div>
+
+                <div className="mt-3 flex items-center justify-center gap-1.5">
+                  {heroExamples.map((example, index) => (
+                    <button
+                      key={`${example.key}-dot`}
+                      type="button"
+                      onClick={() => moveToExample(index)}
+                      className={`h-1.5 rounded-full transition-all ${
+                        index === activeExample ? "w-5 bg-[#D97706]" : "w-1.5 bg-slate-300 hover:bg-slate-400"
+                      }`}
+                      aria-label={`${t("landing.heroPreviewSlideAria")} ${index + 1}`}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
@@ -244,11 +412,11 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               { icon: <Sparkles size={22} />, title: t("landing.aiMatching"), desc: t("landing.aiMatchingDesc"), color: "bg-[#D97706]" },
-              { icon: <Bell size={22} />, title: t("landing.regulationAlerts"), desc: t("landing.regulationAlertsDesc"), color: "bg-[#0F2942]" },
+              { icon: <Bell size={22} />, title: t("landing.regulationAlerts"), desc: t("landing.regulationAlertsDesc"), color: "bg-[#D97706]" },
               { icon: <LayoutDashboard size={22} />, title: t("landing.caseManagement"), desc: t("landing.caseManagementDesc"), color: "bg-[#1E3A56]" },
-              { icon: <FileText size={22} />, title: t("landing.documentProcessing"), desc: t("landing.documentProcessingDesc"), color: "bg-[#D97706]" },
-              { icon: <Zap size={22} />, title: t("landing.realTimeUpdates"), desc: t("landing.realTimeUpdatesDesc"), color: "bg-[#0F2942]" },
-              { icon: <Users size={22} />, title: t("landing.teamManagement"), desc: t("landing.teamManagementDesc"), color: "bg-[#1E3A56]" },
+              { icon: <FileText size={22} />, title: t("landing.documentProcessing"), desc: t("landing.documentProcessingDesc"), color: "bg-[#0F2942]" },
+              { icon: <History size={22} />, title: t("landing.realTimeUpdates"), desc: t("landing.realTimeUpdatesDesc"), color: "bg-[#0F2942]" },
+              { icon: <Search size={22} />, title: t("landing.teamManagement"), desc: t("landing.teamManagementDesc"), color: "bg-[#1E3A56]" },
             ].map((feature, idx) => (
               <div key={idx} className="group bg-white p-6 rounded-2xl border border-slate-100 hover:border-[#D97706]/20 hover:shadow-lg transition-all duration-300">
                 <div className={`w-11 h-11 rounded-xl ${feature.color} flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform`}>
@@ -302,9 +470,9 @@ export default function LandingPage() {
           {/* Tech highlights */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
-              { icon: <Languages size={20} />, title: t("landing.techBilingual"), desc: t("landing.techBilingualDesc") },
-              { icon: <Clock size={20} />, title: t("landing.techSpeed"), desc: t("landing.techSpeedDesc") },
-              { icon: <Shield size={20} />, title: t("landing.techSecurity"), desc: t("landing.techSecurityDesc") },
+              { icon: <Languages size={20} />, title: t("landing.metric1Title"), desc: t("landing.metric1Desc") },
+              { icon: <Clock size={20} />, title: t("landing.metric2Title"), desc: t("landing.metric2Desc") },
+              { icon: <Shield size={20} />, title: t("landing.metric3Title"), desc: t("landing.metric3Desc") },
             ].map((item, idx) => (
               <div key={idx} className="flex items-center gap-4 p-4 bg-white rounded-xl border border-slate-200">
                 <div className="text-[#D97706] shrink-0">{item.icon}</div>
@@ -357,6 +525,7 @@ export default function LandingPage() {
       {/* ════════ */}
       <div className="bg-[#0a1c2e] py-14 px-8 border-t border-white/5">
         <div className="max-w-7xl mx-auto">
+          {false && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
             <div>
               <h4 className="font-bold text-white mb-4 text-sm">{t("landing.footerCompany")}</h4>
@@ -370,9 +539,6 @@ export default function LandingPage() {
               <h4 className="font-bold text-white mb-4 text-sm">{t("landing.footerProduct")}</h4>
               <ul className="space-y-2">
                 <li><button onClick={() => scrollToSection("features")} className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.features")}</button></li>
-                {/* [HIDDEN FOR GRADUATION PRESENTATION] Pricing footer link
-                <li><button onClick={() => scrollToSection("pricing")} className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.pricing")}</button></li>
-                */}
                 <li><Link href="#" className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.footerIntegrations")}</Link></li>
               </ul>
             </div>
@@ -393,6 +559,7 @@ export default function LandingPage() {
               </ul>
             </div>
           </div>
+          )}
 
           <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">

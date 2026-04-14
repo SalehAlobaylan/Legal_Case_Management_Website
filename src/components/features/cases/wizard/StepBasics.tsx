@@ -10,7 +10,7 @@ import * as React from "react";
 import {
     Scale,
     ShieldAlert,
-    Heart,
+    Home,
     Building2,
     Briefcase,
     Landmark,
@@ -72,7 +72,7 @@ export function StepBasics({ data, onChange, errors }: StepBasicsProps) {
             type: CaseType.PERSONAL_STATUS,
             label: t("cases.wizard.typePersonalStatus"),
             description: t("cases.wizard.typePersonalStatusDesc"),
-            icon: Heart,
+            icon: Home,
             color: "text-pink-600",
             bgColor: "bg-pink-50",
             borderColor: "border-pink-200",

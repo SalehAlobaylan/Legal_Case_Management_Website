@@ -99,7 +99,7 @@ export function ClientKanbanBoard({ clients, isRTL }: ClientKanbanBoardProps) {
                     <div>
                       <h4 className="font-bold text-sm text-[#0F2942] line-clamp-1">{client.name}</h4>
                       <p className="text-[10px] text-slate-500 uppercase tracking-wider flex items-center gap-1 mt-0.5">
-                        {client.type === 'company' ? <Building2 className="w-3 h-3" /> : <User className="w-3 h-3" />}
+                        {client.type !== 'individual' ? <Building2 className="w-3 h-3" /> : <User className="w-3 h-3" />}
                         {t(`clients.types.${client.type}`)}
                       </p>
                     </div>
@@ -107,16 +107,16 @@ export function ClientKanbanBoard({ clients, isRTL }: ClientKanbanBoardProps) {
                 </div>
                 
                 <div className="space-y-1.5 mt-3">
-                  {client.contactPhone && (
+                  {(client.contactPhone || client.phone) && (
                     <div className="flex items-center gap-2 text-xs text-slate-600">
                       <Phone className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{client.contactPhone}</span>
+                      <span>{client.contactPhone || client.phone}</span>
                     </div>
                   )}
-                  {client.contactEmail && (
+                  {(client.contactEmail || client.email) && (
                     <div className="flex items-center gap-2 text-xs text-slate-600">
                       <Mail className="w-3.5 h-3.5 text-slate-400" />
-                      <span className="truncate">{client.contactEmail}</span>
+                      <span className="truncate">{client.contactEmail || client.email}</span>
                     </div>
                   )}
                 </div>

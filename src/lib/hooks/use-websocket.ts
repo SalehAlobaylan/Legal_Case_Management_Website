@@ -47,6 +47,7 @@ export function useWebSocket() {
     resetReconnectAttempts,
     reconnectAttempts,
     setLastEventAt,
+    setSocket,
   } = useWebSocketStore();
 
   // Calculate reconnect delay with exponential backoff
@@ -138,6 +139,7 @@ export function useWebSocket() {
       setLastEventAt(new Date());
 
       queryClient.invalidateQueries({ queryKey: ["cases"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "daily-operations"] });
 
       if (data?.caseId) {
         queryClient.invalidateQueries({ queryKey: ["case", data.caseId] });
@@ -149,6 +151,7 @@ export function useWebSocket() {
       setLastEventAt(new Date());
 
       queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "daily-operations"] });
 
       if (data?.clientId) {
         queryClient.invalidateQueries({ queryKey: ["client", data.clientId] });
@@ -176,6 +179,7 @@ export function useWebSocket() {
 
       if (data?.caseId) {
         queryClient.invalidateQueries({ queryKey: ["documents", data.caseId] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard", "daily-operations"] });
 
         toast({
           title: "Document Uploaded",
@@ -195,6 +199,7 @@ export function useWebSocket() {
       } else {
         queryClient.invalidateQueries({ queryKey: ["documents"] });
       }
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "daily-operations"] });
     });
 
     // Link verified/dismissed
@@ -206,6 +211,21 @@ export function useWebSocket() {
       } else {
         queryClient.invalidateQueries({ queryKey: ["ai-links"] });
       }
+    });
+
+    socket.on("daily-ops:tasks-updated", () => {
+      setLastEventAt(new Date());
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "daily-operations"] });
+    });
+
+    socket.on("daily-ops:review-queue-updated", () => {
+      setLastEventAt(new Date());
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "daily-operations"] });
+    });
+
+    socket.on("daily-ops:hearings-updated", () => {
+      setLastEventAt(new Date());
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "daily-operations"] });
     });
   }, [queryClient, setLastEventAt]);
 
@@ -262,6 +282,7 @@ export function useWebSocket() {
     setupEventHandlers(socket);
 
     socketRef.current = socket;
+    setSocket(socket);
   }, [token, setStatus, setError, resetReconnectAttempts, setupEventHandlers]);
 
   // Schedule reconnection with exponential backoff
@@ -296,11 +317,12 @@ export function useWebSocket() {
     if (socketRef.current) {
       socketRef.current.disconnect();
       socketRef.current = null;
+      setSocket(null);
     }
 
     setStatus("disconnected");
     resetReconnectAttempts();
-  }, [setStatus, resetReconnectAttempts]);
+  }, [setStatus, resetReconnectAttempts, setSocket]);
 
   // Effect to manage connection based on auth state
   useEffect(() => {

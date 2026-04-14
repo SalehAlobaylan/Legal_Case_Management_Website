@@ -4,7 +4,7 @@
  * Used by: API hooks and UI components for client management.
  */
 
-export type ClientType = "individual" | "company";
+export type ClientType = "individual" | "corporate" | "sme" | "group" | "company";
 export type ClientLeadStatus = "lead" | "contacted" | "consultation" | "retained";
 
 export interface Client {
@@ -14,6 +14,8 @@ export interface Client {
   type: ClientType;
   contactEmail?: string;
   contactPhone?: string;
+  email?: string;
+  phone?: string;
   address?: string;
   notes?: string;
   casesCount?: number;
@@ -39,11 +41,41 @@ export interface ClientActivity {
   createdAt: string;
 }
 
+export interface ClientMessage {
+  id: number;
+  organizationId: number;
+  clientId: number;
+  senderUserId?: string | null;
+  sender?: {
+    id: string;
+    fullName: string | null;
+    email: string;
+  };
+  type: "case_update" | "hearing_reminder" | "document_request" | "invoice_notice" | "general";
+  channel: "in_app" | "email" | "sms" | "whatsapp";
+  subject?: string | null;
+  body: string;
+  status: "queued" | "sent" | "failed";
+  direction: "outbound" | "inbound";
+  errorMessage?: string | null;
+  retryCount?: number;
+  maxRetries?: number;
+  nextRetryAt?: string | null;
+  deliveredAt?: string | null;
+  readAt?: string | null;
+  isRead?: boolean;
+  metadata?: Record<string, unknown>;
+  sentAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ClientDocument {
   id: number;
   clientId: number;
   name: string;
   fileUrl: string;
+  downloadUrl?: string;
   fileType?: string;
   fileSize?: number;
   uploadedById?: string;
@@ -59,6 +91,8 @@ export interface CreateClientInput {
   type: ClientType;
   contactEmail?: string;
   contactPhone?: string;
+  email?: string;
+  phone?: string;
   address?: string;
   notes?: string;
   leadStatus?: ClientLeadStatus;
@@ -77,8 +111,16 @@ export const CLIENT_TYPE_CONFIG = {
     label: { ar: "فرد", en: "Individual" },
     icon: "User",
   },
-  company: {
-    label: { ar: "شركة", en: "Company" },
+  corporate: {
+    label: { ar: "شركة", en: "Corporate" },
+    icon: "Building",
+  },
+  sme: {
+    label: { ar: "منشأة صغيرة", en: "SME" },
+    icon: "Building",
+  },
+  group: {
+    label: { ar: "مجموعة", en: "Group" },
     icon: "Building",
   },
 } as const;

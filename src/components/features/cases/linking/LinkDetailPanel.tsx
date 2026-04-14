@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/lib/hooks/use-i18n";
 import { ScoreBreakdownChart } from "./ScoreBreakdownChart";
 import { MatchEvidenceExplorer } from "./MatchEvidenceExplorer";
 import { RegulationPreview } from "./RegulationPreview";
@@ -53,7 +54,7 @@ function normalizeSimilarityScore(link: CaseRegulationLink): number {
 
 function getLinkRegulationTitle(link: CaseRegulationLink): string {
     const id = link.regulation_id ?? link.regulationId;
-    return link.regulation?.title || (id ? `Regulation #${id}` : "Regulation");
+    return link.regulation?.title || (id ? `#${id}` : "");
 }
 
 export function LinkDetailPanel({
@@ -65,6 +66,7 @@ export function LinkDetailPanel({
     isDismissing,
     className,
 }: LinkDetailPanelProps) {
+    const { t } = useI18n();
     const confidence = Math.round(normalizeSimilarityScore(link) * 100);
     const isVerified = link.verified;
     const regulationId = link.regulation_id ?? link.regulationId;
@@ -141,32 +143,32 @@ export function LinkDetailPanel({
                             {isVerified ? (
                                 <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-green-100 text-green-700 px-2.5 py-1 rounded-lg border border-green-200">
                                     <CheckCircle className="h-3 w-3" />
-                                    Verified & Linked
+                                    {t("ai.verifiedAndLinked")}
                                 </span>
                             ) : (
                                 <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-amber-100 text-amber-700 px-2.5 py-1 rounded-lg border border-amber-200">
                                     <Clock className="h-3 w-3" />
-                                    Pending Review
+                                    {t("ai.pendingReview")}
                                 </span>
                             )}
                             <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#0F2942]/10 text-[#0F2942] px-2.5 py-1 rounded-lg">
                                 <Sparkles className="h-3 w-3" />
                                 {link.method === "ai"
-                                    ? "AI Matched"
+                                    ? t("ai.aiMatched")
                                     : link.method === "manual"
-                                        ? "Manual"
-                                        : "Hybrid"}
+                                        ? t("ai.manual")
+                                        : t("ai.hybrid")}
                             </span>
                             {matchedWithDocs && (
                                 <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-lg border border-blue-200">
                                     <FileText className="h-3 w-3" />
-                                    Document Evidence
+                                    {t("ai.documentEvidence")}
                                 </span>
                             )}
                             {isSubscribed && (
                                 <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-purple-100 text-purple-700 px-2.5 py-1 rounded-lg border border-purple-200">
                                     <Bell className="h-3 w-3" />
-                                    Subscribed
+                                    {t("ai.subscribed")}
                                 </span>
                             )}
                             {sourceUrl && (
@@ -177,7 +179,7 @@ export function LinkDetailPanel({
                                     className="inline-flex items-center gap-1 text-[10px] font-bold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg border border-slate-200 hover:bg-slate-200 transition-colors"
                                 >
                                     <ExternalLink className="h-3 w-3" />
-                                    Source
+                                    {t("ai.source")}
                                 </a>
                             )}
                         </div>
@@ -189,7 +191,7 @@ export function LinkDetailPanel({
                             <div className="flex items-center gap-2 mb-2">
                                 <AlertTriangle className="h-4 w-4 text-amber-600" />
                                 <span className="text-xs font-bold text-amber-800">
-                                    Warnings
+                                    {t("ai.warnings")}
                                 </span>
                             </div>
                             <ul className="space-y-1">
@@ -200,7 +202,7 @@ export function LinkDetailPanel({
                                     >
                                         <span className="mt-1 h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0" />
                                         {warning === "regulation_chunk_index_fallback_used"
-                                            ? "Using fallback text matching (chunk index unavailable)"
+                                            ? t("ai.warningFallback")
                                             : warning}
                                     </li>
                                 ))}
@@ -214,7 +216,7 @@ export function LinkDetailPanel({
                             <div className="flex items-center gap-2 mb-4">
                                 <Shield className="h-4 w-4 text-[#0F2942]" />
                                 <h3 className="text-sm font-bold text-[#0F2942]">
-                                    Score Breakdown
+                                    {t("ai.scoreBreakdown")}
                                 </h3>
                             </div>
                             <ScoreBreakdownChart breakdown={scoreBreakdown} />
@@ -235,7 +237,7 @@ export function LinkDetailPanel({
                             <div className="flex items-center gap-2 mb-3">
                                 <FileText className="h-4 w-4 text-[#0F2942]" />
                                 <h3 className="text-sm font-bold text-[#0F2942]">
-                                    Regulation Content
+                                    {t("ai.regulationContent")}
                                 </h3>
                             </div>
                             <RegulationPreview
@@ -257,7 +259,7 @@ export function LinkDetailPanel({
                         <div className="flex items-center gap-2 text-green-700">
                             <CheckCircle className="h-4 w-4" />
                             <span className="text-sm font-bold">
-                                Linked to Case Evidence
+                                {t("ai.linkedToEvidence")}
                             </span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -269,7 +271,7 @@ export function LinkDetailPanel({
                                     className="text-xs"
                                 >
                                     <Bell className="h-3.5 w-3.5 mr-1" />
-                                    Subscribe to Updates
+                                    {t("ai.subscribeToUpdates")}
                                 </Button>
                             )}
                             <Button
@@ -284,7 +286,7 @@ export function LinkDetailPanel({
                                 ) : (
                                     <>
                                         <X className="h-3.5 w-3.5 mr-1" />
-                                        Unlink
+                                        {t("ai.unlinkFromCase")}
                                     </>
                                 )}
                             </Button>
@@ -302,7 +304,7 @@ export function LinkDetailPanel({
                             ) : (
                                 <CheckCircle className="h-4 w-4 mr-2" />
                             )}
-                            Verify & Link to Case
+                            {t("ai.verifyAndLink")}
                         </Button>
                         <Button
                             variant="outline"
@@ -315,7 +317,7 @@ export function LinkDetailPanel({
                             ) : (
                                 <X className="h-4 w-4 mr-2" />
                             )}
-                            Dismiss
+                            {t("ai.dismiss")}
                         </Button>
                         {!isSubscribed && onSubscribe && regulationId && (
                             <Button
@@ -324,7 +326,7 @@ export function LinkDetailPanel({
                                 className="shrink-0 text-xs"
                             >
                                 <Bell className="h-3.5 w-3.5 mr-1" />
-                                Subscribe
+                                {t("ai.subscribe")}
                             </Button>
                         )}
                     </div>

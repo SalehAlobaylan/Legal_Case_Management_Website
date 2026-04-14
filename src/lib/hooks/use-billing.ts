@@ -63,6 +63,7 @@ export function useUsagePercentages() {
  */
 export function useInvoices(filters?: {
   status?: string;
+  clientId?: number;
   limit?: number;
   offset?: number;
 }) {

@@ -13,10 +13,12 @@ export interface User {
   fullName: string;
   role: string;
   organizationId: number;
+  clientId?: number | null;
   // Optional profile fields
   phone?: string;
   bio?: string;
   location?: string;
+  specialization?: string;
   avatarUrl?: string;
   isOAuthUser?: boolean;
 }
@@ -45,11 +47,16 @@ export const useAuthStore = create<AuthState>()(
         if (typeof document !== "undefined") {
           const maxAgeSeconds = 7 * 24 * 60 * 60; // 7 days
           document.cookie = `auth-storage=1; Path=/; Max-Age=${maxAgeSeconds}`;
+          document.cookie = `auth-role=${encodeURIComponent(user.role)}; Path=/; Max-Age=${maxAgeSeconds}`;
         }
       },
 
       updateUser: (user) => {
         set({ user });
+        if (typeof document !== "undefined") {
+          const maxAgeSeconds = 7 * 24 * 60 * 60;
+          document.cookie = `auth-role=${encodeURIComponent(user.role)}; Path=/; Max-Age=${maxAgeSeconds}`;
+        }
       },
 
       logout: () => {
@@ -58,6 +65,8 @@ export const useAuthStore = create<AuthState>()(
         if (typeof document !== "undefined") {
           document.cookie =
             "auth-storage=; Path=/; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+          document.cookie =
+            "auth-role=; Path=/; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
         }
       },
     }),

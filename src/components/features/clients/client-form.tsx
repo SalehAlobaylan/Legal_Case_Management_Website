@@ -26,7 +26,9 @@ const clientSchema = z.object({
 type ClientFormData = z.input<typeof clientSchema>;
 
 interface ClientFormProps {
-  initialData?: Partial<ClientFormData>;
+  initialData?: Partial<ClientFormData> & {
+    type?: string;
+  };
   clientId?: number;
   mode?: "create" | "edit";
   onSuccess?: () => void;
@@ -57,7 +59,14 @@ export function ClientForm({ initialData, clientId, mode = "create", onSuccess }
     resolver: zodResolver(clientSchema),
     defaultValues: {
       name: initialData?.name || "",
-      type: initialData?.type || "Individual",
+      type:
+        initialData?.type?.toLowerCase() === "corporate"
+          ? "Corporate"
+          : initialData?.type?.toLowerCase() === "sme"
+            ? "SME"
+            : initialData?.type?.toLowerCase() === "group"
+              ? "Group"
+              : "Individual",
       email: initialData?.email || "",
       phone: initialData?.phone || "",
       address: initialData?.address || "",
@@ -69,18 +78,19 @@ export function ClientForm({ initialData, clientId, mode = "create", onSuccess }
 
   const onSubmit = (data: ClientFormData) => {
     // Map UI types to API types
-    const typeMapping: Record<string, "individual" | "company"> = {
+    const typeMapping: Record<string, "individual" | "corporate" | "sme" | "group"> = {
       "Individual": "individual",
-      "Corporate": "company",
-      "SME": "company",
-      "Group": "company",
+      "Corporate": "corporate",
+      "SME": "sme",
+      "Group": "group",
     };
 
     const payload = {
       name: data.name,
       type: typeMapping[data.type] || "individual",
-      contactEmail: data.email,
-      contactPhone: data.phone,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
       notes: data.notes,
     };
 

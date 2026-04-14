@@ -18,7 +18,6 @@ import {
   Phone,
   Mail,
   MapPin,
-  MessageSquare,
   FileText,
   Edit2,
   Building2,
@@ -29,22 +28,14 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
-import { useClient, useClientCases, useSendMessageToClient } from "@/lib/hooks/use-clients";
+import { useClient, useClientCases } from "@/lib/hooks/use-clients";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ClientActivityTimeline } from "@/components/features/clients/client-activity-timeline";
 import { ClientDocuments } from "@/components/features/clients/client-documents";
 import { ClientFinancials } from "@/components/features/clients/client-financials";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogBody,
-  DialogFooter,
-  DialogCloseIconButton,
-} from "@/components/ui/dialog";
+import { ClientMessagingCenter } from "@/components/features/clients/client-messaging-center";
 
 /* =============================================================================
    CLIENT TYPE ICON MAPPING
@@ -100,9 +91,6 @@ export default function ClientDetailPage() {
   // Fetch client and their cases from API
   const { data: client, isLoading: isLoadingClient, error: clientError } = useClient(clientId);
   const { data: clientCases, isLoading: isLoadingCases } = useClientCases(clientId);
-  const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessageToClient();
-  const [messageDialogOpen, setMessageDialogOpen] = React.useState(false);
-  const [messageText, setMessageText] = React.useState("");
 
   // Loading state
   if (isLoadingClient) {
@@ -133,7 +121,16 @@ export default function ClientDetailPage() {
   }
 
   const TypeIcon = getTypeIcon(client.type);
-  const displayType = client.type === "company" ? t("clients.types.corporate") : t("clients.types.individual");
+  const displayType =
+    client.type === "individual"
+      ? t("clients.types.individual")
+      : client.type === "sme"
+        ? t("clients.types.sme")
+        : client.type === "group"
+          ? t("clients.types.group")
+          : t("clients.types.corporate");
+  const displayPhone = client.contactPhone || client.phone;
+  const displayEmail = client.contactEmail || client.email;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -204,9 +201,9 @@ export default function ClientDetailPage() {
             </div>
             <div>
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">
-                Phone
+                 {t("clients.form.phone")}
               </p>
-              <p className="text-sm text-slate-700 font-semibold">{client.contactPhone || t("common.notProvided")}</p>
+               <p className="text-sm text-slate-700 font-semibold">{displayPhone || t("common.notProvided")}</p>
             </div>
           </div>
 
@@ -217,10 +214,10 @@ export default function ClientDetailPage() {
             </div>
             <div>
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">
-                Email
+                 {t("clients.form.email")}
               </p>
               <p className="text-sm text-slate-700 font-semibold break-all">
-                {client.contactEmail || t("common.notProvided")}
+                {displayEmail || t("common.notProvided")}
               </p>
             </div>
           </div>
@@ -232,7 +229,7 @@ export default function ClientDetailPage() {
             </div>
             <div>
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">
-                Address
+                 {t("clients.form.address")}
               </p>
               <p className="text-sm text-slate-700 font-semibold">{client.address || t("common.notProvided")}</p>
             </div>
@@ -260,7 +257,7 @@ export default function ClientDetailPage() {
                 value="documents" 
                 className="bg-transparent! rounded-none border-b-2 border-transparent data-[state=active]:border-[#D97706] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 py-3 font-semibold text-slate-500 data-[state=active]:text-[#D97706]"
               >
-                {t("clients.documentsVault")}
+                {t("clients.documents.tab")}
               </TabsTrigger>
               <TabsTrigger 
                 value="financials" 
@@ -281,14 +278,8 @@ export default function ClientDetailPage() {
                 </div>
               )}
 
-              {/* Message Button */}
-              <Button
-                onClick={() => setMessageDialogOpen(true)}
-                className="w-full bg-[#D97706] hover:bg-[#B45309] text-white px-6 py-4 rounded-xl font-bold flex items-center justify-center gap-3 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-base"
-              >
-                <MessageSquare className="h-5 w-5" />
-                {t("clients.sendMessageToClient")}
-              </Button>
+              {/* Messaging Center */}
+              <ClientMessagingCenter clientId={client.id} />
 
               {/* Associated Cases */}
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -388,11 +379,12 @@ export default function ClientDetailPage() {
               <ClientDocuments clientId={clientId} />
             </TabsContent>
             
-            <TabsContent value="financials" className="mt-0 animate-in fade-in duration-500">
-              <ClientFinancials />
-            </TabsContent>
-          </Tabs>
+              <TabsContent value="financials" className="mt-0 animate-in fade-in duration-500">
+                <ClientFinancials clientId={client.id} />
+              </TabsContent>
+            </Tabs>
         </div>
+
     </div>
   );
 }

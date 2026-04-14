@@ -16,6 +16,7 @@ import {
     Filter,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { useI18n } from "@/lib/hooks/use-i18n";
 import type { CaseRegulationLink } from "@/lib/types/case";
 
 type FilterType = "all" | "pending" | "verified";
@@ -41,7 +42,7 @@ function getLinkRegulationTitle(link: CaseRegulationLink): string {
     const id = link.regulation_id ?? link.regulationId;
     return (
         link.regulation?.title ||
-        (id ? `Regulation #${id}` : "Regulation")
+        (id ? `#${id}` : "")
     );
 }
 
@@ -51,6 +52,7 @@ export function LinkListSidebar({
     onSelectLink,
     className,
 }: LinkListSidebarProps) {
+    const { t } = useI18n();
     const [filter, setFilter] = React.useState<FilterType>("all");
     const [sort, setSort] = React.useState<SortType>("score");
     const [searchQuery, setSearchQuery] = React.useState("");
@@ -95,9 +97,9 @@ export function LinkListSidebar({
     const verifiedCount = links.filter((l) => l.verified).length;
 
     const filterButtons: { key: FilterType; label: string; count: number }[] = [
-        { key: "all", label: "All", count: links.length },
-        { key: "pending", label: "Pending", count: pendingCount },
-        { key: "verified", label: "Verified", count: verifiedCount },
+        { key: "all", label: t("ai.allLinks"), count: links.length },
+        { key: "pending", label: t("ai.pendingLinks"), count: pendingCount },
+        { key: "verified", label: t("ai.verifiedLinks"), count: verifiedCount },
     ];
 
     return (
@@ -110,9 +112,9 @@ export function LinkListSidebar({
             {/* Header */}
             <div className="p-4 border-b border-slate-200 space-y-3">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-[#0F2942]">Regulation Links</h3>
+                    <h3 className="text-sm font-bold text-[#0F2942]">{t("ai.linkedRegulations")}</h3>
                     <span className="text-[10px] font-bold bg-[#0F2942]/10 text-[#0F2942] px-2 py-0.5 rounded-md">
-                        {links.length} total
+                        {t("ai.totalWithCount", { count: links.length })}
                     </span>
                 </div>
 
@@ -121,7 +123,7 @@ export function LinkListSidebar({
                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
                     <input
                         type="text"
-                        placeholder="Search regulations..."
+                        placeholder={t("ai.searchLinks")}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full pl-8 pr-3 py-2 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706]/20 outline-none transition-all"
@@ -149,7 +151,7 @@ export function LinkListSidebar({
                 {/* Sort */}
                 <div className="flex items-center gap-1">
                     <SlidersHorizontal className="h-3 w-3 text-slate-400" />
-                    <span className="text-[10px] text-slate-500">Sort:</span>
+                    <span className="text-[10px] text-slate-500">{t("ai.sortBy")}</span>
                     <button
                         onClick={() => setSort("score")}
                         className={cn(
@@ -159,7 +161,7 @@ export function LinkListSidebar({
                                 : "text-slate-500 hover:text-slate-700"
                         )}
                     >
-                        Score
+                        {t("ai.sortByScore")}
                     </button>
                     <button
                         onClick={() => setSort("date")}
@@ -170,7 +172,7 @@ export function LinkListSidebar({
                                 : "text-slate-500 hover:text-slate-700"
                         )}
                     >
-                        Date
+                        {t("ai.sortByDate")}
                     </button>
                 </div>
             </div>
@@ -181,7 +183,7 @@ export function LinkListSidebar({
                     <div className="text-center py-8 px-4">
                         <Filter className="h-5 w-5 text-slate-300 mx-auto mb-2" />
                         <p className="text-xs text-slate-500 font-medium">
-                            No links match your filters
+                            {t("ai.noLinksMatchFilters")}
                         </p>
                     </div>
                 ) : (
@@ -252,7 +254,7 @@ export function LinkListSidebar({
                                         <div className="flex items-center gap-1 mt-1">
                                             <AlertTriangle className="h-2.5 w-2.5 text-amber-500" />
                                             <span className="text-[9px] text-amber-600">
-                                                Has warnings
+                                                {t("ai.hasWarnings")}
                                             </span>
                                         </div>
                                     ) : null}

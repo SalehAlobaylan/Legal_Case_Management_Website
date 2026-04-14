@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
+import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -12,7 +13,6 @@ import {
     Camera,
     MapPin,
     Briefcase,
-    Award,
     Clock,
     TrendingUp,
     Target,
@@ -109,13 +109,13 @@ export default function ProfilePage() {
     const { t, isRTL } = useI18n();
     const [isEditing, setIsEditing] = useState(false);
     const [activityFilter, setActivityFilter] = useState<ActivityFilter>("all");
-    const [activityPage, setActivityPage] = useState(0);
+    const [activityLimit, setActivityLimit] = useState(10);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const { data: statsData, isLoading: isStatsLoading } = useProfileStats();
     const { data: activitiesData, isLoading: isActivitiesLoading } = useProfileActivities({
-        limit: 10,
-        offset: activityPage * 10,
+        limit: activityLimit,
+        offset: 0,
         type: activityFilter === "all" ? undefined : activityFilter,
     });
 
@@ -166,6 +166,16 @@ export default function ProfilePage() {
         },
     });
 
+    useEffect(() => {
+        reset({
+            fullName: user?.fullName || "",
+            phone: user?.phone || "",
+            bio: user?.bio || "",
+            location: user?.location || (isRTL ? "الرياض، المملكة العربية السعودية" : "Riyadh, Saudi Arabia"),
+            specialization: user?.specialization || "",
+        });
+    }, [user, isRTL, reset]);
+
     const userInitials = user?.fullName
         ?.split(" ")
         .map((part) => part[0])
@@ -188,6 +198,7 @@ export default function ProfilePage() {
         updateProfile.mutate(data, {
             onSuccess: () => {
                 setIsEditing(false);
+                reset(data);
             }
         });
     };
@@ -199,17 +210,31 @@ export default function ProfilePage() {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            const isImage = file.type.startsWith("image/");
+            const underSizeLimit = file.size <= 5 * 1024 * 1024;
+            if (!isImage || !underSizeLimit) {
+                return;
+            }
             uploadAvatar.mutate(file);
         }
     };
 
     const handleFilterChange = (filter: ActivityFilter) => {
         setActivityFilter(filter);
-        setActivityPage(0);
+        setActivityLimit(10);
     };
 
     const loadMoreActivities = () => {
-        setActivityPage((prev) => prev + 1);
+        setActivityLimit((prev) => prev + 10);
+    };
+
+    const getActivityHref = (type: ActivityType, referenceId: number | null) => {
+        if (!referenceId) return null;
+        if (type === "case") return `/cases/${referenceId}`;
+        if (type === "regulation") return `/regulations/${referenceId}`;
+        if (type === "client") return `/clients/${referenceId}`;
+        if (type === "document") return null;
+        return null;
     };
 
     const totalCases = stats.totalCases || 1;
@@ -253,9 +278,11 @@ export default function ProfilePage() {
                                         onChange={handleFileChange}
                                     />
                                     {user?.avatarUrl ? (
-                                        <img
+                                        <Image
                                             src={user.avatarUrl}
-                                            alt={user.fullName}
+                                            alt={user.fullName || t("profile.initialsFallback")}
+                                            width={96}
+                                            height={96}
                                             className="w-24 h-24 rounded-full bg-surface-muted border-4 border-surface-card shadow-sm object-cover"
                                         />
                                     ) : (
@@ -297,6 +324,14 @@ export default function ProfilePage() {
                                             <div className="space-y-1.5">
                                                 <Label className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">{isRTL ? "الموقع" : "Location"}</Label>
                                                 <Input {...register("location")} className="h-9 bg-surface-bg/50" />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <Label className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">{isRTL ? "التخصص" : "Specialization"}</Label>
+                                                <Input {...register("specialization")} className="h-9 bg-surface-bg/50" />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <Label className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">{isRTL ? "نبذة" : "Bio"}</Label>
+                                                <textarea {...register("bio")} className="w-full min-h-[72px] rounded-md border border-border bg-surface-bg/50 px-3 py-2 text-sm" />
                                             </div>
                                             <div className="flex gap-2 pt-2">
                                                 <Button type="submit" size="sm" disabled={updateProfile.isPending} className="flex-1 bg-brand-primary hover:bg-brand-secondary">
@@ -341,8 +376,13 @@ export default function ProfilePage() {
                                                 <div className="w-8 h-8 rounded-full bg-surface-muted border border-border shadow-sm flex items-center justify-center shrink-0 group-hover:border-brand-primary/30 transition-colors">
                                                     <Briefcase className="h-4 w-4 text-[var(--color-text-primary)]" />
                                                 </div>
-                                                <p className="text-sm text-[var(--color-text-primary)]">{isRTL ? t("settings.commercialLaw") : "Commercial Law"}</p>
+                                                <p className="text-sm text-[var(--color-text-primary)]">{user?.specialization || (isRTL ? t("settings.commercialLaw") : "Commercial Law")}</p>
                                             </div>
+                                            {user?.bio && (
+                                                <div className="pt-2 border-t border-border/50">
+                                                    <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">{user.bio}</p>
+                                                </div>
+                                            )}
                                         </>
                                     )}
                                 </div>
@@ -619,7 +659,9 @@ export default function ProfilePage() {
                                 </div>
                             ) : activities.length > 0 ? (
                                 <>
-                                    {activities.map((item) => (
+                                    {activities.map((item) => {
+                                        const href = getActivityHref(item.type, item.referenceId);
+                                        return (
                                         <div key={item.id} className="flex items-center p-4 hover:bg-surface-muted transition-colors group">
                                             <span className={cn(
                                                 "h-2.5 w-2.5 rounded-full mr-4 rtl:ml-4 rtl:mr-0 shrink-0 ring-4 ring-opacity-20",
@@ -636,9 +678,18 @@ export default function ProfilePage() {
                                                     {getActionLabel(item.action, isRTL)}
                                                 </p>
                                             </div>
+                                            {href ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => window.location.assign(href)}
+                                                    className="text-xs font-bold text-brand-primary hover:text-brand-accent mr-2"
+                                                >
+                                                    {isRTL ? "فتح" : "Open"}
+                                                </button>
+                                            ) : null}
                                             <ChevronRight className={cn("h-4 w-4 text-[var(--color-text-muted)] opacity-50 group-hover:text-brand-accent ml-2 rtl:mr-2 rtl:ml-0 transition-colors", isRTL && "rotate-180")} />
                                         </div>
-                                    ))}
+                                    )})}
                                     {hasMoreActivities && (
                                         <div className="p-4 text-center">
                                             <Button 

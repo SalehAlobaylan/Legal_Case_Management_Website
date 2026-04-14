@@ -4,7 +4,7 @@
  * Used by: Data-fetching hooks and services that need authenticated requests with automatic 401 handling.
  */
 
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 import { useAuthStore } from "@/lib/store/auth-store";
 
 class ApiClient {
@@ -56,28 +56,36 @@ class ApiClient {
     return this.client;
   }
 
-  get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<{ data: T }> {
-    return this.client.get(url, config) as Promise<{ data: T }>;
+  get<T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    return this.client.get(url, config);
   }
 
-  post<T = unknown>(
+  post<T = any>(
     url: string,
     data?: unknown,
     config?: AxiosRequestConfig
-  ): Promise<{ data: T }> {
+  ): Promise<AxiosResponse<T>> {
     return this.client.post(url, data, config);
   }
 
-  put<T = unknown>(
+  put<T = any>(
     url: string,
     data?: unknown,
     config?: AxiosRequestConfig
-  ): Promise<{ data: T }> {
-    return this.client.put(url, data, config) as Promise<{ data: T }>;
+  ): Promise<AxiosResponse<T>> {
+    return this.client.put(url, data, config);
   }
 
-  delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<{ data: T }> {
-    return this.client.delete(url, config) as Promise<{ data: T }>;
+  patch<T = any>(
+    url: string,
+    data?: unknown,
+    config?: AxiosRequestConfig
+  ): Promise<AxiosResponse<T>> {
+    return this.client.patch(url, data, config);
+  }
+
+  delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    return this.client.delete(url, config);
   }
 }
 

@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { useClientDocuments } from "@/lib/hooks/use-clients";
+import { useClientDocuments, useUploadClientDocument, useDeleteClientDocument } from "@/lib/hooks/use-clients";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { FileText, Download, UploadCloud, Eye, Trash2, Loader2, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DocumentViewerModal } from "@/components/ui/document-viewer-modal";
 import { cn } from "@/lib/utils/cn";
+import { apiClient } from "@/lib/api/client";
 
 interface Props {
   clientId: number;
@@ -16,6 +17,8 @@ interface Props {
 export function ClientDocuments({ clientId }: Props) {
   const { t, isRTL } = useI18n();
   const { data: documents, isLoading } = useClientDocuments(clientId);
+  const uploadDocument = useUploadClientDocument(clientId);
+  const deleteDocument = useDeleteClientDocument(clientId);
   const [selectedDoc, setSelectedDoc] = useState<{ url: string; type: string; name: string } | null>(null);
 
   const formatFileSize = (bytes?: number) => {
@@ -34,6 +37,27 @@ export function ClientDocuments({ clientId }: Props) {
 
   if (isLoading) return <div className="p-8 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-[#D97706]" /></div>;
 
+  const openDocument = async (doc: { downloadUrl?: string; fileType?: string; name: string }) => {
+    if (!doc.downloadUrl) return;
+    const response = await apiClient.get(doc.downloadUrl, { responseType: "blob" });
+    const mimeType = (response.headers["content-type"] as string) || doc.fileType || "application/octet-stream";
+    const blob = new Blob([response.data as BlobPart], { type: mimeType });
+    const objectUrl = URL.createObjectURL(blob);
+    setSelectedDoc({ url: objectUrl, type: mimeType, name: doc.name });
+  };
+
+  const triggerUpload = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (file) {
+        uploadDocument.mutate(file);
+      }
+    };
+    input.click();
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-6">
@@ -41,9 +65,13 @@ export function ClientDocuments({ clientId }: Props) {
           <h3 className="font-bold text-slate-800">{t("clients.documents.title")}</h3>
           <p className="text-sm text-slate-500 mt-1">{t("clients.documents.description")}</p>
         </div>
-        <Button className="bg-[#D97706] hover:bg-[#B45309] text-white flex items-center gap-2 rounded-xl">
+        <Button
+          className="bg-[#D97706] hover:bg-[#B45309] text-white flex items-center gap-2 rounded-xl"
+          onClick={triggerUpload}
+          disabled={uploadDocument.isPending}
+        >
           <UploadCloud className="w-4 h-4" />
-          {t("clients.documents.uploadDocument")}
+          {uploadDocument.isPending ? t("common.uploading") : t("clients.documents.uploadDocument")}
         </Button>
       </div>
 
@@ -87,14 +115,36 @@ export function ClientDocuments({ clientId }: Props) {
                   </td>
                   <td className={`px-5 py-4 ${isRTL ? "text-left" : "text-right"}`}>
                     <div className={cn("flex items-center gap-2", isRTL ? "justify-start" : "justify-end")}>
-                      <button 
-                        onClick={() => setSelectedDoc({ url: doc.fileUrl, type: doc.fileType || "application/pdf", name: doc.name })}
+                      <button
+                        onClick={() => openDocument(doc)}
                         className="p-1.5 text-slate-400 hover:text-[#D97706] hover:bg-[#D97706]/10 rounded-md transition-colors"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors">
+                      <button
+                        onClick={() => deleteDocument.mutate(doc.id)}
+                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                      >
                         <Trash2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={async () => {
+                          const response = await apiClient.get(doc.downloadUrl!, { responseType: "blob" });
+                          const blob = new Blob([response.data as BlobPart], {
+                            type: (response.headers["content-type"] as string) || doc.fileType || "application/octet-stream",
+                          });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement("a");
+                          a.href = url;
+                          a.download = doc.name;
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          URL.revokeObjectURL(url);
+                        }}
+                        className="p-1.5 text-slate-400 hover:text-[#0F2942] hover:bg-slate-100 rounded-md transition-colors"
+                      >
+                        <Download className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
@@ -107,7 +157,12 @@ export function ClientDocuments({ clientId }: Props) {
 
       <DocumentViewerModal
         isOpen={!!selectedDoc}
-        onClose={() => setSelectedDoc(null)}
+        onClose={() => {
+          if (selectedDoc?.url?.startsWith("blob:")) {
+            URL.revokeObjectURL(selectedDoc.url);
+          }
+          setSelectedDoc(null);
+        }}
         documentUrl={selectedDoc?.url || ""}
         documentMimeType={selectedDoc?.type || "application/pdf"}
         documentName={selectedDoc?.name || "Document"}

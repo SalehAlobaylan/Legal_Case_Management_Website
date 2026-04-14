@@ -78,11 +78,13 @@ export const billingApi = {
    */
   getInvoices: async (filters?: {
     status?: string;
+    clientId?: number;
     limit?: number;
     offset?: number;
   }): Promise<{ invoices: Invoice[] }> => {
     const params = new URLSearchParams();
     if (filters?.status) params.append("status", filters.status);
+    if (filters?.clientId) params.append("clientId", String(filters.clientId));
     if (filters?.limit) params.append("limit", String(filters.limit));
     if (filters?.offset) params.append("offset", String(filters.offset));
 
@@ -115,7 +117,10 @@ export const billingApi = {
     subscription: Subscription;
     message: string;
   }> => {
-    const response = await apiClient.delete(endpoints.billing.subscription);
+    const response = await apiClient.delete<{
+      subscription: Subscription;
+      message: string;
+    }>(endpoints.billing.subscription);
     return response.data;
   },
 

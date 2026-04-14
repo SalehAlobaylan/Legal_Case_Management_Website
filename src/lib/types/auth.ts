@@ -4,7 +4,13 @@
  * Used by: Auth hooks and store.
  */
 
-export type UserRole = "admin" | "senior_lawyer" | "lawyer" | "paralegal" | "clerk";
+export type UserRole =
+  | "admin"
+  | "senior_lawyer"
+  | "lawyer"
+  | "paralegal"
+  | "clerk"
+  | "client";
 
 export interface User {
   id: string;
@@ -94,6 +100,10 @@ export const USER_ROLE_CONFIG = {
     label: { ar: "كاتب", en: "Clerk" },
     color: "gray",
   },
+  client: {
+    label: { ar: "عميل", en: "Client" },
+    color: "amber",
+  },
 } as const;
 
 // RBAC Permissions
@@ -103,4 +113,5 @@ export const PERMISSIONS = {
   lawyer: ["cases.*", "regulations.read", "ai-links.verify", "clients.*", "documents.*"],
   paralegal: ["cases.create", "cases.read", "cases.update", "regulations.read", "clients.read", "documents.*"],
   clerk: ["cases.create", "cases.read", "regulations.read", "clients.read", "documents.read"],
+  client: ["cases.read", "documents.read", "billing.read"],
 } as const;

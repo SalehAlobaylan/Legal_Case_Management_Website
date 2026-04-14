@@ -3,12 +3,18 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
-  FileText, BookOpen, Users, ArrowUpRight, Scale, Briefcase, Bell,
+  FileText, BookOpen, Users, ArrowUpRight, Briefcase, Bell,
   CalendarDays, FileSignature, ExternalLink, Check, Plus
 } from "lucide-react";
 import { useCases } from "@/lib/hooks/use-cases";
 import { useClients } from "@/lib/hooks/use-clients";
-import { useRecentActivity } from "@/lib/hooks/use-dashboard";
+import {
+  useRecentActivity,
+  useDailyOperations,
+  useCreateDailyTask,
+  useUpdateDailyTask,
+  useUpdateDocumentReviewStatus,
+} from "@/lib/hooks/use-dashboard";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { formatDate } from "@/lib/utils/format";
@@ -20,55 +26,115 @@ export default function DashboardPage() {
   const { data: cases, isLoading: casesLoading } = useCases();
   const { data: clientsData, isLoading: clientsLoading } = useClients();
   const { data: activityData, isLoading: activityLoading } = useRecentActivity();
-  const { t, isRTL } = useI18n();
+  const { data: dailyOps, isLoading: dailyOpsLoading } = useDailyOperations();
+  const createTask = useCreateDailyTask();
+  const updateTask = useUpdateDailyTask();
+  const updateReview = useUpdateDocumentReviewStatus();
+  const { isRTL } = useI18n();
 
-  // Local state for To-Dos panel
-  const [tasks, setTasks] = React.useState([
-    { id: 1, text: isRTL ? 'مراجعة المذكرة الجوابية في القضية 45' : 'Review defense statement for Case #45', completed: false },
-    { id: 2, text: isRTL ? 'اعتماد عقد التأسيس لشركة التقنية' : 'Approve articles of association for Tech Co.', completed: true },
-    { id: 3, text: isRTL ? 'تجديد الوكالة الشرعية للعميل أحمد' : 'Renew POA for Client Ahmed', completed: false },
-  ]);
   const [newTaskText, setNewTaskText] = React.useState('');
 
   const userName = user?.fullName?.split(" ")[0] || (isRTL ? "أستاذي" : "Counsel");
   
-  const displayCases = cases || [];
-  const displayClients = clientsData?.clients || [];
-  const regulationUpdates = activityData?.recentUpdates?.filter(u => u.type === 'regulation_amendment') || [
-    { id: '1', title: isRTL ? 'تعديل نظام المعاملات المدنية' : 'Civil Transactions Law Amendment', description: isRTL ? 'تعديل في المادة 45' : 'Amendment in Article 45', date: new Date().toISOString(), type: 'regulation_amendment' },
-    { id: '2', title: isRTL ? 'تحديث نظام الشركات' : 'Corporate Law Update', description: isRTL ? 'نشر اللائحة المنظمة لعمل مجالس الإدارات' : 'Published Board of Directors operational bylaws', date: new Date(Date.now() - 86400000).toISOString(), type: 'regulation_amendment' }
-  ];
+  const displayCases = React.useMemo(() => cases || [], [cases]);
+  const displayClients = React.useMemo(() => clientsData?.clients || [], [clientsData]);
+  const existingCaseIds = React.useMemo(() => new Set(displayCases.map((c) => c.id)), [displayCases]);
+  const regulationUpdates = React.useMemo(
+    () =>
+      activityData?.recentUpdates?.filter((u) => u.type === "regulation_amendment") || [
+        {
+          id: 1,
+          title: isRTL ? "تعديل نظام المعاملات المدنية" : "Civil Transactions Law Amendment",
+          description: isRTL ? "تعديل في المادة 45" : "Amendment in Article 45",
+          createdAt: "2026-03-06T09:00:00.000Z",
+          type: "regulation_amendment" as const,
+        },
+        {
+          id: 2,
+          title: isRTL ? "تحديث نظام الشركات" : "Corporate Law Update",
+          description: isRTL
+            ? "نشر اللائحة المنظمة لعمل مجالس الإدارات"
+            : "Published Board of Directors operational bylaws",
+          createdAt: "2026-03-05T09:00:00.000Z",
+          type: "regulation_amendment" as const,
+        },
+      ],
+    [activityData, isRTL]
+  );
 
-  const upcomingHearings = displayCases
-    .filter(c => c.next_hearing && new Date(c.next_hearing).getTime() > new Date().getTime())
-    .sort((a, b) => new Date(a.next_hearing!).getTime() - new Date(b.next_hearing!).getTime())
-    .slice(0, 3);
+  const upcomingHearings = (dailyOps?.upcomingHearings || []).slice(0, 6);
 
   const formatDateTime = (d: string | Date) => formatDate(d, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 
-  const pendingDocuments = [
-    { id: 1, name: isRTL ? 'مسودة عقد اتفاقية الصلح.pdf' : 'Settlement_Agreement_Draft.pdf', uploader: isRTL ? 'العميل: خالد الفهد' : 'Client: Khalid Alfahad', time: '1h ago' },
-    { id: 2, name: isRTL ? 'عقد تأسيس شركة الرواد.docx' : 'Alruwad_Articles_Of_Association.docx', uploader: isRTL ? 'مساعد قانوني: سارة' : 'Paralegal: Sara', time: '3h ago' },
-  ];
+  const pendingDocuments = React.useMemo(() => dailyOps?.documentsForReview || [], [dailyOps]);
+  const sortedDocuments = React.useMemo(
+    () => [...pendingDocuments].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+    [pendingDocuments]
+  );
+  const actionableDocuments = React.useMemo(
+    () => sortedDocuments.filter((doc) => Number.isFinite(doc.caseId) && doc.caseId > 0 && existingCaseIds.has(doc.caseId)),
+    [existingCaseIds, sortedDocuments]
+  );
+  const orphanDocumentsCount = sortedDocuments.length - actionableDocuments.length;
+  const [showNormalReviewItems, setShowNormalReviewItems] = React.useState(false);
+  const criticalReviewItems = React.useMemo(
+    () => actionableDocuments.filter((doc) => doc.priorityLevel === "critical"),
+    [actionableDocuments]
+  );
+  const highReviewItems = React.useMemo(
+    () => actionableDocuments.filter((doc) => doc.priorityLevel === "high"),
+    [actionableDocuments]
+  );
+  const normalReviewItems = React.useMemo(
+    () => actionableDocuments.filter((doc) => doc.priorityLevel === "normal"),
+    [actionableDocuments]
+  );
+  const visibleReviewItems = React.useMemo(() => {
+    const urgent = [...criticalReviewItems, ...highReviewItems];
+    return showNormalReviewItems ? [...urgent, ...normalReviewItems] : urgent;
+  }, [criticalReviewItems, highReviewItems, normalReviewItems, showNormalReviewItems]);
 
-  const legalPortals = [
-    { id: 1, name: isRTL ? 'ناجز (Najiz)' : 'Najiz Portal', url: 'https://najiz.sa', color: 'bg-emerald-50 text-emerald-700', hover: 'hover:bg-emerald-100 hover:border-emerald-200 border-emerald-100' },
-    { id: 2, name: isRTL ? 'معين (Muin)' : 'Muin System', url: 'https://muin.bog.gov.sa', color: 'bg-blue-50 text-blue-700', hover: 'hover:bg-blue-100 hover:border-blue-200 border-blue-100' },
-    { id: 3, name: isRTL ? 'وزارة العدل (MOJ)' : 'Ministry of Justice', url: 'https://moj.gov.sa', color: 'bg-amber-50 text-amber-700', hover: 'hover:bg-amber-100 hover:border-amber-200 border-amber-100' },
-  ];
+  const getReviewReasonLabel = (reason: string) => {
+    if (reason === "regulation_changed") return isRTL ? "تحديث نظام مرتبط" : "Linked regulation changed";
+    if (reason === "hearing_soon") return isRTL ? "جلسة قريبة" : "Hearing soon";
+    if (reason === "pending_over_48h") return isRTL ? "معلّق أكثر من 48 ساعة" : "Pending over 48h";
+    if (reason === "active_case_status") return isRTL ? "قضية نشطة" : "Active case";
+    return reason;
+  };
 
-  const toggleTask = (id: number) => {
-    setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+  const legalPortals = (dailyOps?.legalPortals || []).map((p) => ({
+    id: p.id,
+    name: isRTL ? p.nameAr : p.nameEn,
+    url: p.url,
+    color:
+      p.tone === "emerald"
+        ? "bg-emerald-50 text-emerald-700"
+        : p.tone === "blue"
+          ? "bg-blue-50 text-blue-700"
+          : "bg-amber-50 text-amber-700",
+    hover:
+      p.tone === "emerald"
+        ? "hover:bg-emerald-100 hover:border-emerald-200 border-emerald-100"
+        : p.tone === "blue"
+          ? "hover:bg-blue-100 hover:border-blue-200 border-blue-100"
+          : "hover:bg-amber-100 hover:border-amber-200 border-amber-100",
+  }));
+
+  const tasks = dailyOps?.dailyTasks || [];
+
+  const toggleTask = (id: number, completed: boolean) => {
+    updateTask.mutate({ id, patch: { completed: !completed } });
   };
 
   const addTask = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTaskText.trim()) return;
-    setTasks([...tasks, { id: Date.now(), text: newTaskText, completed: false }]);
-    setNewTaskText('');
+    createTask.mutate(newTaskText.trim(), {
+      onSuccess: () => setNewTaskText(''),
+    });
   };
 
-  const isLoading = casesLoading || clientsLoading || activityLoading;
+  const isLoading = casesLoading || clientsLoading || activityLoading || dailyOpsLoading;
 
   if (isLoading) {
     return (
@@ -86,20 +152,30 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8 pb-12 animate-in fade-in zoom-in-95 duration-500">
       
-      {/* ── Hero Banner ── */}
-      <div className="relative overflow-hidden rounded-[2rem] bg-[#0F2942] p-8 md:p-10 shadow-lg text-white border border-[#1E3A56]">
-        <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 scale-150 pointer-events-none">
-          <Scale className="w-64 h-64 text-white" />
-        </div>
-        <div className="relative z-10">
-          <h1 className="text-3xl md:text-4xl font-bold font-serif mb-2">
-            {isRTL ? `أهلاً بك، ${userName}.` : `Welcome, ${userName}.`}
-          </h1>
-          <p className="text-blue-200/80 text-sm md:text-base font-medium max-w-2xl">
-            {isRTL 
-              ? "إليك مركز القيادة الخاص بك. تصفح القضايا والعملاء الجدد، وتابع المواعيد والمستندات بفاعلية تامة."
-              : "Here is your mission control. Browse cases, clients, follow up on hearings and documents efficiently."}
-          </p>
+      {/* ── Header ── */}
+      <div className="rounded-2xl bg-white border border-slate-200 p-6 md:p-7 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-[#0F2942] mb-1.5">
+              {isRTL ? `أهلاً بك، ${userName}` : `Welcome, ${userName}`}
+            </h1>
+            <p className="text-slate-600 text-sm md:text-base font-medium max-w-2xl">
+              {isRTL
+                ? "نظرة سريعة على القضايا والعملاء والتحديثات اليومية."
+                : "A quick view of your cases, clients, and daily updates."}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="px-3 py-1 rounded-full bg-[#0F2942]/5 text-[#0F2942] text-xs font-bold">
+              {isRTL ? `القضايا: ${displayCases.length}` : `Cases: ${displayCases.length}`}
+            </span>
+            <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">
+              {isRTL ? `العملاء: ${displayClients.length}` : `Clients: ${displayClients.length}`}
+            </span>
+            <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold">
+              {isRTL ? `تحديثات الأنظمة: ${regulationUpdates.length}` : `Regulation Updates: ${regulationUpdates.length}`}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -217,13 +293,13 @@ export default function DashboardPage() {
           </div>
           <div className="p-4 space-y-3 flex-1 overflow-y-auto">
             {upcomingHearings.length > 0 ? upcomingHearings.map(c => (
-              <div key={c.id} className="p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer hover:border-[#D97706] hover:bg-orange-50/50 transition-colors group">
+              <div key={c.id} onClick={() => router.push(`/cases/${c.id}`)} className="p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer hover:border-[#D97706] hover:bg-orange-50/50 transition-colors group">
                 <time className="text-xs font-bold text-[#D97706] block mb-1">
-                  {formatDateTime(c.next_hearing!)}
+                  {formatDateTime(c.nextHearing!)}
                 </time>
                 <div className="text-sm font-bold text-[#0F2942] mb-1 truncate">{c.title}</div>
                 <div className="text-[10px] text-slate-500 font-medium flex justify-between items-center">
-                  <span className="truncate">{c.court_jurisdiction || (isRTL ? "المحكمة العامة" : "General Court")}</span>
+                  <span className="truncate">{c.courtJurisdiction || (isRTL ? "المحكمة العامة" : "General Court")}</span>
                   <ArrowUpRight className={cn("h-3 w-3 text-slate-300 group-hover:text-[#D97706]", isRTL && "rotate-180")} />
                 </div>
               </div>
@@ -244,17 +320,113 @@ export default function DashboardPage() {
             <h3 className="font-bold text-[#0F2942]">{isRTL ? "مستندات للمراجعة" : "Required Reviews"}</h3>
           </div>
           <div className="p-4 space-y-3 flex-1 overflow-y-auto">
-            {pendingDocuments.map(doc => (
-              <div key={doc.id} className="p-3 bg-white rounded-xl border border-slate-200 shadow-sm flex gap-3 cursor-pointer hover:border-red-300 transition-colors">
+            <div className="flex items-center gap-2 text-[10px] font-bold">
+              <span className="px-2 py-1 rounded-md bg-red-100 text-red-700">
+                {isRTL ? `${criticalReviewItems.length} حرجة` : `${criticalReviewItems.length} critical`}
+              </span>
+              <span className="px-2 py-1 rounded-md bg-amber-100 text-amber-700">
+                {isRTL ? `${highReviewItems.length} عالية` : `${highReviewItems.length} high`}
+              </span>
+              {normalReviewItems.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowNormalReviewItems((prev) => !prev)}
+                  className="px-2 py-1 rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200"
+                >
+                  {showNormalReviewItems
+                    ? isRTL
+                      ? "إخفاء العادية"
+                      : "Hide normal"
+                    : isRTL
+                      ? `إظهار العادية (${normalReviewItems.length})`
+                      : `Show normal (${normalReviewItems.length})`}
+                </button>
+              )}
+              {orphanDocumentsCount > 0 && (
+                <span className="px-2 py-1 rounded-md bg-amber-100 text-amber-700">
+                  {isRTL
+                    ? `${orphanDocumentsCount} بدون قضية مرتبطة`
+                    : `${orphanDocumentsCount} missing case link`}
+                </span>
+              )}
+            </div>
+
+            {visibleReviewItems.length > 0 ? visibleReviewItems.map((doc) => (
+              <div key={doc.id} className="p-3 bg-white rounded-xl border border-slate-200 shadow-sm flex gap-3 hover:border-red-300 transition-colors">
                 <div className="mt-0.5 shrink-0">
                   <FileText className="h-5 w-5 text-red-400" />
                 </div>
-                <div className="min-w-0">
-                  <div className="text-sm font-bold text-[#0F2942] truncate hover:text-red-600 transition-colors">{doc.name}</div>
-                  <div className="text-[10px] text-slate-500 mt-1">{doc.uploader} • {doc.time}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-bold text-[#0F2942] truncate">{doc.documentName}</div>
+                  <div className="text-[10px] text-slate-500 mt-1">
+                    {isRTL ? `القضية: ${doc.caseTitle}` : `Case: ${doc.caseTitle}`} • {formatDate(doc.createdAt)}
+                  </div>
+                  <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                    <span
+                      className={cn(
+                        "text-[10px] px-2 py-0.5 rounded-md font-bold",
+                        doc.priorityLevel === "critical"
+                          ? "bg-red-100 text-red-700"
+                          : doc.priorityLevel === "high"
+                            ? "bg-amber-100 text-amber-700"
+                            : "bg-slate-100 text-slate-600"
+                      )}
+                    >
+                      {doc.priorityLevel === "critical"
+                        ? isRTL
+                          ? "أولوية حرجة"
+                          : "Critical"
+                        : doc.priorityLevel === "high"
+                          ? isRTL
+                            ? "أولوية عالية"
+                            : "High"
+                          : isRTL
+                            ? "أولوية عادية"
+                            : "Normal"}
+                    </span>
+                    {doc.reasons.slice(0, 2).map((reason) => (
+                      <span key={`${doc.id}-${reason}`} className="text-[10px] px-2 py-0.5 rounded-md bg-blue-50 text-blue-700">
+                        {getReviewReasonLabel(reason)}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">
+                    {isRTL ? `رُفع بواسطة: ${doc.uploadedBy}` : `Uploaded by: ${doc.uploadedBy}`}
+                  </div>
+                  <div className="mt-2 flex gap-2 flex-wrap">
+                    <button
+                      onClick={() => router.push(`/cases/${doc.caseId}`)}
+                      className="text-[10px] px-2 py-1 rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    >
+                      {isRTL ? "فتح القضية" : "Open Case"}
+                    </button>
+                    <button
+                      onClick={() => updateReview.mutate({ id: doc.id, status: "in_review" })}
+                      className={cn(
+                        "text-[10px] px-2 py-1 rounded-md",
+                        doc.reviewStatus === "in_review"
+                          ? "bg-amber-200 text-amber-800"
+                          : "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                      )}
+                    >
+                      {isRTL ? "قيد المراجعة" : "In Review"}
+                    </button>
+                    <button
+                      onClick={() => updateReview.mutate({ id: doc.id, status: "approved" })}
+                      className="text-[10px] px-2 py-1 rounded-md bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                    >
+                      {isRTL ? "اعتماد" : "Approve"}
+                    </button>
+                  </div>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="py-6 text-center text-slate-400">
+                <p className="text-xs">
+                  {isRTL ? "لا توجد عناصر عاجلة للمراجعة حالياً" : "No urgent review actions right now"}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -300,7 +472,7 @@ export default function DashboardPage() {
             {tasks.map(task => (
               <div 
                 key={task.id} 
-                onClick={() => toggleTask(task.id)}
+                onClick={() => toggleTask(task.id, task.completed)}
                 className="flex items-start gap-3 p-4 border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors"
               >
                 <div className={cn("mt-0.5 w-5 h-5 rounded-md border-2 shrink-0 flex items-center justify-center transition-all", task.completed ? "bg-emerald-500 border-emerald-500" : "border-slate-300")}>

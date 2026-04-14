@@ -12,10 +12,11 @@ import type { NextRequest } from "next/server";
  * to set/clear the `auth-storage` cookie on login/logout.
  */
 
-const publicPaths = ["/login", "/register", "/"];
+const publicPaths = ["/login", "/register", "/", "/intake"];
 
 export function proxy(request: NextRequest) {
     const tokenCookie = request.cookies.get("auth-storage")?.value;
+    const roleCookie = request.cookies.get("auth-role")?.value;
     const { pathname } = request.nextUrl;
 
     const isPublicPath = publicPaths.some((path) =>
@@ -30,8 +31,27 @@ export function proxy(request: NextRequest) {
 
     // Redirect to dashboard if authenticated and on auth pages (but NOT on landing page)
     if (tokenCookie && (pathname === "/login" || pathname === "/register")) {
-        const dashboardUrl = new URL("/dashboard", request.url);
+        const target = roleCookie === "client" ? "/portal/overview" : "/dashboard";
+        const dashboardUrl = new URL(target, request.url);
         return NextResponse.redirect(dashboardUrl);
+    }
+
+    const isClientPortal = pathname.startsWith("/portal");
+    const isDashboardArea =
+        pathname.startsWith("/dashboard") ||
+        pathname.startsWith("/cases") ||
+        pathname.startsWith("/clients") ||
+        pathname.startsWith("/regulations") ||
+        pathname.startsWith("/alerts") ||
+        pathname.startsWith("/settings") ||
+        pathname.startsWith("/profile");
+
+    if (tokenCookie && roleCookie === "client" && isDashboardArea) {
+        return NextResponse.redirect(new URL("/portal/overview", request.url));
+    }
+
+    if (tokenCookie && roleCookie && roleCookie !== "client" && isClientPortal) {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 
     return NextResponse.next();

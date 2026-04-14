@@ -15,7 +15,6 @@ import {
   ChevronDown,
   LogOut,
   User,
-  BarChart3,
   Settings,
   Sparkles,
   FileText,
@@ -44,14 +43,12 @@ interface HeaderProps {
   unreadCount?: number;
   onSearch?: (query: string) => void;
   onNotificationsClick?: () => void;
-  onSettingsClick?: () => void;
 }
 
 export function Header({
   unreadCount = 0,
   onSearch,
   onNotificationsClick,
-  onSettingsClick,
 }: HeaderProps) {
   const router = useRouter();
   const { user } = useAuthStore();
@@ -236,9 +233,6 @@ export function Header({
   const handleNotifications = () => {
     onNotificationsClick ? onNotificationsClick() : router.push("/alerts");
   };
-  const handleSettings = () => {
-    onSettingsClick ? onSettingsClick() : router.push("/profile");
-  };
   const handleLogout = () => {
     setShowUserMenu(false);
     logout();
@@ -373,7 +367,7 @@ export function Header({
                 title={t("chat.title")}
               >
                 <Sparkles className="h-3 w-3" />
-                <span className="hidden lg:inline">ASK AI</span>
+                <span className="hidden lg:inline">{t("chat.askAiShort")}</span>
               </button>
             </div>
           </div>
@@ -884,22 +878,6 @@ export function Header({
             )}
           </button>
 
-          {/* Analytics / Profile */}
-          <button
-            type="button"
-            onClick={handleSettings}
-            className={cn(
-              "p-2 rounded-full",
-              "text-blue-200 hover:text-white",
-              "hover:bg-[#1E3A56]",
-              "transition-colors duration-200",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D97706]"
-            )}
-            aria-label={t("nav.profile")}
-            title={t("nav.profile")}
-          >
-            <BarChart3 className="h-5 w-5" />
-          </button>
         </div>
 
         {/* Divider */}
