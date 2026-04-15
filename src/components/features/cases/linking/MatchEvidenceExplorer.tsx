@@ -10,6 +10,7 @@ import * as React from "react";
 import { ArrowRight, FileText, Hash } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useI18n } from "@/lib/hooks/use-i18n";
+import { stripInlineDecorations } from "@/lib/utils/text-segmentation";
 import type { LinkLineMatch, LinkEvidence } from "@/lib/types/case";
 
 interface MatchEvidenceExplorerProps {
@@ -40,31 +41,27 @@ function LineMatchCard({ match, index, t }: LineMatchCardProps) {
 
     return (
         <div className="rounded-xl border border-slate-200 bg-white overflow-hidden hover:border-slate-300 transition-colors">
-            {/* Match header */}
+            {/* Match header — primary ref + single score; weight is visualised by the bar below */}
             <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-200">
-                <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        {t("ai.matchNumber", { index: index + 1 })}
+                <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-[10px] font-bold text-slate-400 tabular-nums shrink-0">
+                        #{index + 1}
                     </span>
                     {match.article_ref && (
-                        <span className="rounded-md bg-[#0F2942]/10 px-2 py-0.5 text-[10px] font-bold text-[#0F2942]">
+                        <span className="rounded-md bg-[#0F2942]/10 px-2 py-0.5 text-[10px] font-bold text-[#0F2942] truncate">
                             {match.article_ref}
                         </span>
                     )}
                     {lineLabel && (
-                        <span className="rounded-md bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-600">
-                            {lineLabel}
-                        </span>
+                        <span className="text-[10px] text-slate-500 shrink-0">{lineLabel}</span>
                     )}
                 </div>
-                <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-slate-500">
-                        {t("ai.pairScore")}: <span className="text-[#0F2942]">{pairScore}%</span>
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-500">
-                        {t("ai.weight")}: <span className="text-amber-600">{contribution}%</span>
-                    </span>
-                </div>
+                <span
+                    title={`${t("ai.pairScore")} ${pairScore}%`}
+                    className="text-[11px] font-bold text-[#0F2942] tabular-nums shrink-0"
+                >
+                    {pairScore}%
+                </span>
             </div>
 
             {/* Side-by-side snippets */}
@@ -77,8 +74,10 @@ function LineMatchCard({ match, index, t }: LineMatchCardProps) {
                             {t("ai.caseText")}
                         </span>
                     </div>
-                    <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                        {match.case_snippet || "—"}
+                    <p className="text-[14px] leading-[1.9] text-slate-700 whitespace-pre-wrap font-arabic-reader">
+                        {match.case_snippet
+                            ? stripInlineDecorations(match.case_snippet)
+                            : "—"}
                     </p>
                 </div>
 
@@ -90,8 +89,10 @@ function LineMatchCard({ match, index, t }: LineMatchCardProps) {
                             {t("ai.regulationText")}
                         </span>
                     </div>
-                    <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                        {match.regulation_snippet || "—"}
+                    <p className="text-[14px] leading-[1.9] text-slate-700 whitespace-pre-wrap font-arabic-reader">
+                        {match.regulation_snippet
+                            ? stripInlineDecorations(match.regulation_snippet)
+                            : "—"}
                     </p>
                 </div>
             </div>

@@ -73,8 +73,12 @@ export default function RegulationsPage() {
     footerTip: t("ai.progress.footerTip"),
   }), [t]);
   const [activeFilter, setActiveFilter] = React.useState("All");
+  const [statusFilter, setStatusFilter] = React.useState<string>("All");
+  const [sortBy, setSortBy] = React.useState<"updated" | "title" | "versions">("updated");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
+
+  const STATUS_OPTIONS = ["All", "active", "amended", "repealed", "draft"];
 
   const CATEGORIES = [
     "All",
@@ -128,15 +132,30 @@ export default function RegulationsPage() {
   };
 
   // Apply local filtering to mock data
-  const filteredRegulations = regulations.filter((reg) => {
-    if (activeFilter !== "All" && reg.category?.toLowerCase() !== activeFilter.toLowerCase()) {
-      return false;
-    }
-    if (debouncedSearch) {
-      return reg.title.toLowerCase().includes(debouncedSearch.toLowerCase());
-    }
-    return true;
-  });
+  const filteredRegulations = regulations
+    .filter((reg) => {
+      if (activeFilter !== "All" && reg.category?.toLowerCase() !== activeFilter.toLowerCase()) {
+        return false;
+      }
+      if (statusFilter !== "All" && reg.status?.toLowerCase() !== statusFilter.toLowerCase()) {
+        return false;
+      }
+      if (debouncedSearch) {
+        return reg.title.toLowerCase().includes(debouncedSearch.toLowerCase());
+      }
+      return true;
+    })
+    .slice()
+    .sort((a, b) => {
+      if (sortBy === "title") return a.title.localeCompare(b.title);
+      if (sortBy === "versions") {
+        const av = (a as { versionsCount?: number }).versionsCount ?? 0;
+        const bv = (b as { versionsCount?: number }).versionsCount ?? 0;
+        return bv - av;
+      }
+      // updated desc
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    });
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
@@ -151,8 +170,18 @@ export default function RegulationsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#D97706]" />
+      <div className="space-y-6">
+        <div className="h-10 w-64 rounded-xl bg-slate-100 animate-pulse" />
+        <div className="grid grid-cols-3 gap-4">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-20 rounded-xl bg-slate-100 animate-pulse" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <RegulationCardSkeleton key={i} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -306,11 +335,40 @@ export default function RegulationsPage() {
         ))}
       </FilterPills>
 
-      {/* Results Count */}
-      <div className="flex items-center justify-between">
+      {/* Status Filters */}
+      <FilterPills className="pb-2">
+        {STATUS_OPTIONS.map((s) => (
+          <FilterPill
+            key={s}
+            active={statusFilter === s}
+            onClick={() => setStatusFilter(s)}
+          >
+            {s === "All"
+              ? t("regulations.filters.allStatuses") || t("common.all")
+              : getStatusLabel(s)}
+          </FilterPill>
+        ))}
+      </FilterPills>
+
+      {/* Results Count + Sort */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <p className="text-sm text-slate-500">
-          {filteredRegulations.length} {filteredRegulations.length === 1 ? "regulation" : "regulations"} found
+          {(t("regulations.resultCount") || "Showing {count} of {total} regulations")
+            .replace("{count}", String(filteredRegulations.length))
+            .replace("{total}", String(regulations.length))}
         </p>
+        <label className="inline-flex items-center gap-2 text-sm text-slate-600">
+          <span className="font-medium">{t("regulations.sort.label")}:</span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/20"
+          >
+            <option value="updated">{t("regulations.sort.updatedDesc")}</option>
+            <option value="title">{t("regulations.sort.titleAsc")}</option>
+            <option value="versions">{t("regulations.sort.versionsDesc")}</option>
+          </select>
+        </label>
       </div>
 
       {/* Regulations Grid or Empty State */}
@@ -454,13 +512,48 @@ function RegulationCard({ regulation, onClick, t, isRTL, getStatusLabel }: Regul
             <Calendar className="h-3.5 w-3.5" />
             {formatDate(updatedAt)}
           </div>
-          {typeof versionsCount === "number" && versionsCount > 0 && (
-            <div className="flex items-center gap-1.5 text-xs font-bold text-[#D97706] group-hover:underline">
-              <Clock3 className="h-3 w-3" />
-              {versionsCount} {t("regulations.versions")}
+          <div className="flex items-center gap-3">
+            {typeof versionsCount === "number" && versionsCount > 0 && (
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                <Clock3 className="h-3 w-3" />
+                {versionsCount} {t("regulations.versions")}
+              </div>
+            )}
+            <div className="inline-flex items-center gap-1 text-xs font-bold text-[#D97706] group-hover:underline">
+              {t("regulations.readCta") || "Read"}
               <ChevronRight className={cn("h-3.5 w-3.5 group-hover:translate-x-1 transition-transform", isRTL && "rotate-180")} />
             </div>
-          )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =============================================================================
+   REGULATION CARD SKELETON
+   ============================================================================= */
+function RegulationCardSkeleton() {
+  return (
+    <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+      <div className="h-1 bg-slate-200" />
+      <div className="p-5 space-y-3">
+        <div className="flex items-start justify-between">
+          <div className="h-10 w-10 rounded-xl bg-slate-100 animate-pulse" />
+          <div className="h-5 w-20 rounded-full bg-slate-100 animate-pulse" />
+        </div>
+        <div className="h-3 w-24 rounded bg-slate-100 animate-pulse" />
+        <div className="space-y-2">
+          <div className="h-4 w-11/12 rounded bg-slate-100 animate-pulse" />
+          <div className="h-4 w-2/3 rounded bg-slate-100 animate-pulse" />
+        </div>
+        <div className="space-y-2 pt-1">
+          <div className="h-3 w-full rounded bg-slate-100 animate-pulse" />
+          <div className="h-3 w-4/5 rounded bg-slate-100 animate-pulse" />
+        </div>
+        <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+          <div className="h-3 w-24 rounded bg-slate-100 animate-pulse" />
+          <div className="h-3 w-16 rounded bg-slate-100 animate-pulse" />
         </div>
       </div>
     </div>

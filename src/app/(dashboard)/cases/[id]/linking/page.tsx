@@ -243,35 +243,20 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
 
                     {/* Actions */}
                     <div className="flex items-center gap-3 shrink-0">
-                        {/* Stats */}
-                        <div className="hidden md:flex items-center gap-3 mr-2">
-                            <div className="text-center">
-                                <p className="text-lg font-bold text-[#0F2942] leading-none">
-                                    {aiLinks?.length || 0}
-                                </p>
-                                <p className="text-[9px] text-slate-500 uppercase font-bold tracking-wider">
-                                    {t("ai.totalLinks")}
-                                </p>
-                            </div>
-                            <div className="h-8 w-px bg-slate-200" />
-                            <div className="text-center">
-                                <p className="text-lg font-bold text-amber-600 leading-none">
-                                    {pendingCount}
-                                </p>
-                                <p className="text-[9px] text-slate-500 uppercase font-bold tracking-wider">
+                        {/* Compact summary — counts are also in sidebar filter pills */}
+                        {aiLinks && aiLinks.length > 0 && (
+                            <div className="hidden md:flex items-center gap-2 text-[11px] text-slate-500 mr-1">
+                                <span>
+                                    <span className="font-bold text-amber-600 tabular-nums">{pendingCount}</span>{" "}
                                     {t("ai.pendingLinks")}
-                                </p>
-                            </div>
-                            <div className="h-8 w-px bg-slate-200" />
-                            <div className="text-center">
-                                <p className="text-lg font-bold text-green-600 leading-none">
-                                    {verifiedCount}
-                                </p>
-                                <p className="text-[9px] text-slate-500 uppercase font-bold tracking-wider">
+                                </span>
+                                <span className="text-slate-300">·</span>
+                                <span>
+                                    <span className="font-bold text-green-600 tabular-nums">{verifiedCount}</span>{" "}
                                     {t("ai.verifiedLinks")}
-                                </p>
+                                </span>
                             </div>
-                        </div>
+                        )}
 
                         <Button
                             size="sm"

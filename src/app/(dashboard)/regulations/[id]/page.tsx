@@ -48,6 +48,14 @@ import {
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { cn } from "@/lib/utils/cn";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  LegalTextReader,
+  type HighlightRange,
+} from "@/components/features/legal-text/legal-text-reader";
+import {
+  findSegmentById,
+  stripInlineDecorations,
+} from "@/lib/utils/text-segmentation";
 
 interface RegulationDetailPageProps {
   params: Promise<{
@@ -141,6 +149,51 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
     rightVersion
   );
   const refreshAmendmentImpact = useRefreshRegulationAmendmentImpact(regulationId);
+
+  // Deep-link to a specific article via URL hash (e.g. #article-5). Must be
+  // declared BEFORE any early returns so hook order stays stable.
+  const [highlightRange, setHighlightRange] =
+    React.useState<HighlightRange | null>(null);
+  const hashLatestContent = React.useMemo(() => {
+    if (!regulation) return "";
+    const sorted = [...(versions || [])].sort(
+      (a, b) => b.versionNumber - a.versionNumber
+    );
+    const latest = sorted[0];
+    const meta = (regulation.sourceMetadata ||
+      latest?.sourceMetadata ||
+      {}) as Record<string, unknown>;
+    const metaSummary =
+      typeof meta.summary === "string" ? meta.summary.trim() : "";
+    return (
+      latest?.contentText ||
+      regulation.latestContent ||
+      regulation.summary ||
+      metaSummary ||
+      ""
+    );
+  }, [regulation, versions]);
+  React.useEffect(() => {
+    if (typeof window === "undefined" || !hashLatestContent) return;
+    const apply = () => {
+      const hash = window.location.hash.replace(/^#/, "");
+      if (!hash) return;
+      const seg = findSegmentById(hashLatestContent, hash, {
+        locale: "ar",
+        kind: "regulation",
+      });
+      if (seg) {
+        setHighlightRange({
+          start: seg.offset,
+          end: seg.offset + 1,
+          nonce: Date.now(),
+        });
+      }
+    };
+    apply();
+    window.addEventListener("hashchange", apply);
+    return () => window.removeEventListener("hashchange", apply);
+  }, [hashLatestContent]);
 
   if (isLoadingRegulation || isLoadingVersions) {
     return (
@@ -493,9 +546,13 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
           {/* ──── Tab: Content ──── */}
           <TabsContent value="content" className="mt-0 focus-visible:outline-none focus:outline-none">
             {latestContent ? (
-              <pre className="max-h-[65vh] overflow-auto whitespace-pre-wrap break-words rounded-xl bg-slate-50 p-6 text-sm text-slate-800 leading-relaxed font-sans border border-slate-200">
-                {latestContent}
-              </pre>
+              <LegalTextReader
+                title={t("regulations.fullContent") || t("regulations.content") || "Content"}
+                text={latestContent}
+                kind="regulation"
+                highlightRange={highlightRange}
+                emptyLabel={t("regulations.noContentAvailable")}
+              />
             ) : (
               <div className="flex h-32 items-center justify-center rounded-xl bg-slate-50 border border-dashed border-slate-300">
                 <p className="text-sm text-slate-400">{t("regulations.noContentAvailable")}</p>
@@ -577,8 +634,15 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
                     <h3 className="mb-2 text-sm font-bold text-[#0F2942]">
                       {t("regulations.ai.executiveSummary") || "Executive Summary"}
                     </h3>
-                    <p className="text-sm leading-relaxed text-slate-700">
-                      {insights.summary || t("common.notAvailable")}
+                    <p
+                      className={cn(
+                        "text-[15px] leading-[1.9] text-slate-800",
+                        isRTL && "font-arabic-reader"
+                      )}
+                    >
+                      {insights.summary
+                        ? stripInlineDecorations(insights.summary)
+                        : t("common.notAvailable")}
                     </p>
                   </article>
 
@@ -589,8 +653,22 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
                     <div className="space-y-2">
                       {(insights.obligations || []).map((item, index) => (
                         <div key={`obl-${index}`} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-                          <p className="text-xs font-semibold text-slate-900">{item.title}</p>
-                          <p className="mt-1 text-sm text-slate-700">{item.description}</p>
+                          <p
+                            className={cn(
+                              "text-[13px] font-bold text-[#0F2942]",
+                              isRTL && "font-arabic-reader"
+                            )}
+                          >
+                            {stripInlineDecorations(item.title || "")}
+                          </p>
+                          <p
+                            className={cn(
+                              "mt-1.5 text-[14px] leading-[1.85] text-slate-700",
+                              isRTL && "font-arabic-reader"
+                            )}
+                          >
+                            {stripInlineDecorations(item.description || "")}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -604,8 +682,22 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
                     <div className="space-y-2">
                       {(insights.riskFlags || []).map((item, index) => (
                         <div key={`risk-${index}`} className="rounded-lg border border-amber-200 bg-white p-3">
-                          <p className="text-xs font-semibold text-amber-900">{item.title}</p>
-                          <p className="mt-1 text-sm text-amber-800">{item.description}</p>
+                          <p
+                            className={cn(
+                              "text-[13px] font-bold text-amber-900",
+                              isRTL && "font-arabic-reader"
+                            )}
+                          >
+                            {stripInlineDecorations(item.title || "")}
+                          </p>
+                          <p
+                            className={cn(
+                              "mt-1.5 text-[14px] leading-[1.85] text-amber-800",
+                              isRTL && "font-arabic-reader"
+                            )}
+                          >
+                            {stripInlineDecorations(item.description || "")}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -621,8 +713,12 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
                           key={`date-${index}`}
                           className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
                         >
-                          <span className="text-xs text-slate-600">{item.label}</span>
-                          <span className="text-sm font-medium text-slate-900">{item.value}</span>
+                          <span className="text-xs text-slate-600">
+                            {stripInlineDecorations(item.label || "")}
+                          </span>
+                          <span className="text-sm font-medium text-slate-900">
+                            {stripInlineDecorations(item.value || "")}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -636,9 +732,12 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
                       {(insights.citations || []).map((item, index) => (
                         <blockquote
                           key={`cite-${index}`}
-                          className="rounded-lg border-l-4 border-[#D97706] bg-slate-50 px-3 py-2 text-sm text-slate-700"
+                          className={cn(
+                            "rounded-lg border-l-4 border-[#D97706] bg-slate-50 px-4 py-3 text-[14px] leading-[1.9] text-slate-700",
+                            isRTL && "font-arabic-reader"
+                          )}
                         >
-                          {item.snippet}
+                          {stripInlineDecorations(item.snippet || "")}
                         </blockquote>
                       ))}
                     </div>
@@ -696,8 +795,13 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
                       </div>
                     )}
                     <div className="relative">
-                      <p className="line-clamp-4 whitespace-pre-wrap text-sm text-slate-600 leading-relaxed">
-                        {version.contentText}
+                      <p
+                        className={cn(
+                          "line-clamp-4 whitespace-pre-wrap text-[15px] leading-[1.9] text-slate-700",
+                          isRTL && "font-arabic-reader"
+                        )}
+                      >
+                        {stripInlineDecorations(version.contentText || "")}
                       </p>
                       {version.contentText && version.contentText.length > 200 && (
                         <div className={cn(
@@ -708,6 +812,25 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
                         )} />
                       )}
                     </div>
+                    {version.contentText && version.contentText.trim().length > 200 && (
+                      <details className="mt-3 group/details">
+                        <summary className="cursor-pointer text-xs font-semibold text-[#D97706] hover:text-[#b45309] list-none inline-flex items-center gap-1">
+                          <span className="group-open/details:hidden">
+                            {t("reader.showMore") || "Show full text"}
+                          </span>
+                          <span className="hidden group-open/details:inline">
+                            {t("reader.showLess") || "Show less"}
+                          </span>
+                        </summary>
+                        <div className="mt-3">
+                          <LegalTextReader
+                            title={`v${version.versionNumber}`}
+                            text={version.contentText}
+                            kind="regulation"
+                          />
+                        </div>
+                      </details>
+                    )}
                   </article>
                 ))}
               </div>
@@ -847,8 +970,14 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
                         </h4>
                         <div className="space-y-2">
                           {amendmentImpact.whatChanged.map((item, index) => (
-                            <p key={`changed-${index}`} className="text-sm text-slate-700">
-                              {item.description}
+                            <p
+                              key={`changed-${index}`}
+                              className={cn(
+                                "text-[14px] leading-[1.9] text-slate-700",
+                                isRTL && "font-arabic-reader"
+                              )}
+                            >
+                              {stripInlineDecorations(item.description || "")}
                             </p>
                           ))}
                         </div>
@@ -860,8 +989,14 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
                         </h4>
                         <div className="space-y-2">
                           {amendmentImpact.legalImpact.map((item, index) => (
-                            <p key={`impact-${index}`} className="text-sm text-amber-800">
-                              {item.description}
+                            <p
+                              key={`impact-${index}`}
+                              className={cn(
+                                "text-[14px] leading-[1.9] text-amber-800",
+                                isRTL && "font-arabic-reader"
+                              )}
+                            >
+                              {stripInlineDecorations(item.description || "")}
                             </p>
                           ))}
                         </div>
@@ -874,8 +1009,14 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
                         </h4>
                         <div className="space-y-2">
                           {amendmentImpact.affectedParties.map((item, index) => (
-                            <p key={`party-${index}`} className="text-sm text-blue-800">
-                              {item.description}
+                            <p
+                              key={`party-${index}`}
+                              className={cn(
+                                "text-[14px] leading-[1.9] text-blue-800",
+                                isRTL && "font-arabic-reader"
+                              )}
+                            >
+                              {stripInlineDecorations(item.description || "")}
                             </p>
                           ))}
                         </div>
@@ -893,9 +1034,12 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
                         {amendmentImpact.citations.map((item, index) => (
                           <blockquote
                             key={`impact-cite-${index}`}
-                            className="rounded-md border-l-4 border-[#D97706] bg-slate-50 px-3 py-2 text-sm text-slate-700"
+                            className={cn(
+                              "rounded-md border-l-4 border-[#D97706] bg-slate-50 px-4 py-3 text-[14px] leading-[1.9] text-slate-700",
+                              isRTL && "font-arabic-reader"
+                            )}
                           >
-                            {item.snippet}
+                            {stripInlineDecorations(item.snippet || "")}
                           </blockquote>
                         ))}
                       </div>
@@ -921,8 +1065,12 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
                           const secondSegment = isRTL ? block.leftSegment : block.rightSegment;
                           // In RTL: first column (visually right) = newer, second column (visually left) = older
                           // So swap the color meanings for RTL
+                          const diffBase = cn(
+                            "min-h-[3rem] whitespace-pre-wrap p-4 text-[14px] leading-[1.9]",
+                            isRTL && "font-arabic-reader"
+                          );
                           const firstStyle = cn(
-                            "min-h-[3rem] whitespace-pre-wrap p-4 text-xs leading-6 font-mono",
+                            diffBase,
                             isRTL ? "border-l border-slate-200" : "border-r border-slate-200",
                             isRTL
                               ? (block.type === "insert" ? "bg-emerald-50 text-emerald-900" :
@@ -933,7 +1081,7 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
                                   block.type === "insert" ? "bg-slate-50 text-slate-300" : "bg-white")
                           );
                           const secondStyle = cn(
-                            "min-h-[3rem] whitespace-pre-wrap p-4 text-xs leading-6 font-mono",
+                            diffBase,
                             isRTL
                               ? (block.type === "delete" ? "bg-rose-50 text-rose-900" :
                                 block.type === "equal" ? "bg-white text-slate-500" :
@@ -942,17 +1090,19 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
                                 block.type === "equal" ? "bg-white text-slate-500" :
                                   block.type === "delete" ? "bg-slate-50 text-slate-300" : "bg-white")
                           );
+                          const cleanFirst = stripInlineDecorations(firstSegment || "");
+                          const cleanSecond = stripInlineDecorations(secondSegment || "");
                           return (
                             <div
                               key={`${block.type}-${index}`}
                               className="grid grid-cols-1 md:grid-cols-2"
                             >
-                              <pre className={firstStyle}>
-                                {firstSegment || " "}
-                              </pre>
-                              <pre className={secondStyle}>
-                                {secondSegment || " "}
-                              </pre>
+                              <div className={firstStyle}>
+                                {cleanFirst || " "}
+                              </div>
+                              <div className={secondStyle}>
+                                {cleanSecond || " "}
+                              </div>
                             </div>
                           );
                         })}

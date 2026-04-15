@@ -1,4 +1,18 @@
 {
+    "reader": {
+        "tableOfContents": "فهرس المحتوى",
+        "readingTime": "دقائق للقراءة",
+        "fontSmaller": "تصغير الخط",
+        "fontLarger": "تكبير الخط",
+        "focusMode": "وضع التركيز",
+        "copySection": "نسخ القسم",
+        "copied": "تم النسخ",
+        "showMore": "عرض المزيد",
+        "showLess": "عرض أقل",
+        "jumpToSection": "انتقال للقسم",
+        "intro": "مقدمة",
+        "noContent": "لا يوجد محتوى متاح."
+    },
     "common": {
         "loading": "جارِ التحميل...",
         "success": "تم بنجاح",
@@ -410,6 +424,44 @@
         "suggestions": "الاقتراحات",
         "caseDescription": "وصف القضية",
         "noDescription": "لم يتم تقديم وصف.",
+        "reader": {
+            "tableOfContents": "فهرس المحتوى",
+            "readingTime": "دقائق للقراءة",
+            "fontSmaller": "تصغير الخط",
+            "fontLarger": "تكبير الخط",
+            "focusMode": "وضع التركيز",
+            "copySection": "نسخ القسم",
+            "copied": "تم النسخ",
+            "showMore": "عرض المزيد",
+            "showLess": "عرض أقل",
+            "jumpToSection": "انتقال للقسم",
+            "intro": "مقدمة"
+        },
+        "aiPanel": {
+            "title": "تحليل القضية بالذكاء الاصطناعي",
+            "generate": "توليد التحليل",
+            "regenerate": "إعادة التوليد",
+            "generating": "جاري التحليل...",
+            "tabs": {
+                "summary": "ملخص",
+                "strengths": "نقاط القوة",
+                "weaknesses": "نقاط الضعف",
+                "risks": "المخاطر",
+                "recommendations": "التوصيات"
+            },
+            "empty": {
+                "title": "لم يُنشأ تحليل بعد",
+                "body": "اضغط على توليد التحليل لاستخراج ملخص ونقاط القوة والضعف والمخاطر من وصف القضية.",
+                "cta": "توليد ملخص القضية"
+            },
+            "disclaimer": "تم التوليد آلياً — راجع النص الأصلي قبل الاعتماد عليه.",
+            "generatedAt": "تم التوليد في",
+            "confidence": "الثقة",
+            "error": "تعذر توليد التحليل. حاول مرة أخرى.",
+            "retry": "إعادة المحاولة",
+            "reportInaccuracy": "الإبلاغ عن خطأ",
+            "jumpToText": "الانتقال إلى النص"
+        },
         "statuses": {
             "open": "نشطة",
             "in_progress": "قيد التنفيذ",
@@ -633,7 +685,19 @@
             "administrative": "إدارية",
             "enforcement": "تنفيذ",
             "digital": "رقمي"
-        }
+        },
+        "filters": {
+            "status": "الحالة",
+            "allStatuses": "كل الحالات"
+        },
+        "sort": {
+            "label": "ترتيب حسب",
+            "updatedDesc": "الأحدث تحديثاً",
+            "titleAsc": "العنوان (أ–ي)",
+            "versionsDesc": "الأكثر إصدارات"
+        },
+        "resultCount": "عرض {count} من {total} نظاماً",
+        "readCta": "قراءة"
     },
     "clients": {
         "title": "دليل العملاء",
@@ -1086,6 +1150,10 @@
         "matchedViaAi": "تم المطابقة عبر تحليل الذكاء الاصطناعي",
         "linkToCase": "ربط بالقضية",
         "whyThisMatch": "سبب هذه المطابقة",
+        "tabOverview": "نظرة عامة",
+        "tabEvidence": "الأدلة",
+        "tabRegulation": "النظام",
+        "noScoreBreakdown": "لا يوجد تفصيل للدرجة متاح لهذا الرابط",
         "caseSnippet": "مقتطف من القضية",
         "regulationSnippet": "مقتطف من النظام",
         "lines": "الأسطر",

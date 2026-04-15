@@ -20,6 +20,9 @@ import { cn } from "@/lib/utils/cn";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import type { LinkLineMatch } from "@/lib/types/case";
 
+/** Matches MOJ decorative divider lines (`====`, `----`, `____`, etc.). */
+const DECORATIVE_LINE_RE = /^[ \t]*[=\-_*~]{4,}[ \t]*$/;
+
 interface RegulationPreviewProps {
     regulationId: number;
     regulationTitle: string;
@@ -167,10 +170,33 @@ export function RegulationPreview({
                 )}
 
                 {!isLoading && contentLines.length > 0 && (
-                    <div className="text-sm font-mono">
+                    <div className="text-sm">
                         {displayLines.map((line, index) => {
                             const lineNumber = index + 1;
                             const isHighlighted = highlightedLines.has(lineNumber);
+                            const isDecorative = DECORATIVE_LINE_RE.test(line);
+
+                            // Decorative divider — render as a slim visual rule
+                            // so the `====`/`----` characters don't dominate the
+                            // viewer. Line numbers stay accurate for match refs.
+                            if (isDecorative) {
+                                return (
+                                    <div
+                                        key={lineNumber}
+                                        className={cn(
+                                            "flex items-stretch hover:bg-slate-50/40 transition-colors",
+                                            isHighlighted && "bg-amber-50/60"
+                                        )}
+                                    >
+                                        <span className="px-3 py-1 text-[10px] font-mono text-slate-300 select-none shrink-0 w-12 text-right tabular-nums border-r border-slate-100">
+                                            {lineNumber}
+                                        </span>
+                                        <span className="flex-1 flex items-center px-3 py-1">
+                                            <span className="h-px w-full bg-slate-200" />
+                                        </span>
+                                    </div>
+                                );
+                            }
 
                             return (
                                 <div
@@ -181,15 +207,15 @@ export function RegulationPreview({
                                         "bg-amber-50 border-l-4 border-l-[#D97706] hover:bg-amber-100/50"
                                     )}
                                 >
-                                    <span className="px-3 py-1 text-[10px] text-slate-400 select-none shrink-0 w-12 text-right tabular-nums border-r border-slate-100">
+                                    <span className="px-3 py-1 text-[10px] font-mono text-slate-400 select-none shrink-0 w-12 text-right tabular-nums border-r border-slate-100">
                                         {lineNumber}
                                     </span>
                                     <span
                                         className={cn(
-                                            "px-3 py-1 text-xs leading-relaxed flex-1 whitespace-pre-wrap break-words",
+                                            "px-3 py-2 text-[13px] leading-[1.9] flex-1 whitespace-pre-wrap break-words font-arabic-reader",
                                             isHighlighted
-                                                ? "text-[#0F2942] font-medium"
-                                                : "text-slate-600"
+                                                ? "text-[#0F2942] font-semibold"
+                                                : "text-slate-700"
                                         )}
                                         dir="auto"
                                     >

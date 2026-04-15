@@ -67,6 +67,14 @@ export function LinkDetailPanel({
     className,
 }: LinkDetailPanelProps) {
     const { t } = useI18n();
+    const [activeTab, setActiveTab] = React.useState<"overview" | "evidence" | "regulation">(
+        "overview"
+    );
+    // Reset tab when switching links
+    React.useEffect(() => {
+        setActiveTab("overview");
+    }, [link.id]);
+
     const confidence = Math.round(normalizeSimilarityScore(link) * 100);
     const isVerified = link.verified;
     const regulationId = link.regulation_id ?? link.regulationId;
@@ -110,49 +118,128 @@ export function LinkDetailPanel({
                 ? "text-blue-600 bg-blue-50 border-blue-200"
                 : "text-amber-600 bg-amber-50 border-amber-200";
 
+    const actionBar = isVerified ? (
+        <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 text-xs font-bold text-green-700">
+                <CheckCircle className="h-4 w-4" />
+                {t("ai.linkedToEvidence")}
+            </span>
+            {!isSubscribed && onSubscribe && regulationId && (
+                <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onSubscribe(regulationId)}
+                    className="text-xs"
+                >
+                    <Bell className="h-3.5 w-3.5 mr-1" />
+                    {t("ai.subscribeToUpdates")}
+                </Button>
+            )}
+            <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onDismiss(link.id)}
+                disabled={isDismissing}
+                className="text-xs text-red-600 border-red-200 hover:bg-red-50"
+            >
+                {isDismissing ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                    <>
+                        <X className="h-3.5 w-3.5 mr-1" />
+                        {t("ai.unlinkFromCase")}
+                    </>
+                )}
+            </Button>
+        </div>
+    ) : (
+        <div className="flex items-center gap-2">
+            <Button
+                size="sm"
+                onClick={() => onVerify(link.id)}
+                disabled={isVerifying}
+                className="bg-[#0F2942] hover:bg-[#0a1c2e] text-white font-bold text-xs"
+            >
+                {isVerifying ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                ) : (
+                    <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
+                )}
+                {t("ai.verifyAndLink")}
+            </Button>
+            <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onDismiss(link.id)}
+                disabled={isDismissing}
+                className="text-xs text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 font-bold"
+            >
+                {isDismissing ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                ) : (
+                    <X className="h-3.5 w-3.5 mr-1.5" />
+                )}
+                {t("ai.dismiss")}
+            </Button>
+            {!isSubscribed && onSubscribe && regulationId && (
+                <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onSubscribe(regulationId)}
+                    className="shrink-0 text-xs"
+                >
+                    <Bell className="h-3.5 w-3.5 mr-1" />
+                    {t("ai.subscribe")}
+                </Button>
+            )}
+        </div>
+    );
+
     return (
         <div className={cn("flex flex-col h-full", className)}>
-            {/* Scrollable content */}
-            <div className="flex-1 overflow-y-auto">
-                <div className="p-6 space-y-6">
-                    {/* ── Header ── */}
-                    <div>
-                        <div className="flex items-start justify-between gap-4 mb-3">
-                            <div className="min-w-0 flex-1">
-                                <h2 className="text-xl font-bold text-[#0F2942] leading-tight">
-                                    {regulationTitle}
-                                </h2>
-                                {regulationNumber && (
-                                    <p className="text-sm text-slate-500 mt-1">
-                                        {regulationNumber}
-                                    </p>
-                                )}
-                            </div>
-                            <div
-                                className={cn(
-                                    "text-lg font-bold px-3 py-1.5 rounded-xl border tabular-nums shrink-0",
-                                    confidenceColor
-                                )}
-                            >
-                                {confidence}%
-                            </div>
+            {/* ── Sticky Header with Actions ── */}
+            <div className="sticky top-0 z-10 shrink-0 border-b border-slate-200 bg-white/95 backdrop-blur px-6 py-4 shadow-sm">
+                <div className="flex items-start justify-between gap-4 mb-3">
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 min-w-0">
+                            <h2 className="text-xl font-bold text-[#0F2942] leading-tight truncate">
+                                {regulationTitle}
+                            </h2>
+                            {sourceUrl && (
+                                <a
+                                    href={sourceUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title={t("ai.openSource")}
+                                    className="shrink-0 p-1 rounded text-slate-400 hover:text-[#0F2942] hover:bg-slate-100 transition-colors"
+                                >
+                                    <ExternalLink className="h-3.5 w-3.5" />
+                                </a>
+                            )}
                         </div>
-
-                        {/* Status badges */}
-                        <div className="flex flex-wrap items-center gap-2">
-                            {isVerified ? (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-green-100 text-green-700 px-2.5 py-1 rounded-lg border border-green-200">
-                                    <CheckCircle className="h-3 w-3" />
-                                    {t("ai.verifiedAndLinked")}
-                                </span>
-                            ) : (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-amber-100 text-amber-700 px-2.5 py-1 rounded-lg border border-amber-200">
-                                    <Clock className="h-3 w-3" />
-                                    {t("ai.pendingReview")}
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            {regulationNumber && (
+                                <span className="text-xs text-slate-500 truncate">
+                                    {regulationNumber}
                                 </span>
                             )}
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#0F2942]/10 text-[#0F2942] px-2.5 py-1 rounded-lg">
-                                <Sparkles className="h-3 w-3" />
+                            {/* Status — consolidated into a single pill combining verification + method */}
+                            <span
+                                className={cn(
+                                    "inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md border",
+                                    isVerified
+                                        ? "bg-green-50 text-green-700 border-green-200"
+                                        : "bg-amber-50 text-amber-700 border-amber-200"
+                                )}
+                            >
+                                {isVerified ? (
+                                    <CheckCircle className="h-3 w-3" />
+                                ) : (
+                                    <Clock className="h-3 w-3" />
+                                )}
+                                {isVerified ? t("ai.verifiedAndLinked") : t("ai.pendingReview")}
+                                <span className="opacity-60">·</span>
+                                <Sparkles className="h-2.5 w-2.5" />
                                 {link.method === "ai"
                                     ? t("ai.aiMatched")
                                     : link.method === "manual"
@@ -160,32 +247,65 @@ export function LinkDetailPanel({
                                         : t("ai.hybrid")}
                             </span>
                             {matchedWithDocs && (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-lg border border-blue-200">
+                                <span
+                                    title={t("ai.documentEvidence")}
+                                    className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600"
+                                >
                                     <FileText className="h-3 w-3" />
-                                    {t("ai.documentEvidence")}
                                 </span>
                             )}
                             {isSubscribed && (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-purple-100 text-purple-700 px-2.5 py-1 rounded-lg border border-purple-200">
-                                    <Bell className="h-3 w-3" />
-                                    {t("ai.subscribed")}
-                                </span>
-                            )}
-                            {sourceUrl && (
-                                <a
-                                    href={sourceUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1 text-[10px] font-bold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg border border-slate-200 hover:bg-slate-200 transition-colors"
+                                <span
+                                    title={t("ai.subscribed")}
+                                    className="inline-flex items-center gap-1 text-[10px] font-bold text-purple-600"
                                 >
-                                    <ExternalLink className="h-3 w-3" />
-                                    {t("ai.source")}
-                                </a>
+                                    <Bell className="h-3 w-3" />
+                                </span>
                             )}
                         </div>
                     </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                        <div
+                            className={cn(
+                                "text-lg font-bold px-3 py-1.5 rounded-xl border tabular-nums",
+                                confidenceColor
+                            )}
+                        >
+                            {confidence}%
+                        </div>
+                    </div>
+                </div>
 
-                    {/* ── Warnings ── */}
+                {/* Actions + Tabs on one row */}
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div className="flex rounded-lg bg-slate-100 p-0.5">
+                        {([
+                            { key: "overview", label: t("ai.tabOverview") },
+                            { key: "evidence", label: t("ai.tabEvidence") },
+                            { key: "regulation", label: t("ai.tabRegulation") },
+                        ] as const).map((tab) => (
+                            <button
+                                key={tab.key}
+                                onClick={() => setActiveTab(tab.key)}
+                                className={cn(
+                                    "text-[11px] font-bold px-3 py-1 rounded-md transition-all",
+                                    activeTab === tab.key
+                                        ? "bg-white text-[#0F2942] shadow-sm"
+                                        : "text-slate-500 hover:text-slate-700"
+                                )}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+                    {actionBar}
+                </div>
+            </div>
+
+            {/* Scrollable content — one tab at a time */}
+            <div className="flex-1 overflow-y-auto">
+                <div className="p-6 space-y-6">
+                    {/* Warnings surface on every tab because they're actionable */}
                     {warnings.length > 0 && (
                         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
                             <div className="flex items-center gap-2 mb-2">
@@ -210,8 +330,7 @@ export function LinkDetailPanel({
                         </div>
                     )}
 
-                    {/* ── Score Breakdown ── */}
-                    {scoreBreakdown && (
+                    {activeTab === "overview" && scoreBreakdown && (
                         <div className="rounded-xl border border-slate-200 bg-white p-5">
                             <div className="flex items-center gap-2 mb-4">
                                 <Shield className="h-4 w-4 text-[#0F2942]" />
@@ -223,115 +342,33 @@ export function LinkDetailPanel({
                         </div>
                     )}
 
-                    {/* ── Match Evidence ── */}
-                    <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5">
-                        <MatchEvidenceExplorer
-                            lineMatches={lineMatches}
-                            documentEvidence={documentEvidence}
-                        />
-                    </div>
+                    {activeTab === "overview" && !scoreBreakdown && (
+                        <div className="text-center py-12 text-sm text-slate-500">
+                            {t("ai.noScoreBreakdown")}
+                        </div>
+                    )}
 
-                    {/* ── Regulation Full Text Preview ── */}
-                    {regulationId && (
-                        <div>
-                            <div className="flex items-center gap-2 mb-3">
-                                <FileText className="h-4 w-4 text-[#0F2942]" />
-                                <h3 className="text-sm font-bold text-[#0F2942]">
-                                    {t("ai.regulationContent")}
-                                </h3>
-                            </div>
-                            <RegulationPreview
-                                regulationId={regulationId}
-                                regulationTitle={regulationTitle}
-                                regulationNumber={regulationNumber}
-                                sourceUrl={sourceUrl}
+                    {activeTab === "evidence" && (
+                        <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5">
+                            <MatchEvidenceExplorer
                                 lineMatches={lineMatches}
+                                documentEvidence={documentEvidence}
                             />
                         </div>
+                    )}
+
+                    {activeTab === "regulation" && regulationId && (
+                        <RegulationPreview
+                            regulationId={regulationId}
+                            regulationTitle={regulationTitle}
+                            regulationNumber={regulationNumber}
+                            sourceUrl={sourceUrl}
+                            lineMatches={lineMatches}
+                        />
                     )}
                 </div>
             </div>
 
-            {/* ── Sticky Action Bar ── */}
-            <div className="border-t border-slate-200 bg-white px-6 py-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
-                {isVerified ? (
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-green-700">
-                            <CheckCircle className="h-4 w-4" />
-                            <span className="text-sm font-bold">
-                                {t("ai.linkedToEvidence")}
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            {!isSubscribed && onSubscribe && regulationId && (
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => onSubscribe(regulationId)}
-                                    className="text-xs"
-                                >
-                                    <Bell className="h-3.5 w-3.5 mr-1" />
-                                    {t("ai.subscribeToUpdates")}
-                                </Button>
-                            )}
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => onDismiss(link.id)}
-                                disabled={isDismissing}
-                                className="text-xs text-red-600 border-red-200 hover:bg-red-50"
-                            >
-                                {isDismissing ? (
-                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                ) : (
-                                    <>
-                                        <X className="h-3.5 w-3.5 mr-1" />
-                                        {t("ai.unlinkFromCase")}
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="flex items-center gap-3">
-                        <Button
-                            onClick={() => onVerify(link.id)}
-                            disabled={isVerifying}
-                            className="flex-1 bg-[#0F2942] hover:bg-[#0a1c2e] text-white font-bold"
-                        >
-                            {isVerifying ? (
-                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                            ) : (
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                            )}
-                            {t("ai.verifyAndLink")}
-                        </Button>
-                        <Button
-                            variant="outline"
-                            onClick={() => onDismiss(link.id)}
-                            disabled={isDismissing}
-                            className="flex-1 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 font-bold"
-                        >
-                            {isDismissing ? (
-                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                            ) : (
-                                <X className="h-4 w-4 mr-2" />
-                            )}
-                            {t("ai.dismiss")}
-                        </Button>
-                        {!isSubscribed && onSubscribe && regulationId && (
-                            <Button
-                                variant="outline"
-                                onClick={() => onSubscribe(regulationId)}
-                                className="shrink-0 text-xs"
-                            >
-                                <Bell className="h-3.5 w-3.5 mr-1" />
-                                {t("ai.subscribe")}
-                            </Button>
-                        )}
-                    </div>
-                )}
-            </div>
         </div>
     );
 }

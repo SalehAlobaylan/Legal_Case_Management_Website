@@ -9,7 +9,8 @@
 import * as React from "react";
 import {
     Search,
-    SlidersHorizontal,
+    ArrowDownAZ,
+    ArrowDownWideNarrow,
     CheckCircle,
     Clock,
     AlertTriangle,
@@ -109,15 +110,8 @@ export function LinkListSidebar({
                 className
             )}
         >
-            {/* Header */}
-            <div className="p-4 border-b border-slate-200 space-y-3">
-                <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-[#0F2942]">{t("ai.linkedRegulations")}</h3>
-                    <span className="text-[10px] font-bold bg-[#0F2942]/10 text-[#0F2942] px-2 py-0.5 rounded-md">
-                        {t("ai.totalWithCount", { count: links.length })}
-                    </span>
-                </div>
-
+            {/* Header — compact: search + segmented filter + sort toggle */}
+            <div className="p-3 border-b border-slate-200 space-y-2">
                 {/* Search */}
                 <div className="relative">
                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
@@ -130,49 +124,34 @@ export function LinkListSidebar({
                     />
                 </div>
 
-                {/* Filter tabs */}
-                <div className="flex gap-1">
-                    {filterButtons.map((btn) => (
-                        <button
-                            key={btn.key}
-                            onClick={() => setFilter(btn.key)}
-                            className={cn(
-                                "flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all",
-                                filter === btn.key
-                                    ? "bg-[#0F2942] text-white shadow-sm"
-                                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                            )}
-                        >
-                            {btn.label} ({btn.count})
-                        </button>
-                    ))}
-                </div>
-
-                {/* Sort */}
-                <div className="flex items-center gap-1">
-                    <SlidersHorizontal className="h-3 w-3 text-slate-400" />
-                    <span className="text-[10px] text-slate-500">{t("ai.sortBy")}</span>
+                {/* Filter segmented control + sort toggle on one row */}
+                <div className="flex items-center gap-2">
+                    <div className="flex flex-1 rounded-lg bg-slate-100 p-0.5">
+                        {filterButtons.map((btn) => (
+                            <button
+                                key={btn.key}
+                                onClick={() => setFilter(btn.key)}
+                                className={cn(
+                                    "flex-1 text-[10px] font-bold py-1 rounded-md transition-all",
+                                    filter === btn.key
+                                        ? "bg-white text-[#0F2942] shadow-sm"
+                                        : "text-slate-500 hover:text-slate-700"
+                                )}
+                            >
+                                {btn.label} {btn.count > 0 && <span className="opacity-60">({btn.count})</span>}
+                            </button>
+                        ))}
+                    </div>
                     <button
-                        onClick={() => setSort("score")}
-                        className={cn(
-                            "text-[10px] font-bold px-2 py-0.5 rounded transition-colors",
-                            sort === "score"
-                                ? "bg-[#D97706]/10 text-[#D97706]"
-                                : "text-slate-500 hover:text-slate-700"
-                        )}
+                        onClick={() => setSort(sort === "score" ? "date" : "score")}
+                        title={sort === "score" ? t("ai.sortByScore") : t("ai.sortByDate")}
+                        className="shrink-0 p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-[#0F2942] transition-colors"
                     >
-                        {t("ai.sortByScore")}
-                    </button>
-                    <button
-                        onClick={() => setSort("date")}
-                        className={cn(
-                            "text-[10px] font-bold px-2 py-0.5 rounded transition-colors",
-                            sort === "date"
-                                ? "bg-[#D97706]/10 text-[#D97706]"
-                                : "text-slate-500 hover:text-slate-700"
+                        {sort === "score" ? (
+                            <ArrowDownWideNarrow className="h-3.5 w-3.5" />
+                        ) : (
+                            <ArrowDownAZ className="h-3.5 w-3.5" />
                         )}
-                    >
-                        {t("ai.sortByDate")}
                     </button>
                 </div>
             </div>

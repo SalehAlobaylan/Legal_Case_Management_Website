@@ -1,4 +1,18 @@
 {
+    "reader": {
+        "tableOfContents": "Contents",
+        "readingTime": "min read",
+        "fontSmaller": "Smaller text",
+        "fontLarger": "Larger text",
+        "focusMode": "Focus mode",
+        "copySection": "Copy section",
+        "copied": "Copied",
+        "showMore": "Show more",
+        "showLess": "Show less",
+        "jumpToSection": "Jump to section",
+        "intro": "Introduction",
+        "noContent": "No content available."
+    },
     "common": {
         "loading": "Loading...",
         "success": "Success",
@@ -410,6 +424,44 @@
         "suggestions": "Suggestions",
         "caseDescription": "Case Description",
         "noDescription": "No description provided.",
+        "reader": {
+            "tableOfContents": "Contents",
+            "readingTime": "min read",
+            "fontSmaller": "Smaller text",
+            "fontLarger": "Larger text",
+            "focusMode": "Focus mode",
+            "copySection": "Copy section",
+            "copied": "Copied",
+            "showMore": "Show more",
+            "showLess": "Show less",
+            "jumpToSection": "Jump to section",
+            "intro": "Introduction"
+        },
+        "aiPanel": {
+            "title": "AI Case Analysis",
+            "generate": "Generate analysis",
+            "regenerate": "Regenerate",
+            "generating": "Analyzing...",
+            "tabs": {
+                "summary": "Summary",
+                "strengths": "Strengths",
+                "weaknesses": "Weaknesses",
+                "risks": "Risks",
+                "recommendations": "Recommendations"
+            },
+            "empty": {
+                "title": "No analysis yet",
+                "body": "Generate an AI analysis to extract a summary, strengths, weaknesses and risks from this case description.",
+                "cta": "Generate case summary"
+            },
+            "disclaimer": "AI generated — verify against the original text before relying on it.",
+            "generatedAt": "Generated",
+            "confidence": "Confidence",
+            "error": "Failed to generate analysis. Please try again.",
+            "retry": "Retry",
+            "reportInaccuracy": "Report inaccuracy",
+            "jumpToText": "Jump to text"
+        },
         "statuses": {
             "open": "Active",
             "in_progress": "In Progress",
@@ -633,7 +685,19 @@
             "administrative": "Administrative",
             "enforcement": "Enforcement",
             "digital": "Digital"
-        }
+        },
+        "filters": {
+            "status": "Status",
+            "allStatuses": "All statuses"
+        },
+        "sort": {
+            "label": "Sort by",
+            "updatedDesc": "Recently updated",
+            "titleAsc": "Title (A–Z)",
+            "versionsDesc": "Most versions"
+        },
+        "resultCount": "Showing {count} of {total} regulations",
+        "readCta": "Read"
     },
     "clients": {
         "title": "Client Directory",
@@ -1085,6 +1149,10 @@
         "matchedViaAi": "Matched via AI analysis",
         "linkToCase": "Link to Case",
         "whyThisMatch": "Why this match",
+        "tabOverview": "Overview",
+        "tabEvidence": "Evidence",
+        "tabRegulation": "Regulation",
+        "noScoreBreakdown": "No score breakdown available for this link",
         "caseSnippet": "Case snippet",
         "regulationSnippet": "Regulation snippet",
         "lines": "Lines",

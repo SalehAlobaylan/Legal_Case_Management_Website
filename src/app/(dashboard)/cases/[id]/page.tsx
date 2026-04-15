@@ -63,6 +63,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { DocumentViewerModal } from "@/components/ui/document-viewer-modal";
+import {
+  LegalTextReader,
+  type HighlightRange,
+} from "@/components/features/legal-text/legal-text-reader";
+import { stripInlineDecorations } from "@/lib/utils/text-segmentation";
+import { CaseAIPanel } from "@/components/features/cases/case-ai-panel";
 import { cn } from "@/lib/utils/cn";
 import type { Document } from "@/lib/types/document";
 import type {
@@ -120,6 +126,9 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
   const [isPreviewLoading, setIsPreviewLoading] = React.useState<Record<number, boolean>>({});
 
   const [promptAfterGenerate, setPromptAfterGenerate] = React.useState(false);
+  // Focus reading mode: slims page chrome + hides the right AI rail so the
+  // case description reader fills the viewport.
+  const [focusMode, setFocusMode] = React.useState(false);
   const shownCandidateBatchKeysRef = React.useRef<Set<string>>(new Set());
   const { toast } = useToast();
   const { t } = useI18n();
@@ -354,65 +363,110 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
   return (
     <div className="h-[calc(100vh-80px)] overflow-hidden flex flex-col lg:flex-row -mx-4 sm:-mx-6 lg:-mx-8 -my-8">
       {/* Left Panel: Case Info */}
-      <div className="flex-1 overflow-y-auto p-8 pb-32 border-r border-slate-200 bg-white">
-        <div className="max-w-4xl mx-auto">
-          {/* Back Button */}
-          <button
-            onClick={() => router.push("/cases")}
-            className={cn(
-              "flex items-center text-slate-500 hover:text-[#0F2942]",
-              "mb-8 text-sm font-medium group transition-colors"
-            )}
-          >
-            <div
-              className={cn(
-                "bg-slate-100 p-1 rounded-md mr-2",
-                "group-hover:bg-[#0F2942] group-hover:text-white transition-colors"
-              )}
-            >
-              <ChevronRight className="rotate-180 h-3.5 w-3.5" />
+      <div
+        className={cn(
+          "flex-1 overflow-y-auto border-r border-slate-200 bg-white transition-all duration-300",
+          focusMode ? "p-4 pb-32" : "p-8 pb-32"
+        )}
+      >
+        <div
+          className={cn(
+            "mx-auto transition-all duration-300",
+            focusMode ? "max-w-5xl" : "max-w-4xl"
+          )}
+        >
+          {focusMode ? (
+            /* Slim sticky case bar — focus reading mode */
+            <div className="sticky top-0 z-20 -mx-4 mb-4 flex items-center gap-3 border-b border-slate-100 bg-white/95 px-4 py-3 backdrop-blur">
+              <button
+                onClick={() => router.push("/cases")}
+                aria-label={t("cases.backToCases")}
+                className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 text-slate-600 hover:bg-[#0F2942] hover:text-white transition-colors shrink-0"
+              >
+                <ChevronRight className="rotate-180 h-3.5 w-3.5" />
+              </button>
+              <div className="min-w-0 flex-1">
+                <h1 className="truncate text-base font-bold text-[#0F2942]">
+                  {case_.title}
+                </h1>
+                <p className="truncate text-[11px] text-slate-500">
+                  #{case_.case_number} · {case_.client_info || t("common.unknown")}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFocusMode(false)}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-[#0F2942] hover:bg-slate-50"
+              >
+                {t("cases.reader.focusMode")}
+              </button>
             </div>
-            {t("cases.backToCases")}
-          </button>
+          ) : (
+            <>
+              {/* Back Button */}
+              <button
+                onClick={() => router.push("/cases")}
+                className={cn(
+                  "flex items-center text-slate-500 hover:text-[#0F2942]",
+                  "mb-8 text-sm font-medium group transition-colors"
+                )}
+              >
+                <div
+                  className={cn(
+                    "bg-slate-100 p-1 rounded-md mr-2",
+                    "group-hover:bg-[#0F2942] group-hover:text-white transition-colors"
+                  )}
+                >
+                  <ChevronRight className="rotate-180 h-3.5 w-3.5" />
+                </div>
+                {t("cases.backToCases")}
+              </button>
 
-          {/* Case Header */}
-          <div className="flex justify-between items-start mb-8">
-            <div>
-              <Badge variant="warning" className="mb-4">
-                {case_.case_type?.replace(/_/g, " ") || t("cases.types.general")}
-              </Badge>
-              <h1 className="text-4xl font-bold text-[#0F2942] font-serif">
-                {case_.title}
-              </h1>
-              <p className="text-sm text-slate-500 mt-2 font-medium">
-                {t("cases.caseIdLabel")}:{" "}
-                <span className="font-mono text-slate-700">#{case_.case_number}</span>
-                {" • "}
-                {t("cases.clientLabel")}: <span className="font-bold text-slate-800">{case_.client_info || t("common.unknown")}</span>
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => useChatStore.getState().openChat(undefined, caseId)}
-                className="flex items-center gap-2 border-[#D97706]/30 text-[#D97706] hover:bg-[#D97706]/5 hover:border-[#D97706]/50"
-              >
-                <Brain className="h-4 w-4" />
-                {t("chat.askAboutCase")}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => router.push(`/cases/${caseId}/edit`)}
-                className="flex items-center gap-2"
-              >
-                <Edit2 className="h-4 w-4" />
-                {t("cases.editCase")}
-              </Button>
-            </div>
-          </div>
+              {/* Case Header */}
+              <div className="flex justify-between items-start mb-8">
+                <div>
+                  <Badge variant="warning" className="mb-4">
+                    {case_.case_type?.replace(/_/g, " ") || t("cases.types.general")}
+                  </Badge>
+                  <h1 className="text-4xl font-bold text-[#0F2942] font-serif">
+                    {case_.title}
+                  </h1>
+                  <p className="text-sm text-slate-500 mt-2 font-medium">
+                    {t("cases.caseIdLabel")}:{" "}
+                    <span className="font-mono text-slate-700">#{case_.case_number}</span>
+                    {" • "}
+                    {t("cases.clientLabel")}: <span className="font-bold text-slate-800">{case_.client_info || t("common.unknown")}</span>
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => useChatStore.getState().openChat(undefined, caseId)}
+                    className="flex items-center gap-2 border-[#D97706]/30 text-[#D97706] hover:bg-[#D97706]/5 hover:border-[#D97706]/50"
+                  >
+                    <Brain className="h-4 w-4" />
+                    {t("chat.askAboutCase")}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push(`/cases/${caseId}/edit`)}
+                    className="flex items-center gap-2"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                    {t("cases.editCase")}
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Tab Navigation */}
-          <div className="flex gap-8 border-b border-slate-200 mb-8">
+          <div
+            className={cn(
+              "flex gap-8 border-b border-slate-200 mb-8",
+              focusMode && "hidden"
+            )}
+          >
             <TabButton
               active={activeTab === "details"}
               onClick={() => setActiveTab("details")}
@@ -437,7 +491,12 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
 
           {/* Tab Content */}
           {activeTab === "details" ? (
-            <DetailsTab case_={case_} />
+            <DetailsTab
+              case_={case_}
+              caseId={caseId}
+              focusMode={focusMode}
+              onFocusModeChange={setFocusMode}
+            />
           ) : activeTab === "documents" ? (
             <DocumentsTab
               caseId={caseId}
@@ -460,8 +519,16 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
         </div>
       </div>
 
-      {/* Right Panel: AI Assistant */}
-      <div className="w-full lg:w-[480px] bg-slate-50/50 backdrop-blur-sm border-l border-slate-200 flex flex-col h-full shadow-inner">
+      {/* Right Panel: AI Assistant — slides out in focus reading mode */}
+      <div
+        aria-hidden={focusMode}
+        className={cn(
+          "bg-slate-50/50 backdrop-blur-sm border-l border-slate-200 flex flex-col h-full shadow-inner transition-all duration-300 ease-out overflow-hidden",
+          focusMode
+            ? "w-0 lg:w-0 border-l-0 opacity-0 pointer-events-none"
+            : "w-full lg:w-[480px]"
+        )}
+      >
         {/* AI Header */}
         <div className="p-6 border-b border-slate-200 bg-white shadow-sm z-10">
           <div className="flex justify-between items-center">
@@ -831,36 +898,77 @@ interface DetailsTabProps {
   case_: {
     description?: string;
   };
+  caseId: number;
+  focusMode: boolean;
+  onFocusModeChange: (next: boolean) => void;
 }
 
-function DetailsTab({ case_ }: DetailsTabProps) {
+function DetailsTab({ case_, caseId, focusMode, onFocusModeChange }: DetailsTabProps) {
   const { t } = useI18n();
-  return (
-    <div className="prose prose-slate max-w-none">
-      <h3 className="text-xl font-bold text-[#0F2942] mb-4">{t("cases.caseDescription")}</h3>
-      <p className="leading-relaxed mb-8 text-slate-600 bg-slate-50 p-6 rounded-2xl border border-slate-100">
-        {case_.description || t("cases.noDescription")}
-      </p>
+  const [highlightRange, setHighlightRange] = React.useState<HighlightRange | null>(
+    null
+  );
+  const description = case_.description || "";
 
-      <h3 className="text-xl font-bold text-[#0F2942] mb-4">{t("cases.clientRequirements")}</h3>
-      <ul className="space-y-3 mb-8">
-        <li className="flex items-start gap-3">
-          <CheckCircle className="h-[18px] w-[18px] text-green-600 mt-1 shrink-0" />
-          <span className="text-slate-700">
-            {t("cases.clientRequirement1")}
-          </span>
-        </li>
-        <li className="flex items-start gap-3">
-          <CheckCircle className="h-[18px] w-[18px] text-green-600 mt-1 shrink-0" />
-          <span className="text-slate-700">
-            {t("cases.clientRequirement2")}
-          </span>
-        </li>
-        <li className="flex items-start gap-3">
-          <CheckCircle className="h-[18px] w-[18px] text-green-600 mt-1 shrink-0" />
-          <span className="text-slate-700">{t("cases.clientRequirement3")}</span>
-        </li>
-      </ul>
+  return (
+    <div className="space-y-4">
+      {/* Compact AI assistant — collapsed by default, expands on demand */}
+      <CaseAIPanel
+        caseId={caseId}
+        description={description}
+        onJumpTo={setHighlightRange}
+      />
+
+      {/* Primary focus: the case description reader */}
+      <LegalTextReader
+        title={t("cases.caseDescription")}
+        text={description}
+        emptyLabel={t("cases.noDescription")}
+        highlightRange={highlightRange}
+        focusMode={focusMode}
+        onFocusModeChange={onFocusModeChange}
+      />
+
+      {/* Collapsed client requirements — expand when the lawyer wants the checklist */}
+      <details className="group rounded-2xl border border-slate-100 bg-white shadow-sm">
+        <summary className="flex cursor-pointer items-center justify-between gap-3 p-5 [&::-webkit-details-marker]:hidden list-none">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-50 text-green-600">
+              <CheckCircle className="h-4 w-4" aria-hidden="true" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-[#0F2942]">
+                {t("cases.clientRequirements")}
+              </h3>
+              <p className="text-[11px] text-slate-500">3</p>
+            </div>
+          </div>
+          <ChevronDown
+            className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180"
+            aria-hidden="true"
+          />
+        </summary>
+        <ul className="space-y-3 border-t border-slate-100 p-5">
+          <li className="flex items-start gap-3">
+            <CheckCircle className="h-[18px] w-[18px] text-green-600 mt-1 shrink-0" />
+            <span className="text-slate-800 break-words">
+              {t("cases.clientRequirement1")}
+            </span>
+          </li>
+          <li className="flex items-start gap-3">
+            <CheckCircle className="h-[18px] w-[18px] text-green-600 mt-1 shrink-0" />
+            <span className="text-slate-800 break-words">
+              {t("cases.clientRequirement2")}
+            </span>
+          </li>
+          <li className="flex items-start gap-3">
+            <CheckCircle className="h-[18px] w-[18px] text-green-600 mt-1 shrink-0" />
+            <span className="text-slate-800 break-words">
+              {t("cases.clientRequirement3")}
+            </span>
+          </li>
+        </ul>
+      </details>
     </div>
   );
 }
@@ -1561,14 +1669,14 @@ function SuggestionCard({ link, onVerify, onDismiss, isVerifying, isDismissing, 
                     <p className="text-[11px] font-semibold text-slate-700">
                       {t("ai.caseSnippet")}
                     </p>
-                    <p className="text-xs text-slate-600 line-clamp-2">
-                      {item.case_snippet}
+                    <p className="text-[13px] leading-[1.8] text-slate-700 line-clamp-3 font-arabic-reader">
+                      {stripInlineDecorations(item.case_snippet || "")}
                     </p>
-                    <p className="mt-1 text-[11px] font-semibold text-slate-700">
+                    <p className="mt-2 text-[11px] font-semibold text-slate-700">
                       {t("ai.regulationSnippet")}
                     </p>
-                    <p className="text-xs text-slate-600 line-clamp-2">
-                      {item.regulation_snippet}
+                    <p className="text-[13px] leading-[1.8] text-slate-700 line-clamp-3 font-arabic-reader">
+                      {stripInlineDecorations(item.regulation_snippet || "")}
                     </p>
                     <div className="mt-1 flex flex-wrap gap-1">
                       {item.article_ref && (
