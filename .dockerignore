@@ -1,0 +1,49 @@
+# Version control & editor noise
+.git
+.gitignore
+.github
+.DS_Store
+.vscode
+.idea
+.claude
+
+# Local builds & caches — must be rebuilt inside the image
+node_modules
+.next
+.swc
+out
+build
+dist
+coverage
+.turbo
+
+# Tests
+e2e
+playwright-report
+test-results
+playwright/.cache
+jest.config.ts
+jest.setup.ts
+
+# Docs / planning — not needed at runtime
+*.md
+docs
+context
+plans
+reports
+
+# Local env files (NEXT_PUBLIC_* must come from CranL build args)
+.env
+.env.*
+!.env.example
+
+# Misc
+*.pem
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Self
+Dockerfile
+.dockerignore
