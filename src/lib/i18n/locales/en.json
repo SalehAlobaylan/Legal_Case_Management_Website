@@ -1146,6 +1146,7 @@
         "linkingFallbackTitle": "Partial indexing fallback used",
         "linkingFallbackDesc": "Indexed: {{indexed}}, unindexed fallback candidates: {{unindexed}}.",
         "confidencePercent": "% Confidence",
+        "confidenceEstimated": "% Estimated confidence",
         "matchedViaAi": "Matched via AI analysis",
         "linkToCase": "Link to Case",
         "whyThisMatch": "Why this match",
@@ -1288,6 +1289,7 @@
     },
     "chat": {
         "title": "Legal Assistant",
+        "subtitle": "AI legal assistant",
         "placeholder": "Ask a legal question...",
         "disclaimer": "This information is for reference only and does not constitute formal legal advice. Please consult a qualified lawyer.",
         "disclaimerShort": "AI responses are for reference only.",
@@ -1303,6 +1305,117 @@
         "quickRegulations": "Find regulations",
         "backToChat": "Back to chat",
         "noSessions": "No previous conversations",
-        "messagesCount": "messages"
+        "messagesCount": "messages",
+        "expand": "Expand",
+        "collapse": "Collapse",
+        "close": "Close",
+        "copy": "Copy",
+        "copied": "Copied",
+        "regenerate": "Regenerate",
+        "scrollToBottom": "Jump to latest",
+        "searchHistory": "Search conversations...",
+        "historyToday": "Today",
+        "historyYesterday": "Yesterday",
+        "historyLastWeek": "Last 7 days",
+        "historyOlder": "Older",
+        "emptyGreeting": "How can I help you today?",
+        "emptySubtext": "Pick a suggestion or type your question.",
+        "suggestAnalyze": "Analyze a case",
+        "suggestAnalyzeDesc": "Summarize parties and key points",
+        "suggestRegulations": "Search regulations",
+        "suggestRegulationsDesc": "Find related laws and articles",
+        "suggestDraft": "Draft a document",
+        "suggestDraftDesc": "Memos, letters, responses",
+        "suggestExplain": "Explain a legal term",
+        "suggestExplainDesc": "Plain-language concepts",
+        "promptAnalyze": "Summarize this case and list the main parties and key legal points",
+        "promptRegulations": "Find regulations related to this case",
+        "promptDraft": "Help me draft a legal memo",
+        "promptExplain": "Explain a legal term",
+        "thinking": "Thinking...",
+        "contextCase": "Case",
+        "inputHint": "Enter to send · Shift+Enter for new line",
+        "deleteConfirm": "Delete this conversation?",
+        "starter": {
+            "back": "Back",
+            "generate": "Generate request",
+            "chooseCase": "Choose a case",
+            "searchCases": "Search by title or case number...",
+            "noCases": "No cases found",
+            "loadingCases": "Loading cases...",
+            "optional": "Optional",
+            "required": "Required",
+            "keyPoints": "Key points",
+            "keyPointsPlaceholder": "Main bullet points in short sentences...",
+            "keywordOptional": "Keyword (optional)",
+            "termPlaceholder": "e.g. agency, possession, insolvency...",
+            "notePlaceholder": "Add a short note (optional)...",
+            "stepCase": "1. Pick a case",
+            "stepFocus": "2. Focus on",
+            "stepTopic": "1. Topic",
+            "stepScope": "2. Scope",
+            "stepDocType": "1. Document type",
+            "stepAttachCase": "2. Attach a case",
+            "stepTerm": "1. Term",
+            "stepDepth": "2. Depth",
+            "analyze": {
+                "title": "Analyze a case",
+                "desc": "Pick a case and choose what to focus on",
+                "focus": {
+                    "parties": "Parties",
+                    "summary": "Executive summary",
+                    "weaknesses": "Weaknesses",
+                    "legalPoints": "Legal points",
+                    "recommendations": "Recommendations"
+                }
+            },
+            "regulations": {
+                "title": "Search regulations",
+                "desc": "Find laws related to a specific topic",
+                "topic": {
+                    "labor": "Labor law",
+                    "commercial": "Commercial",
+                    "criminal": "Criminal",
+                    "realestate": "Real estate",
+                    "family": "Family / personal status",
+                    "administrative": "Administrative"
+                },
+                "scope": {
+                    "general": "General search",
+                    "caseRelated": "Related to a case"
+                }
+            },
+            "draft": {
+                "title": "Draft a document",
+                "desc": "Memos, contracts, formal letters",
+                "types": {
+                    "reply": "Reply memorandum",
+                    "objection": "Objection notice",
+                    "contract": "Contract",
+                    "notice": "Legal notice",
+                    "letter": "Formal letter"
+                }
+            },
+            "explain": {
+                "title": "Explain a legal term",
+                "desc": "Understand concepts in plain language",
+                "depth": {
+                    "simple": "simple",
+                    "detailed": "detailed",
+                    "examples": "with examples"
+                }
+            },
+            "template": {
+                "listSeparator": ", ",
+                "analyze": "Analyze case \"{{title}}\" (#{{caseNumber}}) and focus on: {{focus}}.",
+                "analyzeNote": " Additional note: {{note}}",
+                "regulations": "Find regulations related to {{topic}}{{keywordPart}}{{casePart}}. List the relevant articles with a brief explanation.",
+                "regulationsKeyword": ", with focus on: {{keyword}}",
+                "regulationsCase": ", in the context of case \"{{title}}\" (#{{caseNumber}})",
+                "draft": "Draft a {{docType}}{{casePart}}. Key points:\n{{keyPoints}}",
+                "draftCase": " related to case \"{{title}}\" (#{{caseNumber}})",
+                "explain": "Explain the legal term \"{{term}}\" in a {{depth}} way."
+            }
+        }
     }
 }

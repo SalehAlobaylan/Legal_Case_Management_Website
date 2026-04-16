@@ -55,6 +55,16 @@ import { useUpdateProfile } from "@/lib/hooks/use-profile";
 import { useNotificationSettings, useUpdateNotificationSettings } from "@/lib/hooks/use-notification-settings";
 import { useLoginActivity, useChangePassword } from "@/lib/hooks/use-security-settings";
 import { useAISettings, useUpdateAISettings } from "@/lib/hooks/use-ai-settings";
+import {
+  useAIEvaluationLabels,
+  useAIEvaluationRuns,
+  useAIEvaluationRunDetails,
+  useRunAIEvaluation,
+  useCreateAIEvaluationLabel,
+  useDeleteAIEvaluationLabel,
+} from "@/lib/hooks/use-ai-evaluation";
+import { useCases } from "@/lib/hooks/use-cases";
+import { useRegulations } from "@/lib/hooks/use-regulations";
 import type { AISettings } from "@/lib/api/ai-settings";
 
 type TabId = "profile" | "org" | "notifications" | "security" | "integrations" | "ai"; // "billing" hidden for graduation presentation
@@ -960,6 +970,33 @@ function AISettingsTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolea
   const { data: settings, isLoading, isError } = useAISettings();
   const { mutate: updateSettings, isPending } = useUpdateAISettings();
   const [showAdvanced, setShowAdvanced] = React.useState(false);
+  const [selectedCaseId, setSelectedCaseId] = React.useState<number>(0);
+  const [selectedRegulationId, setSelectedRegulationId] = React.useState<number>(0);
+  const [selectedRunId, setSelectedRunId] = React.useState<number | undefined>(undefined);
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === "admin";
+  const { data: casesData } = useCases();
+  const { data: regsData } = useRegulations();
+  const { data: labels } = useAIEvaluationLabels(isAdmin);
+  const { data: runs } = useAIEvaluationRuns(isAdmin);
+  const { data: runDetails } = useAIEvaluationRunDetails(selectedRunId, isAdmin);
+  const runEval = useRunAIEvaluation();
+  const createLabel = useCreateAIEvaluationLabel();
+  const deleteLabel = useDeleteAIEvaluationLabel();
+
+  React.useEffect(() => {
+    if (!selectedRunId && runs && runs.length > 0) {
+      setSelectedRunId(runs[0].id);
+    }
+  }, [runs, selectedRunId]);
+
+  const caseTitleById = React.useMemo(() => {
+    const map = new Map<number, string>();
+    for (const caseItem of casesData || []) {
+      map.set(caseItem.id, caseItem.title);
+    }
+    return map;
+  }, [casesData]);
 
   type NumericSettingKey =
     | "semanticWeight"
@@ -1407,8 +1444,216 @@ function AISettingsTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolea
           {t("settings.resetDefaults") || "Reset to defaults"}
         </button>
       </div>
+
+      {/* AI Evaluation (admin only) */}
+      {isAdmin && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-5">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h4 className="text-lg font-bold text-slate-900">{isRTL ? "تقييم ربط القضايا" : "Case Linking Evaluation"}</h4>
+              <p className="text-sm text-slate-500 mt-1">
+                {isRTL
+                  ? "تشغيل تقييم علمي للمخرجات (Recall@K, MRR, nDCG) داخل المنصة."
+                  : "Run methodology-based evaluation (Recall@K, MRR, nDCG) inside the platform."}
+              </p>
+            </div>
+            <Button
+              onClick={() => runEval.mutate({ topK: 10 })}
+              disabled={runEval.isPending}
+              className="bg-[#0F2942] hover:bg-[#1E3A56]"
+            >
+              {runEval.isPending ? (isRTL ? "جارٍ التقييم..." : "Running...") : (isRTL ? "تشغيل التقييم" : "Run Evaluation")}
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="rounded-xl border border-slate-200 p-3 space-y-2">
+              <p className="text-xs font-bold text-slate-500 uppercase">{isRTL ? "إضافة مرجع حقيقة" : "Add Ground Truth Label"}</p>
+              <Select
+                value={selectedCaseId ? String(selectedCaseId) : ""}
+                onChange={(e) => setSelectedCaseId(Number(e.target.value || 0))}
+                className="h-10"
+              >
+                <option value="">{isRTL ? "اختر القضية" : "Select case"}</option>
+                {(casesData || []).map((item) => (
+                  <option key={item.id} value={item.id}>
+                    #{item.id} - {item.title}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                value={selectedRegulationId ? String(selectedRegulationId) : ""}
+                onChange={(e) => setSelectedRegulationId(Number(e.target.value || 0))}
+                className="h-10"
+              >
+                <option value="">{isRTL ? "اختر النظام" : "Select regulation"}</option>
+                {((regsData?.regulations) || []).map((item) => (
+                  <option key={item.id} value={item.id}>
+                    #{item.id} - {item.title}
+                  </option>
+                ))}
+              </Select>
+              <Button
+                onClick={() => createLabel.mutate({ caseId: selectedCaseId, regulationId: selectedRegulationId })}
+                disabled={!selectedCaseId || !selectedRegulationId || createLabel.isPending}
+                className="bg-[#D97706] hover:bg-[#B45309]"
+              >
+                {isRTL ? "حفظ المرجع" : "Save Label"}
+              </Button>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 p-3 space-y-2">
+              <p className="text-xs font-bold text-slate-500 uppercase">{isRTL ? "تشغيلات التقييم" : "Evaluation Runs"}</p>
+              <Select
+                value={selectedRunId ? String(selectedRunId) : ""}
+                onChange={(e) => setSelectedRunId(Number(e.target.value || 0) || undefined)}
+                className="h-10"
+              >
+                <option value="">{isRTL ? "اختر تشغيل" : "Select run"}</option>
+                {(runs || []).map((run) => (
+                  <option key={run.id} value={run.id}>
+                    #{run.id} - {run.status}
+                  </option>
+                ))}
+              </Select>
+
+              <div className="grid grid-cols-2 gap-2 text-[11px]">
+                <MetricChip label="Recall@5" value={String((runDetails?.run?.summaryJson?.recallAt5 as number | undefined) ?? "-")} />
+                <MetricChip label="MRR" value={String((runDetails?.run?.summaryJson?.mrr as number | undefined) ?? "-")} />
+                <MetricChip label="nDCG@5" value={String((runDetails?.run?.summaryJson?.ndcgAt5 as number | undefined) ?? "-")} />
+                <MetricChip label="Stddev" value={String((runDetails?.run?.summaryJson?.top5ScoreStddev as number | undefined) ?? "-")} />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-slate-200 p-3">
+            <p className="text-xs font-bold text-slate-500 uppercase mb-2">{isRTL ? "المرجعيات الحالية" : "Current Labels"}</p>
+            <div className="space-y-1 max-h-44 overflow-auto">
+              {(labels || []).map((label) => (
+                <div key={label.id} className="flex items-center justify-between text-xs border border-slate-100 rounded-md px-2 py-1.5">
+                  <span>case #{label.caseId} ↔ regulation #{label.regulationId}</span>
+                  <button
+                    type="button"
+                    className="text-red-600 hover:underline"
+                    onClick={() => deleteLabel.mutate(label.id)}
+                  >
+                    {isRTL ? "حذف" : "Delete"}
+                  </button>
+                </div>
+              ))}
+              {!labels?.length && (
+                <p className="text-xs text-slate-400">{isRTL ? "لا توجد مرجعيات بعد" : "No labels yet"}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-slate-200 p-3 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-bold text-slate-500 uppercase">
+                {isRTL ? "نتائج كل قضية" : "Per-Case Evaluation Results"}
+              </p>
+              {runDetails?.run && (
+                <span className="text-[11px] text-slate-500">
+                  {isRTL ? "التشغيل" : "Run"} #{runDetails.run.id}
+                </span>
+              )}
+            </div>
+
+            {runDetails?.cases?.length ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-slate-500">
+                      <th className="py-2 px-2 text-left">{isRTL ? "القضية" : "Case"}</th>
+                      <th className="py-2 px-2 text-left">{isRTL ? "حالة العثور" : "Found status"}</th>
+                      <th className="py-2 px-2 text-left">Recall@5</th>
+                      <th className="py-2 px-2 text-left">MRR</th>
+                      <th className="py-2 px-2 text-left">nDCG@5</th>
+                      <th className="py-2 px-2 text-left">Stddev</th>
+                      <th className="py-2 px-2 text-left">Relevant</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {runDetails.cases.map((row) => {
+                      const rank = findFirstRelevantRank(
+                        row.diagnosticsJson?.rankedRegulationIds,
+                        row.diagnosticsJson?.relevantRegulationIds
+                      );
+                      const found = rank !== null;
+                      return (
+                      <tr key={row.id} className="border-b border-slate-100 last:border-b-0">
+                        <td className="py-2 px-2 min-w-[220px]">
+                          <div className="font-semibold text-[#0F2942]">#{row.caseId}</div>
+                          <div className="text-slate-500 truncate max-w-[260px]">
+                            {caseTitleById.get(row.caseId) || (isRTL ? "عنوان القضية غير متاح" : "Case title unavailable")}
+                          </div>
+                        </td>
+                        <td className="py-2 px-2">
+                          <span
+                            className={cn(
+                              "inline-flex items-center rounded-md border px-2 py-1 text-[10px] font-bold",
+                              found
+                                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                : "border-rose-200 bg-rose-50 text-rose-700"
+                            )}
+                          >
+                            {found
+                              ? isRTL
+                                ? `موجود (الترتيب #${rank})`
+                                : `Found (rank #${rank})`
+                              : isRTL
+                                ? "غير موجود"
+                                : "Not found"}
+                          </span>
+                        </td>
+                        <td className="py-2 px-2 tabular-nums">{(row.recallAt5 * 100).toFixed(1)}%</td>
+                        <td className="py-2 px-2 tabular-nums">{row.reciprocalRank.toFixed(3)}</td>
+                        <td className="py-2 px-2 tabular-nums">{row.ndcgAt5.toFixed(3)}</td>
+                        <td className="py-2 px-2 tabular-nums">{row.top5ScoreStddev.toFixed(4)}</td>
+                        <td className="py-2 px-2 tabular-nums">{row.totalRelevant}</td>
+                      </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-xs text-slate-400">
+                {isRTL ? "لا توجد نتائج تفصيلية لهذا التشغيل بعد" : "No per-case results available for this run yet"}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
+}
+
+function MetricChip({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5">
+      <p className="text-[10px] text-slate-500 uppercase tracking-wide">{label}</p>
+      <p className="text-sm font-bold text-[#0F2942] tabular-nums">{value}</p>
+    </div>
+  );
+}
+
+function findFirstRelevantRank(
+  rankedRegulationIds: number[] | undefined,
+  relevantRegulationIds: number[] | undefined
+): number | null {
+  if (!rankedRegulationIds?.length || !relevantRegulationIds?.length) {
+    return null;
+  }
+
+  const relevantSet = new Set(relevantRegulationIds);
+  for (let i = 0; i < rankedRegulationIds.length; i += 1) {
+    if (relevantSet.has(rankedRegulationIds[i]!)) {
+      return i + 1;
+    }
+  }
+
+  return null;
 }
 
 /* -- AI Settings helper components -- */

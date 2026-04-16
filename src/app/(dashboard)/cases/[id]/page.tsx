@@ -929,46 +929,6 @@ function DetailsTab({ case_, caseId, focusMode, onFocusModeChange }: DetailsTabP
         onFocusModeChange={onFocusModeChange}
       />
 
-      {/* Collapsed client requirements — expand when the lawyer wants the checklist */}
-      <details className="group rounded-2xl border border-slate-100 bg-white shadow-sm">
-        <summary className="flex cursor-pointer items-center justify-between gap-3 p-5 [&::-webkit-details-marker]:hidden list-none">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-50 text-green-600">
-              <CheckCircle className="h-4 w-4" aria-hidden="true" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-[#0F2942]">
-                {t("cases.clientRequirements")}
-              </h3>
-              <p className="text-[11px] text-slate-500">3</p>
-            </div>
-          </div>
-          <ChevronDown
-            className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180"
-            aria-hidden="true"
-          />
-        </summary>
-        <ul className="space-y-3 border-t border-slate-100 p-5">
-          <li className="flex items-start gap-3">
-            <CheckCircle className="h-[18px] w-[18px] text-green-600 mt-1 shrink-0" />
-            <span className="text-slate-800 break-words">
-              {t("cases.clientRequirement1")}
-            </span>
-          </li>
-          <li className="flex items-start gap-3">
-            <CheckCircle className="h-[18px] w-[18px] text-green-600 mt-1 shrink-0" />
-            <span className="text-slate-800 break-words">
-              {t("cases.clientRequirement2")}
-            </span>
-          </li>
-          <li className="flex items-start gap-3">
-            <CheckCircle className="h-[18px] w-[18px] text-green-600 mt-1 shrink-0" />
-            <span className="text-slate-800 break-words">
-              {t("cases.clientRequirement3")}
-            </span>
-          </li>
-        </ul>
-      </details>
     </div>
   );
 }

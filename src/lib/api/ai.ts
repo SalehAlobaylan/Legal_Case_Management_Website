@@ -261,7 +261,9 @@ export const aiApi = {
     ): Promise<CaseAnalysisResponse> => {
         const response = await apiClient.post<CaseAnalysisResponse>(
             endpoints.ai.analyzeCase(caseId),
-            request || {}
+            request || {},
+            // LLM-bound: needs more than the default 30s axios budget.
+            { timeout: 60000 }
         );
         return response.data;
     },

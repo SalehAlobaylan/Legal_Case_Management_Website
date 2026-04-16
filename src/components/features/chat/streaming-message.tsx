@@ -30,9 +30,7 @@ function renderStreamingMarkdown(text: string): React.ReactNode[] {
           </strong>
         );
       } else if (part.startsWith("*") && part.endsWith("*") && part.length > 2) {
-        nodes.push(
-          <em key={`${i}-${j}`}>{part.slice(1, -1)}</em>
-        );
+        nodes.push(<em key={`${i}-${j}`}>{part.slice(1, -1)}</em>);
       } else {
         nodes.push(part);
       }
@@ -46,29 +44,33 @@ export function StreamingMessage({ content }: StreamingMessageProps) {
   const { isRTL } = useI18n();
 
   return (
-    <div className={cn(
-      "flex w-full gap-2.5",
-      isRTL ? "justify-end flex-row-reverse" : "justify-start"
-    )}>
+    <div
+      className={cn(
+        "flex w-full gap-2",
+        isRTL ? "justify-end flex-row-reverse" : "justify-start"
+      )}
+    >
       {/* Bot avatar */}
-      <div className="w-7 h-7 rounded-full bg-[#D97706]/10 flex items-center justify-center flex-shrink-0 mt-1">
+      <div className="w-7 h-7 rounded-full bg-[#D97706]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
         <Sparkles className="h-3.5 w-3.5 text-[#D97706]" />
       </div>
 
-      <div className={cn(
-        "max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
-        "bg-white text-slate-800 shadow-sm border border-slate-100",
-        isRTL
-          ? "border-r-[3px] border-r-[#D97706] rounded-tr-md"
-          : "border-l-[3px] border-l-[#D97706] rounded-tl-md"
-      )}>
+      <div
+        className={cn(
+          "max-w-[82%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed",
+          "bg-white text-slate-800 shadow-sm border border-slate-200/80",
+          isRTL ? "rounded-tr-md" : "rounded-tl-md"
+        )}
+      >
         <div className="whitespace-pre-wrap break-words">
           {renderStreamingMarkdown(content)}
           {/* Animated cursor */}
-          <span className={cn(
-            "inline-block w-0.5 h-4 bg-[#D97706] align-text-bottom animate-pulse",
-            isRTL ? "mr-0.5" : "ml-0.5"
-          )} />
+          <span
+            className={cn(
+              "inline-block w-0.5 h-4 bg-[#D97706] align-text-bottom animate-pulse",
+              isRTL ? "mr-0.5" : "ml-0.5"
+            )}
+          />
         </div>
       </div>
     </div>

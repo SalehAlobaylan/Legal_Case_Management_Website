@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Send, Square } from "lucide-react";
+import { Send, Square, Paperclip } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useI18n } from "@/lib/hooks/use-i18n";
 
@@ -13,7 +13,15 @@ interface ChatInputProps {
   showQuickChips?: boolean;
 }
 
-export function ChatInput({ onSend, onStop, isStreaming, disabled, showQuickChips }: ChatInputProps) {
+const MAX_CHARS = 2000;
+
+export function ChatInput({
+  onSend,
+  onStop,
+  isStreaming,
+  disabled,
+  showQuickChips,
+}: ChatInputProps) {
   const { t, isRTL } = useI18n();
   const [value, setValue] = React.useState("");
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
@@ -36,47 +44,58 @@ export function ChatInput({ onSend, onStop, isStreaming, disabled, showQuickChip
   };
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setValue(e.target.value);
+    const next = e.target.value.slice(0, MAX_CHARS);
+    setValue(next);
     const el = e.target;
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+    el.style.height = `${Math.min(el.scrollHeight, 140)}px`;
   };
 
   const handleQuickChip = (text: string) => {
     onSend(text);
   };
 
+  const nearLimit = value.length >= MAX_CHARS - 200;
+  const atLimit = value.length >= MAX_CHARS;
+
   return (
-    <div className="border-t border-slate-200 bg-white p-3 sm:rounded-b-2xl">
+    <div className="px-3 pt-2.5 pb-1.5">
       {/* Quick action chips */}
       {showQuickChips && !value && (
-        <div className="flex flex-wrap gap-2 pb-2.5">
-          <button
-            type="button"
-            onClick={() => handleQuickChip(t("chat.quickSummarize"))}
-            className="text-[11px] px-3 py-1.5 rounded-full bg-[#D97706]/10 text-[#D97706] hover:bg-[#D97706]/20 font-medium transition-colors"
-          >
+        <div className="flex flex-wrap gap-1.5 pb-2">
+          <QuickChip onClick={() => handleQuickChip(t("chat.quickSummarize"))}>
             {t("chat.quickSummarize")}
-          </button>
-          <button
-            type="button"
-            onClick={() => handleQuickChip(t("chat.quickRegulations"))}
-            className="text-[11px] px-3 py-1.5 rounded-full bg-[#D97706]/10 text-[#D97706] hover:bg-[#D97706]/20 font-medium transition-colors"
-          >
+          </QuickChip>
+          <QuickChip onClick={() => handleQuickChip(t("chat.quickRegulations"))}>
             {t("chat.quickRegulations")}
-          </button>
+          </QuickChip>
         </div>
       )}
 
       {/* Input area */}
       <div
         className={cn(
-          "flex items-end gap-2 rounded-2xl bg-slate-50 px-3 py-2",
-          "border-2 border-transparent",
-          "focus-within:border-[#D97706]/40 focus-within:bg-white",
+          "flex items-end gap-1.5 rounded-2xl bg-slate-50 px-2.5 py-1.5",
+          "border border-slate-200",
+          "focus-within:border-[#D97706]/50 focus-within:bg-white focus-within:shadow-sm",
           "transition-all duration-200"
         )}
       >
+        {/* Attach (placeholder for future file support) */}
+        <button
+          type="button"
+          disabled
+          className={cn(
+            "flex-shrink-0 w-7 h-7 rounded-md text-slate-400",
+            "hover:bg-slate-100 hover:text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed",
+            "flex items-center justify-center transition-colors mb-0.5"
+          )}
+          title="Attach (coming soon)"
+          tabIndex={-1}
+        >
+          <Paperclip className="h-3.5 w-3.5" />
+        </button>
+
         <textarea
           ref={textareaRef}
           value={value}
@@ -86,26 +105,38 @@ export function ChatInput({ onSend, onStop, isStreaming, disabled, showQuickChip
           rows={1}
           disabled={disabled}
           className={cn(
-            "flex-1 resize-none bg-transparent text-sm outline-none",
+            "flex-1 resize-none bg-transparent text-[13px] outline-none py-1.5",
             "placeholder:text-slate-400",
-            "max-h-[120px]",
+            "max-h-[140px] leading-relaxed",
             isRTL && "text-right"
           )}
         />
+
+        {/* Character counter near the limit */}
+        {nearLimit && (
+          <span
+            className={cn(
+              "text-[10px] self-end mb-2.5 tabular-nums flex-shrink-0",
+              atLimit ? "text-red-500 font-medium" : "text-slate-400"
+            )}
+          >
+            {value.length}/{MAX_CHARS}
+          </span>
+        )}
 
         {isStreaming ? (
           <button
             type="button"
             onClick={onStop}
             className={cn(
-              "flex-shrink-0 w-8 h-8 rounded-full",
+              "flex-shrink-0 w-8 h-8 rounded-lg",
               "bg-red-500 text-white hover:bg-red-600",
               "flex items-center justify-center",
-              "transition-colors"
+              "transition-colors mb-0.5 shadow-sm"
             )}
             title={t("chat.stop")}
           >
-            <Square className="h-3.5 w-3.5" />
+            <Square className="h-3.5 w-3.5 fill-current" />
           </button>
         ) : (
           <button
@@ -113,12 +144,12 @@ export function ChatInput({ onSend, onStop, isStreaming, disabled, showQuickChip
             onClick={handleSubmit}
             disabled={!value.trim() || disabled}
             className={cn(
-              "flex-shrink-0 w-8 h-8 rounded-full",
-              "bg-gradient-to-br from-[#D97706] to-[#B45309] text-white",
-              "hover:shadow-md hover:shadow-orange-900/20",
-              "disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none",
+              "flex-shrink-0 w-8 h-8 rounded-lg",
+              "bg-gradient-to-br from-[#F59E0B] to-[#D97706] text-white",
+              "hover:shadow-md hover:shadow-orange-900/20 hover:scale-105",
+              "disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:scale-100",
               "flex items-center justify-center",
-              "transition-all duration-200"
+              "transition-all duration-150 mb-0.5"
             )}
             title={t("chat.send")}
           >
@@ -127,5 +158,27 @@ export function ChatInput({ onSend, onStop, isStreaming, disabled, showQuickChip
         )}
       </div>
     </div>
+  );
+}
+
+function QuickChip({
+  children,
+  onClick,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "text-[11px] px-3 py-1.5 rounded-full font-medium transition-all",
+        "bg-white border border-slate-200 text-slate-700",
+        "hover:border-[#D97706]/40 hover:bg-[#D97706]/5 hover:text-[#D97706]"
+      )}
+    >
+      {children}
+    </button>
   );
 }

@@ -87,6 +87,9 @@ export function ScoreBreakdownChart({
     ];
 
     const finalScore = Math.round((breakdown.final_score || 0) * 100);
+    const rawSemanticAvgTop3 = breakdown.semantic_avg_top3;
+    const rawEvidenceQuality = breakdown.evidence_quality;
+    const rawFallbackPenalty = breakdown.fallback_penalty;
 
     return (
         <div className={cn("space-y-4", className)}>
@@ -128,6 +131,23 @@ export function ScoreBreakdownChart({
                             {finalScore}%
                         </span>
                     </div>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2 text-[10px] text-slate-500 tabular-nums">
+                    {typeof rawSemanticAvgTop3 === "number" && (
+                        <span className="rounded-md bg-slate-100 px-2 py-1">
+                            semantic_avg_top3: {rawSemanticAvgTop3.toFixed(4)}
+                        </span>
+                    )}
+                    {typeof rawEvidenceQuality === "number" && (
+                        <span className="rounded-md bg-slate-100 px-2 py-1">
+                            evidence_quality: {rawEvidenceQuality.toFixed(4)}
+                        </span>
+                    )}
+                    {typeof rawFallbackPenalty === "number" && rawFallbackPenalty > 0 && (
+                        <span className="rounded-md bg-amber-100 px-2 py-1 text-amber-700">
+                            fallback_penalty: -{rawFallbackPenalty.toFixed(4)}
+                        </span>
+                    )}
                 </div>
             </div>
         </div>

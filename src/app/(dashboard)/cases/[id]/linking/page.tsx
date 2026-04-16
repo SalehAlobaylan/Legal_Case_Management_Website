@@ -29,6 +29,7 @@ import {
     useBulkSubscribeRegulations,
 } from "@/lib/hooks/use-ai-links";
 import { useI18n } from "@/lib/hooks/use-i18n";
+import { useAuthStore } from "@/lib/store/auth-store";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils/cn";
@@ -36,6 +37,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { LinkListSidebar } from "@/components/features/cases/linking/LinkListSidebar";
 import { LinkDetailPanel } from "@/components/features/cases/linking/LinkDetailPanel";
 import { ProgressSteps } from "@/components/ui/progress-steps";
+import { useAIEvaluationCaseSummary } from "@/lib/hooks/use-ai-evaluation";
 import type { CaseRegulationLink } from "@/lib/types/case";
 
 function useAILinkingSteps() {
@@ -72,6 +74,8 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
     const resolvedParams = React.use(params);
     const caseId = Number(resolvedParams.id);
     const { t } = useI18n();
+    const { user } = useAuthStore();
+    const isAdmin = user?.role === "admin";
     const { toast } = useToast();
     const aiLinkingSteps = useAILinkingSteps();
     const progressI18n = useProgressI18n();
@@ -83,6 +87,7 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
     // Data fetching
     const { data: case_, isLoading: isLoadingCase } = useCase(caseId);
     const { data: aiLinks, isLoading: isLoadingLinks } = useAILinks(caseId);
+    const { data: evalSummary } = useAIEvaluationCaseSummary(caseId, isAdmin);
 
     // Mutations
     const { mutate: generateLinks, isPending: isGenerating } =
@@ -243,6 +248,19 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
 
                     {/* Actions */}
                     <div className="flex items-center gap-3 shrink-0">
+                        {isAdmin && evalSummary?.summary && (
+                          <div className="hidden lg:flex items-center gap-2 text-[11px] text-slate-500 mr-1">
+                            <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1">
+                              Recall@5: <span className="font-bold text-[#0F2942] tabular-nums">{(evalSummary.summary.recallAt5 * 100).toFixed(1)}%</span>
+                            </span>
+                            <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1">
+                              MRR: <span className="font-bold text-[#0F2942] tabular-nums">{evalSummary.summary.reciprocalRank.toFixed(3)}</span>
+                            </span>
+                            <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1">
+                              Stddev: <span className="font-bold text-[#0F2942] tabular-nums">{evalSummary.summary.top5ScoreStddev.toFixed(4)}</span>
+                            </span>
+                          </div>
+                        )}
                         {/* Compact summary — counts are also in sidebar filter pills */}
                         {aiLinks && aiLinks.length > 0 && (
                             <div className="hidden md:flex items-center gap-2 text-[11px] text-slate-500 mr-1">

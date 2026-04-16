@@ -92,6 +92,9 @@ export function LinkDetailPanel({
         matchExplanation.line_matches || matchExplanation.lineMatches || [];
     const scoreBreakdown: LinkScoreBreakdown | null =
         matchExplanation.score_breakdown || matchExplanation.scoreBreakdown || null;
+    const rawSimilarityScore =
+        matchExplanation.diagnostics?.raw_similarity_score ??
+        normalizeSimilarityScore(link);
     const warnings: string[] = (matchExplanation.warnings || []).filter(
         (item) => typeof item === "string"
     );
@@ -110,6 +113,9 @@ export function LinkDetailPanel({
     const matchedWithDocs = Boolean(
         link.matchedWithDocuments || link.matched_with_documents
     );
+    const hasFallbackWarning = warnings.includes(
+        "regulation_chunk_index_fallback_used"
+    );
 
     const confidenceColor =
         confidence > 90
@@ -117,6 +123,9 @@ export function LinkDetailPanel({
             : confidence > 70
                 ? "text-blue-600 bg-blue-50 border-blue-200"
                 : "text-amber-600 bg-amber-50 border-amber-200";
+    const confidenceLabel = hasFallbackWarning
+        ? t("ai.confidenceEstimated")
+        : t("ai.confidencePercent");
 
     const actionBar = isVerified ? (
         <div className="flex items-center gap-2">
@@ -271,7 +280,10 @@ export function LinkDetailPanel({
                                 confidenceColor
                             )}
                         >
-                            {confidence}%
+                            {confidence} {confidenceLabel}
+                        </div>
+                        <div className="text-[10px] text-slate-500 tabular-nums text-right">
+                            raw: {Number(rawSimilarityScore || 0).toFixed(4)}
                         </div>
                     </div>
                 </div>

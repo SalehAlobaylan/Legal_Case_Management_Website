@@ -181,4 +181,14 @@ export const endpoints = {
     analyzeCase: (caseId: number) => `${API_BASE}/api/ai/cases/${caseId}/analyze`,
     summarizeDocument: (docId: number) => `${API_BASE}/api/documents/${docId}/summarize`,
   },
+
+  // AI Evaluation (admin-only)
+  aiEvaluation: {
+    labels: `${API_BASE}/api/ai-evaluation/labels`,
+    deleteLabel: (id: number) => `${API_BASE}/api/ai-evaluation/labels/${id}`,
+    run: `${API_BASE}/api/ai-evaluation/run`,
+    runs: `${API_BASE}/api/ai-evaluation/runs`,
+    runById: (id: number) => `${API_BASE}/api/ai-evaluation/runs/${id}`,
+    caseSummary: (caseId: number) => `${API_BASE}/api/ai-evaluation/cases/${caseId}/summary`,
+  },
 } as const;

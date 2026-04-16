@@ -1147,6 +1147,7 @@
         "linkingFallbackTitle": "تم استخدام وضع بديل جزئي",
         "linkingFallbackDesc": "المفهرس: {{indexed}}، المرشحات غير المفهرسة (بديل): {{unindexed}}.",
         "confidencePercent": "% ثقة",
+        "confidenceEstimated": "% ثقة تقديرية",
         "matchedViaAi": "تم المطابقة عبر تحليل الذكاء الاصطناعي",
         "linkToCase": "ربط بالقضية",
         "whyThisMatch": "سبب هذه المطابقة",
@@ -1289,6 +1290,7 @@
     },
     "chat": {
         "title": "المساعد القانوني",
+        "subtitle": "مساعد قانوني ذكي",
         "placeholder": "اسأل سؤالاً قانونياً...",
         "disclaimer": "هذه المعلومات للاطلاع والاسترشاد فقط ولا تعتبر استشارة قانونية رسمية. يرجى الرجوع إلى محامٍ مختص.",
         "disclaimerShort": "ردود الذكاء الاصطناعي للاسترشاد فقط.",
@@ -1304,6 +1306,117 @@
         "quickRegulations": "البحث عن الأنظمة",
         "backToChat": "العودة للمحادثة",
         "noSessions": "لا توجد محادثات سابقة",
-        "messagesCount": "رسائل"
+        "messagesCount": "رسائل",
+        "expand": "توسيع",
+        "collapse": "تصغير",
+        "close": "إغلاق",
+        "copy": "نسخ",
+        "copied": "تم النسخ",
+        "regenerate": "إعادة التوليد",
+        "scrollToBottom": "العودة لأحدث الرسائل",
+        "searchHistory": "ابحث في المحادثات...",
+        "historyToday": "اليوم",
+        "historyYesterday": "أمس",
+        "historyLastWeek": "الأسبوع الماضي",
+        "historyOlder": "أقدم",
+        "emptyGreeting": "كيف يمكنني مساعدتك اليوم؟",
+        "emptySubtext": "اختر اقتراحاً أو اكتب سؤالك مباشرة.",
+        "suggestAnalyze": "تحليل قضية",
+        "suggestAnalyzeDesc": "تلخيص النقاط والأطراف",
+        "suggestRegulations": "البحث في الأنظمة",
+        "suggestRegulationsDesc": "ابحث عن الأنظمة ذات الصلة",
+        "suggestDraft": "صياغة مستند",
+        "suggestDraftDesc": "مذكرات، مراسلات، ردود",
+        "suggestExplain": "شرح مصطلح قانوني",
+        "suggestExplainDesc": "فهم بسيط للمفاهيم",
+        "promptAnalyze": "لخّص هذه القضية واذكر أطرافها الرئيسية والنقاط القانونية الجوهرية",
+        "promptRegulations": "ابحث عن الأنظمة ذات الصلة بهذه القضية",
+        "promptDraft": "ساعدني في صياغة مذكرة قانونية",
+        "promptExplain": "اشرح لي مصطلح قانوني",
+        "thinking": "جارٍ التفكير...",
+        "contextCase": "قضية",
+        "inputHint": "Enter للإرسال · Shift+Enter لسطر جديد",
+        "deleteConfirm": "حذف هذه المحادثة؟",
+        "starter": {
+            "back": "رجوع",
+            "generate": "إرسال الطلب",
+            "chooseCase": "اختر القضية",
+            "searchCases": "ابحث باسم القضية أو رقمها...",
+            "noCases": "لا توجد قضايا",
+            "loadingCases": "جارٍ تحميل القضايا...",
+            "optional": "اختياري",
+            "required": "مطلوب",
+            "keyPoints": "النقاط الأساسية",
+            "keyPointsPlaceholder": "اذكر النقاط الرئيسية في جمل مختصرة...",
+            "keywordOptional": "كلمة مفتاحية (اختياري)",
+            "termPlaceholder": "مثال: الوكالة، الحيازة، الإعسار...",
+            "notePlaceholder": "أضف ملاحظة قصيرة (اختياري)...",
+            "stepCase": "١. اختر القضية",
+            "stepFocus": "٢. ركّز على",
+            "stepTopic": "١. المجال",
+            "stepScope": "٢. النطاق",
+            "stepDocType": "١. نوع المستند",
+            "stepAttachCase": "٢. إرفاق قضية",
+            "stepTerm": "١. المصطلح",
+            "stepDepth": "٢. مستوى الشرح",
+            "analyze": {
+                "title": "تحليل قضية",
+                "desc": "اختر قضية وركّز على ما يهمك",
+                "focus": {
+                    "parties": "الأطراف",
+                    "summary": "ملخص تنفيذي",
+                    "weaknesses": "نقاط الضعف",
+                    "legalPoints": "النقاط القانونية",
+                    "recommendations": "التوصيات"
+                }
+            },
+            "regulations": {
+                "title": "البحث في الأنظمة",
+                "desc": "اعثر على الأنظمة ذات الصلة بمجال محدد",
+                "topic": {
+                    "labor": "نظام العمل",
+                    "commercial": "تجاري",
+                    "criminal": "جزائي",
+                    "realestate": "عقارات",
+                    "family": "أحوال شخصية",
+                    "administrative": "إداري"
+                },
+                "scope": {
+                    "general": "بحث عام",
+                    "caseRelated": "متعلق بقضية"
+                }
+            },
+            "draft": {
+                "title": "صياغة مستند",
+                "desc": "مذكرات، عقود، ومراسلات رسمية",
+                "types": {
+                    "reply": "مذكرة جوابية",
+                    "objection": "لائحة اعتراضية",
+                    "contract": "عقد",
+                    "notice": "إنذار قانوني",
+                    "letter": "خطاب رسمي"
+                }
+            },
+            "explain": {
+                "title": "شرح مصطلح قانوني",
+                "desc": "فهم المفاهيم بلغة بسيطة",
+                "depth": {
+                    "simple": "مبسّط",
+                    "detailed": "مفصّل",
+                    "examples": "مع أمثلة"
+                }
+            },
+            "template": {
+                "listSeparator": "، ",
+                "analyze": "حلّل القضية «{{title}}» (#{{caseNumber}}) وركّز على: {{focus}}.",
+                "analyzeNote": " ملاحظة إضافية: {{note}}",
+                "regulations": "ابحث عن الأنظمة المتعلقة بمجال {{topic}}{{keywordPart}}{{casePart}}. اذكر المواد ذات الصلة مع شرح موجز.",
+                "regulationsKeyword": "، مع التركيز على: {{keyword}}",
+                "regulationsCase": "، في سياق القضية «{{title}}» (#{{caseNumber}})",
+                "draft": "اكتب مسودة {{docType}}{{casePart}}. النقاط الأساسية:\n{{keyPoints}}",
+                "draftCase": " متعلقة بالقضية «{{title}}» (#{{caseNumber}})",
+                "explain": "اشرح المصطلح القانوني «{{term}}» بشكل {{depth}}."
+            }
+        }
     }
 }

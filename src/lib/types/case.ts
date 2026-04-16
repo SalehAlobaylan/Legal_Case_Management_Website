@@ -86,9 +86,12 @@ export interface LinkEvidence {
 
 export interface LinkScoreBreakdown {
   semantic_max: number;
+  semantic_avg_top3?: number;
   support_coverage: number;
   lexical_overlap: number;
   category_prior: number;
+  evidence_quality?: number;
+  fallback_penalty?: number;
   final_score: number;
 }
 
@@ -110,6 +113,15 @@ export interface LinkMatchExplanation {
   scoreBreakdown?: LinkScoreBreakdown | null;
   score_breakdown?: LinkScoreBreakdown | null;
   warnings?: string[];
+  diagnostics?: {
+    raw_similarity_score?: number;
+    scoring_profile?: {
+      semantic_weight?: number;
+      support_weight?: number;
+      lexical_weight?: number;
+      category_weight?: number;
+    };
+  };
 }
 
 export interface AILinkGenerationMeta {
