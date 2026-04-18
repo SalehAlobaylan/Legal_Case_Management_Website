@@ -18,9 +18,9 @@ RUN npm ci
 
 # NEXT_PUBLIC_* variables are inlined at build time. Set them via CranL
 # build args so the compiled bundle points at the right API / WS / AI URLs.
-ARG NEXT_PUBLIC_API_URL
-ARG NEXT_PUBLIC_WS_URL
-ARG NEXT_PUBLIC_AI_SERVICE_URL
+ARG NEXT_PUBLIC_API_URL=https://legal-case-management-system-kniqbd.cranl.net
+ARG NEXT_PUBLIC_WS_URL=https://legal-case-management-system-kniqbd.cranl.net
+ARG NEXT_PUBLIC_AI_SERVICE_URL=https://legal-case-management-system-ai-microservice-tiyvhq.cranl.net
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
 ENV NEXT_PUBLIC_AI_SERVICE_URL=$NEXT_PUBLIC_AI_SERVICE_URL
