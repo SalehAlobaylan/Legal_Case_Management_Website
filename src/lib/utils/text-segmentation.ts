@@ -192,11 +192,47 @@ const AR_SIMPLE_ORDINALS_ALT = Object.keys(ARABIC_ORDINAL_NUM)
 const AR_ORDINALS_ALT = `(?:${AR_COMPOUND_UNITS_ALT})\\s+و(?:${AR_COMPOUND_TENS_ALT})|${AR_SIMPLE_ORDINALS_ALT}`;
 
 /**
+ * Hundreds-suffix words that appear after an ordinal to form numbers
+ * above 100 in Saudi regulation drafting style — e.g. "المادة العشرون
+ * بعد السبعمائة" (720) or "المادة الثامنة والتسعون بعد المئة" (198).
+ * Without this, the regex only captures the leading ordinal and the
+ * "بعد <hundreds>" tail leaks into the body text, rendering in a
+ * smaller body font on a new line.
+ */
+const ARABIC_HUNDREDS_NUM: Record<string, number> = {
+  "المئة": 100, "المائة": 100,
+  "المئتين": 200, "المئتان": 200, "المائتين": 200, "المائتان": 200,
+  "الثلاثمئة": 300, "الثلاثمائة": 300,
+  "الأربعمئة": 400, "الأربعمائة": 400,
+  "الخمسمئة": 500, "الخمسمائة": 500,
+  "الستمئة": 600, "الستمائة": 600,
+  "السبعمئة": 700, "السبعمائة": 700,
+  "الثمانمئة": 800, "الثمانمائة": 800, "الثمانيمئة": 800,
+  "التسعمئة": 900, "التسعمائة": 900,
+};
+const AR_HUNDREDS_ALT = Object.keys(ARABIC_HUNDREDS_NUM)
+  .sort((a, b) => b.length - a.length)
+  .map(escapeRegex)
+  .join("|");
+// Optional trailing "بعد <hundreds>" — non-capturing so the existing
+// ordinal capture group index doesn't shift.
+const AR_HUNDREDS_SUFFIX = `(?:\\s+بعد\\s+(?:${AR_HUNDREDS_ALT}))?`;
+
+/**
  * Resolve any Arabic ordinal phrase we accept to its numeric value.
  * Returns null for unknown phrases (caller falls back to positional slug).
  */
 function parseArabicOrdinal(phrase: string): number | null {
-  const trimmed = phrase.trim().replace(/\s+/g, " ");
+  let trimmed = phrase.trim().replace(/\s+/g, " ");
+  // Optional "... بعد <hundreds>" tail — strip it and add to the base value.
+  let hundreds = 0;
+  const hundredsMatch = trimmed.match(
+    new RegExp(`^(.+?)\\s+بعد\\s+(${AR_HUNDREDS_ALT})$`)
+  );
+  if (hundredsMatch) {
+    trimmed = hundredsMatch[1].trim();
+    hundreds = ARABIC_HUNDREDS_NUM[hundredsMatch[2]] ?? 0;
+  }
   // Compound: "<unit> و<tens>"
   const compoundMatch = trimmed.match(
     new RegExp(`^(${AR_COMPOUND_UNITS_ALT})\\s+و(${AR_COMPOUND_TENS_ALT})$`)
@@ -204,9 +240,13 @@ function parseArabicOrdinal(phrase: string): number | null {
   if (compoundMatch) {
     const u = ARABIC_COMPOUND_UNITS[compoundMatch[1]];
     const t = ARABIC_COMPOUND_TENS[compoundMatch[2]];
-    if (u != null && t != null) return t + u;
+    if (u != null && t != null) return t + u + hundreds;
   }
-  return ARABIC_ORDINAL_NUM[trimmed] ?? null;
+  const base = ARABIC_ORDINAL_NUM[trimmed];
+  if (base != null) return base + hundreds;
+  // If we consumed a hundreds suffix but the head is unrecognized, still
+  // return the hundreds part rather than null so the slug is deterministic.
+  return hundreds > 0 ? hundreds : null;
 }
 
 // Converts Arabic-Indic digits (٠-٩) or Western digits to an integer.
@@ -221,16 +261,18 @@ function arabicDigitsToInt(s: string): number | null {
 // Regulation regexes — applied to a slice starting at an eligible position
 // (start of text or after whitespace at a line boundary). All use the ^ anchor.
 const RE_AR_CHAPTER = new RegExp(
-  `^الباب\\s+(${AR_ORDINALS_ALT})(?:\\s*[:：\\-ـ]\\s*([^\\n]+?))?\\s*(?=\\n|$)`
+  `^الباب\\s+((?:${AR_ORDINALS_ALT})${AR_HUNDREDS_SUFFIX})(?:\\s*[:：\\-ـ]\\s*([^\\n]+?))?\\s*(?=\\n|$)`
 );
 const RE_AR_SECTION = new RegExp(
-  `^الفصل\\s+(${AR_ORDINALS_ALT})(?:\\s*[:：\\-ـ]\\s*([^\\n]+?))?\\s*(?=\\n|$)`
+  `^الفصل\\s+((?:${AR_ORDINALS_ALT})${AR_HUNDREDS_SUFFIX})(?:\\s*[:：\\-ـ]\\s*([^\\n]+?))?\\s*(?=\\n|$)`
 );
 // Article: "المادة <paren-number>" | "المادة <number>" | "المادة <ordinal>",
 // optionally followed by a colon-style separator. The body starts immediately
-// after the heading + separator.
+// after the heading + separator. Ordinals may carry a "بعد <hundreds>" tail
+// (e.g. "العشرون بعد السبعمائة" = 720) which is captured in the same group
+// so it renders inline as part of the heading instead of leaking into the body.
 const RE_AR_ARTICLE = new RegExp(
-  `^المادة\\s+(?:\\(([\\u0660-\\u06690-9]+)\\)|([\\u0660-\\u06690-9]+)|(${AR_ORDINALS_ALT}))\\s*[:：\\-ـ]?\\s*`
+  `^المادة\\s+(?:\\(([\\u0660-\\u06690-9]+)\\)|([\\u0660-\\u06690-9]+)|((?:${AR_ORDINALS_ALT})${AR_HUNDREDS_SUFFIX}))\\s*[:：\\-ـ]?\\s*`
 );
 
 /* =============================================================================

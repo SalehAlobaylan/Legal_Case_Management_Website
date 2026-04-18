@@ -403,6 +403,25 @@ export function LegalTextReader({
    TOC list
    ============================================================================= */
 
+/**
+ * Short navigable label for an unheaded segment — first sentence of the body,
+ * capped at ~60 chars. Falls back to "#N" only if the body is empty (rare).
+ * Strips leading list markers ("1.", "أ-", "•", etc.) so the preview starts
+ * with actual content.
+ */
+function previewFromBody(body: string, idx: number): string {
+  const cleaned = (body ?? "")
+    .replace(/\s+/g, " ")
+    .replace(/^\s*(?:[\u0660-\u06690-9]+[.)\-:]|[\u0623-\u064A][.)\-:]|[•·\-*])\s+/u, "")
+    .trim();
+  if (!cleaned) return `#${idx + 1}`;
+  // Cut at the first sentence boundary if it comes early, otherwise hard-cap.
+  const sentenceEnd = cleaned.search(/[.؟!?]\s|$/);
+  const end = sentenceEnd > 0 && sentenceEnd < 60 ? sentenceEnd : 60;
+  const slice = cleaned.slice(0, end).trim();
+  return slice.length < cleaned.length ? `${slice}…` : slice;
+}
+
 function TocList({
   segments,
   activeId,
@@ -417,7 +436,15 @@ function TocList({
   return (
     <ol className="space-y-1 text-sm">
       {segments.map((seg, idx) => {
-        const label = seg.heading || (idx === 0 ? introLabel : `#${idx + 1}`);
+        // Prefer the explicit heading. When the segmenter falls back to
+        // sentence-chunked prose (typical for free-form case descriptions
+        // that don't use "الوقائع:" / "الطلبات:" markers), seg.heading is
+        // undefined. Previously we rendered "#1 #2 #3…" which is useless
+        // for navigation — derive a short preview from the body instead so
+        // each TOC entry shows the reader what's actually in that chunk.
+        const label =
+          seg.heading ||
+          (idx === 0 ? introLabel : previewFromBody(seg.body, idx));
         const isActive = activeId === seg.id;
         return (
           <li key={seg.id}>
@@ -425,12 +452,11 @@ function TocList({
               type="button"
               onClick={() => onJump(seg.id)}
               className={cn(
-                "block w-full truncate rounded-md px-3 py-1.5 text-start transition-colors",
+                "block w-full whitespace-normal break-words rounded-md px-3 py-1.5 text-start leading-snug transition-colors",
                 isActive
                   ? "bg-[#D97706]/10 text-[#0F2942] font-semibold"
                   : "text-slate-600 hover:bg-slate-100"
               )}
-              title={label}
             >
               {label}
             </button>
