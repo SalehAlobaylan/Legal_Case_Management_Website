@@ -52,6 +52,8 @@ import {
 } from "@/lib/hooks/use-team";
 // [HIDDEN FOR GRADUATION PRESENTATION] import { useBillingInfo, useSubscribeToPlan, useCancelSubscription, useDownloadInvoicePDF } from "@/lib/hooks/use-billing";
 import { useUpdateProfile } from "@/lib/hooks/use-profile";
+import { NajizLockOverlay } from "@/components/features/dashboard/najiz-lock-overlay";
+import { LicenseBadgeCard } from "@/components/features/dashboard/najiz-placeholders";
 import { useNotificationSettings, useUpdateNotificationSettings } from "@/lib/hooks/use-notification-settings";
 import { useLoginActivity, useChangePassword } from "@/lib/hooks/use-security-settings";
 import { useAISettings, useUpdateAISettings } from "@/lib/hooks/use-ai-settings";
@@ -278,6 +280,23 @@ function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; i
         <p className="text-slate-200 text-xs md:text-sm mt-1">
           {isPersonalWorkspace ? t("settings.personalWorkspace") : t("settings.teamWorkspace")} • {members.length} {t("settings.members")}
         </p>
+      </div>
+
+      {/* Lawyer License — Najiz-verified (locked until integration is live) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <NajizLockOverlay>
+          <LicenseBadgeCard />
+        </NajizLockOverlay>
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col justify-center">
+          <h4 className="font-bold text-[#0F2942] mb-1">
+            {isRTL ? "ترخيص المحاماة" : "Bar License"}
+          </h4>
+          <p className="text-sm text-slate-600 leading-relaxed">
+            {isRTL
+              ? "سيتم التحقق من ترخيص المحاماة للمؤسسة تلقائياً عبر ناجز وعرضه هنا، مع إشعارات عند اقتراب انتهاء الصلاحية، وتفعيل الإجراءات التي تتطلب محامياً مرخّصاً."
+              : "Your organization's bar license will be auto-verified via Najiz and shown here — with expiry reminders and gating for actions that require a licensed lawyer."}
+          </p>
+        </div>
       </div>
 
       {isPersonalWorkspace && (

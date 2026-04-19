@@ -127,88 +127,113 @@ export function LinkDetailPanel({
         ? t("ai.confidenceEstimated")
         : t("ai.confidencePercent");
 
-    const actionBar = isVerified ? (
-        <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 text-xs font-bold text-green-700">
-                <CheckCircle className="h-4 w-4" />
-                {t("ai.linkedToEvidence")}
-            </span>
-            {!isSubscribed && onSubscribe && regulationId && (
+    const renderActionBar = (layout: "desktop" | "mobile") => {
+        const isMobile = layout === "mobile";
+        // Mobile: primary takes most width, secondary = icon-only. Desktop: inline with text.
+        if (isVerified) {
+            return (
+                <div className={cn("flex items-center", isMobile ? "gap-2 w-full" : "gap-2")}>
+                    <span className={cn(
+                        "inline-flex items-center gap-1 text-xs font-bold text-green-700",
+                        isMobile && "flex-1"
+                    )}>
+                        <CheckCircle className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{t("ai.linkedToEvidence")}</span>
+                    </span>
+                    {!isSubscribed && onSubscribe && regulationId && (
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => onSubscribe(regulationId)}
+                            aria-label={t("ai.subscribeToUpdates")}
+                            className={cn("text-xs shrink-0", isMobile && "px-2.5")}
+                        >
+                            <Bell className={cn("h-3.5 w-3.5", !isMobile && "mr-1")} />
+                            {!isMobile && t("ai.subscribeToUpdates")}
+                        </Button>
+                    )}
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onDismiss(link.id)}
+                        disabled={isDismissing}
+                        aria-label={t("ai.unlinkFromCase")}
+                        className={cn(
+                            "text-xs text-red-600 border-red-200 hover:bg-red-50 shrink-0",
+                            isMobile && "px-2.5"
+                        )}
+                    >
+                        {isDismissing ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                            <>
+                                <X className={cn("h-3.5 w-3.5", !isMobile && "mr-1")} />
+                                {!isMobile && t("ai.unlinkFromCase")}
+                            </>
+                        )}
+                    </Button>
+                </div>
+            );
+        }
+        return (
+            <div className={cn("flex items-center gap-2", isMobile && "w-full")}>
+                <Button
+                    size="sm"
+                    onClick={() => onVerify(link.id)}
+                    disabled={isVerifying}
+                    className={cn(
+                        "bg-[#0F2942] hover:bg-[#0a1c2e] text-white font-bold text-xs",
+                        isMobile && "flex-1"
+                    )}
+                >
+                    {isVerifying ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                    ) : (
+                        <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
+                    )}
+                    <span className="truncate">{t("ai.verifyAndLink")}</span>
+                </Button>
                 <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => onSubscribe(regulationId)}
-                    className="text-xs"
+                    onClick={() => onDismiss(link.id)}
+                    disabled={isDismissing}
+                    aria-label={t("ai.dismiss")}
+                    className={cn(
+                        "text-xs text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 font-bold shrink-0",
+                        isMobile && "px-2.5"
+                    )}
                 >
-                    <Bell className="h-3.5 w-3.5 mr-1" />
-                    {t("ai.subscribeToUpdates")}
+                    {isDismissing ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                        <>
+                            <X className={cn("h-3.5 w-3.5", !isMobile && "mr-1.5")} />
+                            {!isMobile && t("ai.dismiss")}
+                        </>
+                    )}
                 </Button>
-            )}
-            <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onDismiss(link.id)}
-                disabled={isDismissing}
-                className="text-xs text-red-600 border-red-200 hover:bg-red-50"
-            >
-                {isDismissing ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                    <>
-                        <X className="h-3.5 w-3.5 mr-1" />
-                        {t("ai.unlinkFromCase")}
-                    </>
+                {!isSubscribed && onSubscribe && regulationId && (
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onSubscribe(regulationId)}
+                        aria-label={t("ai.subscribe")}
+                        className={cn("shrink-0 text-xs", isMobile && "px-2.5")}
+                    >
+                        <Bell className={cn("h-3.5 w-3.5", !isMobile && "mr-1")} />
+                        {!isMobile && t("ai.subscribe")}
+                    </Button>
                 )}
-            </Button>
-        </div>
-    ) : (
-        <div className="flex items-center gap-2">
-            <Button
-                size="sm"
-                onClick={() => onVerify(link.id)}
-                disabled={isVerifying}
-                className="bg-[#0F2942] hover:bg-[#0a1c2e] text-white font-bold text-xs"
-            >
-                {isVerifying ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
-                ) : (
-                    <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
-                )}
-                {t("ai.verifyAndLink")}
-            </Button>
-            <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onDismiss(link.id)}
-                disabled={isDismissing}
-                className="text-xs text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 font-bold"
-            >
-                {isDismissing ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
-                ) : (
-                    <X className="h-3.5 w-3.5 mr-1.5" />
-                )}
-                {t("ai.dismiss")}
-            </Button>
-            {!isSubscribed && onSubscribe && regulationId && (
-                <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onSubscribe(regulationId)}
-                    className="shrink-0 text-xs"
-                >
-                    <Bell className="h-3.5 w-3.5 mr-1" />
-                    {t("ai.subscribe")}
-                </Button>
-            )}
-        </div>
-    );
+            </div>
+        );
+    };
 
     return (
         <div className={cn("flex flex-col h-full", className)}>
             {/* ── Sticky Header with Actions ── */}
-            <div className="sticky top-0 z-10 shrink-0 border-b border-slate-200 bg-white/95 backdrop-blur px-6 py-4 shadow-sm">
-                <div className="flex items-start justify-between gap-4 mb-3">
+            <div className="sticky top-0 z-10 shrink-0 border-b border-slate-200 bg-white/95 backdrop-blur px-4 md:px-6 py-3 md:py-4 shadow-sm">
+                <div className="flex items-start justify-between gap-3 md:gap-4 mb-3">
                     <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 min-w-0">
                             <h2 className="text-xl font-bold text-[#0F2942] leading-tight truncate">
@@ -273,24 +298,27 @@ export function LinkDetailPanel({
                             )}
                         </div>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex items-center gap-2 md:gap-3 shrink-0">
                         <div
                             className={cn(
-                                "text-lg font-bold px-3 py-1.5 rounded-xl border tabular-nums",
+                                "font-bold rounded-xl border tabular-nums",
+                                "text-sm md:text-lg px-2 md:px-3 py-1 md:py-1.5",
                                 confidenceColor
                             )}
                         >
-                            {confidence} {confidenceLabel}
+                            {confidence}
+                            <span className="hidden md:inline"> {confidenceLabel}</span>
+                            <span className="md:hidden">%</span>
                         </div>
-                        <div className="text-[10px] text-slate-500 tabular-nums text-right">
+                        <div className="hidden md:block text-[10px] text-slate-500 tabular-nums text-right">
                             raw: {Number(rawSimilarityScore || 0).toFixed(4)}
                         </div>
                     </div>
                 </div>
 
-                {/* Actions + Tabs on one row */}
+                {/* Actions + Tabs — on mobile, tabs take full row and actions move to bottom bar */}
                 <div className="flex items-center justify-between gap-3 flex-wrap">
-                    <div className="flex rounded-lg bg-slate-100 p-0.5">
+                    <div className="flex flex-1 md:flex-initial rounded-lg bg-slate-100 p-0.5">
                         {([
                             { key: "overview", label: t("ai.tabOverview") },
                             { key: "evidence", label: t("ai.tabEvidence") },
@@ -300,7 +328,7 @@ export function LinkDetailPanel({
                                 key={tab.key}
                                 onClick={() => setActiveTab(tab.key)}
                                 className={cn(
-                                    "text-[11px] font-bold px-3 py-1 rounded-md transition-all",
+                                    "flex-1 md:flex-initial text-[11px] font-bold px-3 py-1 rounded-md transition-all",
                                     activeTab === tab.key
                                         ? "bg-white text-[#0F2942] shadow-sm"
                                         : "text-slate-500 hover:text-slate-700"
@@ -310,13 +338,13 @@ export function LinkDetailPanel({
                             </button>
                         ))}
                     </div>
-                    {actionBar}
+                    <div className="hidden md:block">{renderActionBar("desktop")}</div>
                 </div>
             </div>
 
             {/* Scrollable content — one tab at a time */}
             <div className="flex-1 overflow-y-auto">
-                <div className="p-6 space-y-6">
+                <div className="p-4 md:p-6 space-y-6">
                     {/* Warnings surface on every tab because they're actionable */}
                     {warnings.length > 0 && (
                         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
@@ -381,6 +409,10 @@ export function LinkDetailPanel({
                 </div>
             </div>
 
+            {/* Mobile action bar — pinned bottom via flex layout */}
+            <div className="md:hidden shrink-0 border-t border-slate-200 bg-white/95 backdrop-blur px-4 py-3 shadow-[0_-4px_12px_-6px_rgba(15,41,66,0.15)]">
+                {renderActionBar("mobile")}
+            </div>
         </div>
     );
 }

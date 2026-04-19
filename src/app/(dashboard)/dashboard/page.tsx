@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
   FileText, BookOpen, Users, ArrowUpRight, Briefcase, Bell,
-  CalendarDays, FileSignature, ExternalLink, Check, Plus
+  CalendarDays, FileSignature, Check, Plus
 } from "lucide-react";
 import { useCases } from "@/lib/hooks/use-cases";
 import { useClients } from "@/lib/hooks/use-clients";
@@ -19,6 +19,9 @@ import { useAuthStore } from "@/lib/store/auth-store";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { formatDate } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
+import { NajizLockOverlay } from "@/components/features/dashboard/najiz-lock-overlay";
+import { NajizPlaceholders } from "@/components/features/dashboard/najiz-placeholders";
+import { PrepareHearingCard } from "@/components/features/dashboard/prepare-hearing-card";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -102,24 +105,6 @@ export default function DashboardPage() {
     return reason;
   };
 
-  const legalPortals = (dailyOps?.legalPortals || []).map((p) => ({
-    id: p.id,
-    name: isRTL ? p.nameAr : p.nameEn,
-    url: p.url,
-    color:
-      p.tone === "emerald"
-        ? "bg-emerald-50 text-emerald-700"
-        : p.tone === "blue"
-          ? "bg-blue-50 text-blue-700"
-          : "bg-amber-50 text-amber-700",
-    hover:
-      p.tone === "emerald"
-        ? "hover:bg-emerald-100 hover:border-emerald-200 border-emerald-100"
-        : p.tone === "blue"
-          ? "hover:bg-blue-100 hover:border-blue-200 border-blue-100"
-          : "hover:bg-amber-100 hover:border-amber-200 border-amber-100",
-  }));
-
   const tasks = dailyOps?.dailyTasks || [];
 
   const toggleTask = (id: number, completed: boolean) => {
@@ -178,9 +163,14 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* ── Prepare for the Hearing (primary feature — Najiz-gated, teased) ── */}
+      <NajizLockOverlay variant="tease-hero">
+        <PrepareHearingCard />
+      </NajizLockOverlay>
+
       {/* ── System Overview (3 Columns) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+
         {/* Column 1: Recent Clients */}
         {clientsLoading ? <ColumnSkeleton /> : (
         <div className="bg-white rounded-3xl shadow-sm border border-slate-100 flex flex-col overflow-hidden">
@@ -287,14 +277,15 @@ export default function DashboardPage() {
       {/* ── Functional Panels Grid (Phase 6 additions) ── */}
       <h2 className="text-2xl font-bold font-serif text-[#0F2942] pt-4 border-t border-slate-200">{isRTL ? "لوحة العمليات اليومية" : "Daily Operations"}</h2>
       {dailyOpsLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (<ColumnSkeleton key={i} />))}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(3)].map((_, i) => (<ColumnSkeleton key={i} />))}
         </div>
       ) : (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
         {/* 1. Upcoming Hearings */}
-        <div className="bg-white rounded-3xl border border-[#D97706]/20 shadow-sm shadow-[#D97706]/5 overflow-hidden flex flex-col">
+        <NajizLockOverlay variant="tease">
+        <div className="bg-white rounded-3xl border border-[#D97706]/20 shadow-sm shadow-[#D97706]/5 overflow-hidden flex flex-col h-full">
           <div className="bg-[#D97706]/5 p-5 border-b border-[#D97706]/10 flex items-center gap-3">
             <div className="bg-[#D97706]/20 p-2 rounded-lg text-[#D97706]">
               <CalendarDays className="h-5 w-5" />
@@ -320,9 +311,11 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+        </NajizLockOverlay>
 
         {/* 2. Required Document Reviews */}
-        <div className="bg-white rounded-3xl border border-red-200 shadow-sm shadow-red-100/50 overflow-hidden flex flex-col">
+        <NajizLockOverlay variant="tease">
+        <div className="bg-white rounded-3xl border border-red-200 shadow-sm shadow-red-100/50 overflow-hidden flex flex-col h-full">
           <div className="bg-red-50 p-5 border-b border-red-100 flex items-center gap-3">
             <div className="bg-red-200/50 p-2 rounded-lg text-red-600">
               <FileSignature className="h-5 w-5" />
@@ -439,36 +432,10 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+        </NajizLockOverlay>
 
-        {/* 3. External Legal Portals */}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-          <div className="bg-slate-50 p-5 border-b border-slate-200 flex items-center gap-3">
-            <div className="bg-slate-200 p-2 rounded-lg text-slate-600">
-              <ExternalLink className="h-5 w-5" />
-            </div>
-            <h3 className="font-bold text-[#0F2942]">{isRTL ? "البوابات العدلية" : "Legal Portals"}</h3>
-          </div>
-          <div className="p-4 space-y-3 flex-1">
-            {legalPortals.map(portal => (
-              <a 
-                key={portal.id} 
-                href={portal.url} 
-                target="_blank" 
-                rel="noreferrer"
-                className={cn("flex flex-col p-3 rounded-xl border transition-all cursor-pointer group", portal.color, portal.hover)}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-sm">{portal.name}</span>
-                  <ArrowUpRight className={cn("h-4 w-4 opacity-50 group-hover:opacity-100", isRTL && "rotate-180")} />
-                </div>
-                <span className="text-[10px] opacity-70 truncate">{portal.url}</span>
-              </a>
-            ))}
-          </div>
-        </div>
-
-        {/* 4. Interactive To-Do List */}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+        {/* 3. Interactive To-Do List */}
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
           <div className="bg-[#0F2942] p-5 flex items-center justify-between text-white">
             <div className="flex items-center gap-3">
               <div className="bg-white/10 p-2 rounded-lg">
@@ -516,6 +483,8 @@ export default function DashboardPage() {
 
       </div>
       )}
+
+      <NajizPlaceholders />
 
     </div>
   );

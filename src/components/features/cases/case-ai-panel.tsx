@@ -87,13 +87,13 @@ export function CaseAIPanel({
         className
       )}
     >
-      {/* Header — clickable to expand/collapse */}
-      <div className="flex items-center justify-between gap-3 p-4">
+      {/* Header — clickable to expand/collapse. Stacks on mobile so the CTA has full width. */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 p-3 sm:p-4">
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          className="flex flex-1 items-center gap-3 text-start rounded-lg -m-1 p-1 hover:bg-slate-50/60 transition-colors"
+          className="flex flex-1 items-center gap-3 text-start rounded-lg -m-1 p-1 hover:bg-slate-50/60 transition-colors min-w-0"
         >
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#D97706] to-[#b45309] text-white shadow-sm">
             <Sparkles className="h-4 w-4" aria-hidden="true" />
@@ -102,7 +102,7 @@ export function CaseAIPanel({
             <h3 className="text-sm font-bold text-[#0F2942]">
               {t("cases.aiPanel.title")}
             </h3>
-            <p className="text-[11px] text-slate-500 truncate">
+            <p className="text-[11px] text-slate-500 line-clamp-2 sm:truncate">
               {analysis
                 ? cached?.generatedAt
                   ? `${t("cases.aiPanel.generatedAt")}: ${formatDate(cached.generatedAt, { dateStyle: "medium", timeStyle: "short" })}`
@@ -129,7 +129,7 @@ export function CaseAIPanel({
               generate.mutate();
             }}
             disabled={!description.trim()}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-gradient-to-r from-[#D97706] to-[#b45309] px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex w-full sm:w-auto shrink-0 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-[#D97706] to-[#b45309] px-3 py-2 sm:py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Sparkles className="h-3.5 w-3.5" />
             {t("cases.aiPanel.empty.cta")}
@@ -143,7 +143,7 @@ export function CaseAIPanel({
               generate.mutate();
             }}
             disabled={isGenerating}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-[#0F2942] disabled:opacity-50"
+            className="hidden sm:flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-[#0F2942] disabled:opacity-50"
             aria-label={t("cases.aiPanel.regenerate")}
             title={t("cases.aiPanel.regenerate")}
           >
@@ -156,7 +156,7 @@ export function CaseAIPanel({
 
       {/* Body — only when expanded */}
       {open && (
-        <div className="border-t border-slate-100 p-5">
+        <div className="border-t border-slate-100 p-3 sm:p-5">
           {isGenerating && !analysis && <LoadingState />}
 
           {hasError && !analysis && (
@@ -260,23 +260,26 @@ function AnalysisTabs({
 
   return (
     <Tabs defaultValue="summary" className="w-full">
-      <TabsList variant="pills" className="mb-4 w-full overflow-x-auto">
-        <TabsTrigger variant="pills" value="summary">
-          {t("cases.aiPanel.tabs.summary")}
-        </TabsTrigger>
-        <TabsTrigger variant="pills" value="strengths">
-          {t("cases.aiPanel.tabs.strengths")}
-        </TabsTrigger>
-        <TabsTrigger variant="pills" value="weaknesses">
-          {t("cases.aiPanel.tabs.weaknesses")}
-        </TabsTrigger>
-        <TabsTrigger variant="pills" value="risks">
-          {t("cases.aiPanel.tabs.risks")}
-        </TabsTrigger>
-        <TabsTrigger variant="pills" value="recs">
-          {t("cases.aiPanel.tabs.recommendations")}
-        </TabsTrigger>
-      </TabsList>
+      {/* Scroll wrapper — on mobile the 5 pills exceed the panel width and scroll horizontally */}
+      <div className="mb-4 -mx-1 overflow-x-auto scrollbar-none">
+        <TabsList variant="pills" className="inline-flex w-max flex-nowrap">
+          <TabsTrigger variant="pills" value="summary" className="whitespace-nowrap shrink-0 text-xs sm:text-sm">
+            {t("cases.aiPanel.tabs.summary")}
+          </TabsTrigger>
+          <TabsTrigger variant="pills" value="strengths" className="whitespace-nowrap shrink-0 text-xs sm:text-sm">
+            {t("cases.aiPanel.tabs.strengths")}
+          </TabsTrigger>
+          <TabsTrigger variant="pills" value="weaknesses" className="whitespace-nowrap shrink-0 text-xs sm:text-sm">
+            {t("cases.aiPanel.tabs.weaknesses")}
+          </TabsTrigger>
+          <TabsTrigger variant="pills" value="risks" className="whitespace-nowrap shrink-0 text-xs sm:text-sm">
+            {t("cases.aiPanel.tabs.risks")}
+          </TabsTrigger>
+          <TabsTrigger variant="pills" value="recs" className="whitespace-nowrap shrink-0 text-xs sm:text-sm">
+            {t("cases.aiPanel.tabs.recommendations")}
+          </TabsTrigger>
+        </TabsList>
+      </div>
 
       <TabsContent value="summary">
         <div className="space-y-3">
