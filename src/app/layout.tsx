@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display, Noto_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/providers/query-provider";
@@ -55,6 +55,27 @@ export const metadata: Metadata = {
   icons: {
     icon: "/circle-logo-silah.png",
   },
+};
+
+/**
+ * Mobile viewport configuration.
+ * - `viewportFit: "cover"` lets the app use the full screen on notched phones;
+ *   pair with the `pt-safe` / `pb-safe` / `px-safe` utilities in globals.css so
+ *   fixed UI (header, navigation dock, sheets) stays out of the notch and
+ *   home-indicator areas.
+ * - `maximumScale: 5` keeps pinch-zoom available for accessibility (do not
+ *   disable user scaling).
+ * - `themeColor` drives the mobile browser chrome tint. The site is
+ *   light-mode only (no toggle, no `.dark` class ever applied), so we set
+ *   a single light value — splitting by `prefers-color-scheme` would tint
+ *   the mobile browser chrome navy while the app stays light.
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({

@@ -23,9 +23,24 @@
 "use client";
 
 import * as React from "react";
-import { AlignLeft, Copy, Check, Focus, Minus, Plus } from "lucide-react";
+import {
+  AlignLeft,
+  Copy,
+  Check,
+  Focus,
+  Minus,
+  Plus,
+  ListTree,
+} from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useI18n } from "@/lib/hooks/use-i18n";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetBody,
+} from "@/components/ui/sheet";
 import {
   splitLegalText,
   estimateReadingTime,
@@ -97,6 +112,10 @@ export function LegalTextReader({
   };
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
   const [activeId, setActiveId] = React.useState<string | null>(null);
+  // Mobile TOC sheet — desktop keeps the sticky side aside; mobile gets a
+  // proper bottom-sheet so the user can always reach any section without
+  // consuming page real estate.
+  const [tocSheetOpen, setTocSheetOpen] = React.useState(false);
 
   // Hydrate font size from localStorage on mount.
   React.useEffect(() => {
@@ -242,6 +261,23 @@ export function LegalTextReader({
         </div>
 
         <div className="flex items-center gap-1">
+          {/* Mobile TOC trigger — only shown when there's more than one
+              segment, and only below `lg` where the desktop sticky aside
+              isn't rendered. Opens a bottom sheet with the full TocList. */}
+          {tocSegments.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={() => setTocSheetOpen(true)}
+                aria-label={t("reader.tableOfContents")}
+                title={t("reader.tableOfContents")}
+                className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 lg:hidden"
+              >
+                <ListTree className="h-5 w-5" />
+              </button>
+              <div className="mx-1 h-6 w-px bg-slate-200 lg:hidden" />
+            </>
+          )}
           <button
             type="button"
             onClick={() =>
@@ -249,7 +285,7 @@ export function LegalTextReader({
             }
             disabled={fontStep === 0}
             aria-label={t("reader.fontSmaller")}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 disabled:opacity-40"
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 disabled:opacity-40 md:h-9 md:w-9"
           >
             <Minus className="h-4 w-4" />
           </button>
@@ -263,7 +299,7 @@ export function LegalTextReader({
             }
             disabled={fontStep === 2}
             aria-label={t("reader.fontLarger")}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 disabled:opacity-40"
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 disabled:opacity-40 md:h-9 md:w-9"
           >
             <Plus className="h-4 w-4" />
           </button>
@@ -275,7 +311,7 @@ export function LegalTextReader({
             aria-label={t("reader.focusMode")}
             title={t("reader.focusMode")}
             className={cn(
-              "flex h-9 w-9 items-center justify-center rounded-lg transition-colors",
+              "flex h-10 w-10 items-center justify-center rounded-lg transition-colors md:h-9 md:w-9",
               focusMode
                 ? "bg-[#D97706] text-white"
                 : "text-slate-600 hover:bg-slate-100"
@@ -294,38 +330,22 @@ export function LegalTextReader({
         )}
       >
         {tocSegments.length > 1 && (
-          <>
-            {/* Mobile / tablet: collapsible TOC (sticky side nav kicks in at lg) */}
-            <details className="rounded-xl border border-slate-100 bg-slate-50/50 p-3 lg:hidden">
-              <summary className="cursor-pointer text-sm font-bold text-[#0F2942]">
+          <aside className="hidden lg:block">
+            <div
+              className="sticky top-24 rounded-xl border border-slate-100 bg-slate-50/60 p-4"
+              aria-label={t("reader.tableOfContents")}
+            >
+              <h4 className="mb-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                 {t("reader.tableOfContents")}
-              </summary>
+              </h4>
               <TocList
                 segments={tocSegments}
                 activeId={activeId}
                 onJump={handleJumpTo}
                 introLabel={t("reader.intro")}
               />
-            </details>
-
-            {/* Desktop: sticky TOC */}
-            <aside className="hidden lg:block">
-              <div
-                className="sticky top-24 rounded-xl border border-slate-100 bg-slate-50/60 p-4"
-                aria-label={t("reader.tableOfContents")}
-              >
-                <h4 className="mb-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                  {t("reader.tableOfContents")}
-                </h4>
-                <TocList
-                  segments={tocSegments}
-                  activeId={activeId}
-                  onJump={handleJumpTo}
-                  introLabel={t("reader.intro")}
-                />
-              </div>
-            </aside>
-          </>
+            </div>
+          </aside>
         )}
 
         {/* Content */}
@@ -374,7 +394,11 @@ export function LegalTextReader({
                       }
                       aria-label={t("reader.copySection")}
                       title={t("reader.copySection")}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 opacity-0 transition-all hover:bg-slate-100 hover:text-slate-700 group-hover:opacity-100"
+                      // `touch-visible` (globals.css) reveals the button at
+                      // 60% opacity on touch devices (no :hover), so mobile
+                      // users can actually find it. Desktop keeps the
+                      // subtle hover reveal.
+                      className="touch-visible flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 opacity-0 transition-all hover:bg-slate-100 hover:text-slate-700 group-hover:opacity-100"
                     >
                       {copiedId === seg.id ? (
                         <Check className="h-4 w-4 text-green-600" />
@@ -395,6 +419,34 @@ export function LegalTextReader({
           })}
         </article>
       </div>
+
+      {/* Mobile TOC sheet — rendered at the section level so it overlays
+          the whole viewport rather than being clipped by a parent's
+          overflow. Only does work when the trigger has been tapped. */}
+      {tocSegments.length > 1 && (
+        <Sheet open={tocSheetOpen} onOpenChange={setTocSheetOpen}>
+          <SheetContent
+            side="bottom"
+            ariaLabel={t("reader.tableOfContents")}
+            className="lg:hidden"
+          >
+            <SheetHeader>
+              <SheetTitle>{t("reader.tableOfContents")}</SheetTitle>
+            </SheetHeader>
+            <SheetBody>
+              <TocList
+                segments={tocSegments}
+                activeId={activeId}
+                onJump={(id) => {
+                  handleJumpTo(id);
+                  setTocSheetOpen(false);
+                }}
+                introLabel={t("reader.intro")}
+              />
+            </SheetBody>
+          </SheetContent>
+        </Sheet>
+      )}
     </section>
   );
 }

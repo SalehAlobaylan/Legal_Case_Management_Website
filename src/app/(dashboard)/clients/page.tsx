@@ -149,47 +149,50 @@ export default function ClientsPage() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-[#0F2942] font-serif">
+          <h1 className="text-2xl md:text-3xl font-bold text-[#0F2942] font-serif">
             {t("clients.title")}
           </h1>
-          <p className="text-slate-500 mt-2">
+          <p className="text-sm md:text-base text-slate-500 mt-2">
             {t("clients.subtitle")}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="grid grid-cols-2 md:flex md:items-center gap-2 md:gap-3 w-full md:w-auto">
           <Button
             variant="outline"
-            className="px-4 py-2.5 rounded-xl font-bold flex items-center gap-2"
+            aria-label={isRTL ? "نماذج الاستقبال" : "Intake Forms"}
+            className="px-3 md:px-4 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 text-sm"
             onClick={() => router.push("/clients/intake")}
           >
-            <ClipboardList className="h-4 w-4" />
-            {isRTL ? "نماذج الاستقبال" : "Intake Forms"}
+            <ClipboardList className="h-4 w-4 shrink-0" />
+            <span className="truncate">{isRTL ? "نماذج الاستقبال" : "Intake Forms"}</span>
           </Button>
           <Button
             variant="outline"
-            className="px-4 py-2.5 rounded-xl font-bold flex items-center gap-2"
+            aria-label={isRTL ? "أتمتة التواصل" : "Automations"}
+            className="px-3 md:px-4 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 text-sm"
             onClick={() => router.push("/clients/automations")}
           >
-            <Workflow className="h-4 w-4" />
-            {isRTL ? "أتمتة التواصل" : "Automations"}
+            <Workflow className="h-4 w-4 shrink-0" />
+            <span className="truncate">{isRTL ? "أتمتة التواصل" : "Automations"}</span>
           </Button>
           <Button
             variant="outline"
-            className="px-4 py-2.5 rounded-xl font-bold flex items-center gap-2"
+            aria-label={isExporting ? t("common.exporting") : t("common.export")}
+            className="px-3 md:px-4 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 text-sm"
             onClick={() => exportClients("csv")}
             disabled={isExporting}
           >
-            <Download className="h-4 w-4" />
-            {isExporting ? t("common.exporting") : t("common.export")}
+            <Download className="h-4 w-4 shrink-0" />
+            <span className="truncate">{isExporting ? t("common.exporting") : t("common.export")}</span>
           </Button>
           <Button
             onClick={() => router.push("/clients/new")}
-            className="bg-[#D97706] hover:bg-[#B45309] text-white px-6 py-2.5 h-auto rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 font-bold flex items-center gap-2 transition-all"
+            className="bg-[#D97706] hover:bg-[#B45309] text-white px-4 md:px-6 py-2.5 h-auto rounded-xl shadow-lg hover:shadow-xl md:hover:-translate-y-0.5 font-bold flex items-center justify-center gap-2 transition-all text-sm"
           >
-            <div className="bg-white/20 p-1 rounded-md">
+            <div className="bg-white/20 p-1 rounded-md shrink-0">
               <Plus className="h-4 w-4" />
             </div>
-            {t("clients.newClient")}
+            <span className="truncate">{t("clients.newClient")}</span>
           </Button>
         </div>
       </div>
@@ -225,36 +228,37 @@ export default function ClientsPage() {
       {/* Clients Table Card */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-500 delay-200">
         {/* Filters & Search */}
-        <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
-          {/* Type Filters and View Toggle */}
-          <div className="flex items-center justify-between w-full md:w-auto flex-col md:flex-row gap-4 md:gap-8">
-            <div className="flex bg-slate-100/80 p-1 rounded-xl w-full md:w-auto overflow-hidden">
-              <button
-                onClick={() => setViewMode("list")}
-                className={cn(
-                  "flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                  viewMode === "list" 
-                    ? "bg-white text-[#D97706] shadow-sm ring-1 ring-slate-200" 
-                    : "text-slate-500 hover:text-slate-700"
-                )}
-              >
-                <LayoutList className="w-4 h-4" />
-                <span>{t("clients.viewMode.list")}</span>
-              </button>
-              <button
-                onClick={() => setViewMode("kanban")}
-                className={cn(
-                  "flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                  viewMode === "kanban" 
-                    ? "bg-white text-[#D97706] shadow-sm ring-1 ring-slate-200" 
-                    : "text-slate-500 hover:text-slate-700"
-                )}
-              >
-                <Kanban className="w-4 h-4" />
-                <span>{t("clients.viewMode.board")}</span>
-              </button>
-            </div>
-            
+        <div className="p-4 md:p-6 border-b border-slate-100 flex flex-col gap-3 md:gap-4 md:flex-row md:flex-wrap md:items-center md:justify-between">
+          {/* View toggle */}
+          <div className="flex bg-slate-100/80 p-1 rounded-xl w-full md:w-auto overflow-hidden order-1">
+            <button
+              onClick={() => setViewMode("list")}
+              className={cn(
+                "flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                viewMode === "list"
+                  ? "bg-white text-[#D97706] shadow-sm ring-1 ring-slate-200"
+                  : "text-slate-500 hover:text-slate-700"
+              )}
+            >
+              <LayoutList className="w-4 h-4" />
+              <span>{t("clients.viewMode.list")}</span>
+            </button>
+            <button
+              onClick={() => setViewMode("kanban")}
+              className={cn(
+                "flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                viewMode === "kanban"
+                  ? "bg-white text-[#D97706] shadow-sm ring-1 ring-slate-200"
+                  : "text-slate-500 hover:text-slate-700"
+              )}
+            >
+              <Kanban className="w-4 h-4" />
+              <span>{t("clients.viewMode.board")}</span>
+            </button>
+          </div>
+
+          {/* Type filter pills */}
+          <div className="w-full md:w-auto order-3 md:order-2 -mx-1 md:mx-0">
             <FilterPills>
               {TYPE_FILTERS.map((type) => (
                 <FilterPill
@@ -268,9 +272,8 @@ export default function ClientsPage() {
             </FilterPills>
           </div>
 
-
           {/* Search & Filter */}
-          <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="flex items-center gap-2 w-full md:w-auto order-2 md:order-3">
             <div className="relative flex-1 md:w-72 group">
               <Search className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#D97706] transition-colors`} />
               <input
@@ -315,45 +318,62 @@ export default function ClientsPage() {
             }
           />
         ) : viewMode === "kanban" ? (
-          <div className="p-6 bg-slate-50/50">
+          <div className="p-3 md:p-6 bg-slate-50/50">
             <ClientKanbanBoard clients={clients} isRTL={isRTL} />
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-slate-50 border-b border-slate-200">
-                <tr>
-                  <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    {t("clients.clientName")}
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    {t("clients.type")}
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    {t("clients.contact")}
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    {t("clients.cases")}
-                  </th>
-                  <th className={`px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider ${isRTL ? 'text-left' : 'text-right'}`}>
-                    {t("common.actions")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {clients.map((client, index) => (
-                  <ClientRow
-                    key={client.id}
-                    client={client}
-                    onView={() => router.push(`/clients/${client.id}`)}
-                    index={index}
-                    t={t}
-                    isRTL={isRTL}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <>
+            {/* Mobile: card list */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {clients.map((client, index) => (
+                <ClientCard
+                  key={client.id}
+                  client={client}
+                  onView={() => router.push(`/clients/${client.id}`)}
+                  index={index}
+                  t={t}
+                  isRTL={isRTL}
+                />
+              ))}
+            </div>
+
+            {/* Desktop: data table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      {t("clients.clientName")}
+                    </th>
+                    <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      {t("clients.type")}
+                    </th>
+                    <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      {t("clients.contact")}
+                    </th>
+                    <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      {t("clients.cases")}
+                    </th>
+                    <th className={`px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider ${isRTL ? 'text-left' : 'text-right'}`}>
+                      {t("common.actions")}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {clients.map((client, index) => (
+                    <ClientRow
+                      key={client.id}
+                      client={client}
+                      onView={() => router.push(`/clients/${client.id}`)}
+                      index={index}
+                      t={t}
+                      isRTL={isRTL}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>
@@ -468,5 +488,87 @@ function ClientRow({ client, onView, index, t, isRTL }: ClientRowProps) {
         </button>
       </td>
     </tr>
+  );
+}
+
+/* =============================================================================
+   CLIENT CARD COMPONENT (mobile)
+   ============================================================================= */
+
+function ClientCard({ client, onView, index, t, isRTL }: ClientRowProps) {
+  const { name, id, type, contactPhone, contactEmail, phone, email, casesCount } = client;
+  const initial = name.charAt(0).toUpperCase();
+  const TypeIcon = getTypeIcon(type);
+  const displayPhone = contactPhone || phone;
+  const displayEmail = contactEmail || email;
+  const typeLabel =
+    type === "individual"
+      ? t("clients.types.individual")
+      : type === "sme"
+        ? t("clients.types.sme")
+        : type === "group"
+          ? t("clients.types.group")
+          : t("clients.types.corporate");
+
+  return (
+    <button
+      type="button"
+      onClick={onView}
+      className={cn(
+        "w-full text-start p-4 flex items-start gap-3 hover:bg-slate-50 active:bg-slate-100 transition-colors",
+        "animate-in fade-in slide-in-from-bottom-1 duration-300"
+      )}
+      style={{ animationDelay: `${index * 30}ms` }}
+    >
+      <div
+        className={cn(
+          "w-11 h-11 shrink-0 rounded-full flex items-center justify-center",
+          "bg-gradient-to-br from-brand-primary to-brand-accent text-white font-bold text-sm",
+          "shadow-md ring-2 ring-white"
+        )}
+      >
+        {initial}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <h4 className="font-bold text-[#0F2942] text-sm truncate">{name}</h4>
+            <p className="text-[11px] text-slate-400 font-mono">#{id}</p>
+          </div>
+          <span
+            className={cn(
+              "shrink-0 px-2 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 border",
+              getTypeColor(type)
+            )}
+          >
+            <TypeIcon className="h-3 w-3" />
+            {typeLabel}
+          </span>
+        </div>
+        <div className="mt-2 space-y-1 text-xs text-slate-600">
+          {displayPhone && (
+            <p className="flex items-center gap-2 truncate">
+              <Phone className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+              <span className="truncate" dir="ltr">{displayPhone}</span>
+            </p>
+          )}
+          {displayEmail && (
+            <p className="flex items-center gap-2 text-slate-400 truncate">
+              <Mail className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{displayEmail}</span>
+            </p>
+          )}
+        </div>
+        <div className="mt-2 flex items-center justify-between">
+          <span className="text-xs font-medium text-slate-500">
+            {casesCount || 0} {(casesCount || 0) === 1 ? t("clients.case") : t("clients.casesPlural")}
+          </span>
+          <span className="text-xs font-bold text-[#D97706] inline-flex items-center gap-1">
+            {t("common.viewDetails")}
+            <ChevronRight className={`h-4 w-4 ${isRTL ? 'rotate-180' : ''}`} />
+          </span>
+        </div>
+      </div>
+    </button>
   );
 }

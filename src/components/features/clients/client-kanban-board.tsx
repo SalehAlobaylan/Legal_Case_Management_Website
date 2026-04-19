@@ -30,6 +30,7 @@ export function ClientKanbanBoard({ clients, isRTL }: ClientKanbanBoardProps) {
   const { mutate: updateClient } = useUpdateClient();
   const { t } = useI18n();
   const [draggedClientId, setDraggedClientId] = useState<number | null>(null);
+  const [activeMobileColumn, setActiveMobileColumn] = useState<ClientLeadStatus>("lead");
   const router = useRouter();
 
   // Group clients by status
@@ -37,6 +38,13 @@ export function ClientKanbanBoard({ clients, isRTL }: ClientKanbanBoardProps) {
     acc[col.id] = clients.filter(c => (c.leadStatus || "lead") === col.id);
     return acc;
   }, {} as Record<ClientLeadStatus, Client[]>);
+
+  const moveClient = (clientId: number, targetStatus: ClientLeadStatus) => {
+    const client = clients.find(c => c.id === clientId);
+    if (client && client.leadStatus !== targetStatus) {
+      updateClient({ id: clientId, input: { leadStatus: targetStatus } });
+    }
+  };
 
   const handleDragStart = (e: React.DragEvent, id: number) => {
     setDraggedClientId(id);
@@ -61,11 +69,45 @@ export function ClientKanbanBoard({ clients, isRTL }: ClientKanbanBoardProps) {
   };
 
   return (
-    <div className="flex gap-4 overflow-x-auto pb-4 snap-x min-h-[600px]">
+    <>
+      {/* Mobile status picker chips */}
+      <div className="md:hidden -mx-3 px-3 mb-3 overflow-x-auto">
+        <div className="flex gap-2 min-w-max">
+          {COLUMNS.map(col => {
+            const count = clientsByStatus[col.id].length;
+            const active = activeMobileColumn === col.id;
+            return (
+              <button
+                key={col.id}
+                onClick={() => setActiveMobileColumn(col.id)}
+                className={cn(
+                  "shrink-0 flex items-center gap-2 px-3 h-10 rounded-full text-xs font-bold transition-all border",
+                  active
+                    ? "bg-[#0F2942] text-white border-[#0F2942] shadow-sm"
+                    : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+                )}
+              >
+                <span>{t(`clients.kanban.${col.titleKey}`)}</span>
+                <span className={cn(
+                  "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                  active ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
+                )}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+    <div className="flex gap-4 md:overflow-x-auto md:pb-4 md:snap-x md:min-h-[600px] flex-col md:flex-row">
       {COLUMNS.map(col => (
-        <div 
-          key={col.id} 
-          className="flex-shrink-0 w-80 bg-slate-50/50 rounded-2xl border border-slate-200 overflow-hidden flex flex-col snap-center"
+        <div
+          key={col.id}
+          className={cn(
+            "md:flex-shrink-0 md:w-80 bg-slate-50/50 rounded-2xl border border-slate-200 overflow-hidden flex flex-col md:snap-center",
+            activeMobileColumn !== col.id && "hidden md:flex"
+          )}
           onDragOver={handleDragOver}
           onDrop={(e) => handleDrop(e, col.id)}
         >
@@ -132,6 +174,24 @@ export function ClientKanbanBoard({ clients, isRTL }: ClientKanbanBoardProps) {
                     </span>
                   )}
                 </div>
+
+                {/* Mobile-only: touch-friendly status mover */}
+                <div className="md:hidden mt-3 pt-3 border-t border-slate-100" onClick={(e) => e.stopPropagation()}>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                    {t("clients.moveTo") || "Move to"}
+                  </label>
+                  <select
+                    value={col.id}
+                    onChange={(e) => moveClient(client.id, e.target.value as ClientLeadStatus)}
+                    className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#D97706]"
+                  >
+                    {COLUMNS.map(c => (
+                      <option key={c.id} value={c.id}>
+                        {t(`clients.kanban.${c.titleKey}`)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             ))}
             
@@ -144,5 +204,6 @@ export function ClientKanbanBoard({ clients, isRTL }: ClientKanbanBoardProps) {
         </div>
       ))}
     </div>
+    </>
   );
 }

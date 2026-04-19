@@ -245,27 +245,27 @@ export default function ProfilePage() {
     return (
         <div className="space-y-8 max-w-[1600px] mx-auto p-4 md:p-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-border pb-6 gap-4">
-                <div>
-                    <h1 className="text-3xl font-serif font-bold text-[var(--color-text-primary)]">
+                <div className="min-w-0">
+                    <h1 className="text-2xl md:text-3xl font-serif font-bold text-[var(--color-text-primary)]">
                         {t("settings.myProfile")}
                     </h1>
-                    <p className="text-[var(--color-text-muted)] mt-2 text-sm font-medium tracking-wide">
+                    <p className="text-[var(--color-text-muted)] mt-2 text-xs md:text-sm font-medium tracking-wide">
                         {isRTL ? t("settings.professionalProfile") : "PROFESSIONAL PROFILE & PERFORMANCE DASHBOARD"}
                     </p>
                 </div>
                 {!isEditing && (
                     <Button
                         onClick={() => setIsEditing(true)}
-                        className="bg-brand-primary text-white hover:bg-brand-secondary transition-colors rounded-md px-6 shadow-sm"
+                        className="bg-brand-primary text-white hover:bg-brand-secondary transition-colors rounded-md px-6 shadow-sm w-full sm:w-auto"
                     >
                         {t("common.edit")}
                     </Button>
                 )}
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-12">
+            <div className="grid gap-6 md:gap-8 lg:grid-cols-12">
                 <div className="lg:col-span-3">
-                    <Card className="border border-border shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl overflow-hidden sticky top-6 bg-surface-card">
+                    <Card className="border border-border shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl overflow-hidden lg:sticky lg:top-6 bg-surface-card">
                         <div className="h-24 bg-gradient-to-r from-brand-primary to-brand-secondary w-full" />
                         <CardContent className="p-6 -mt-12 relative z-10">
                             <div className="flex flex-col items-center text-center">
@@ -393,14 +393,14 @@ export default function ProfilePage() {
 
                 <div className="lg:col-span-9 space-y-8">
                     <div className="flex items-center gap-4">
-                        <h3 className="text-lg font-serif font-bold text-[var(--color-text-primary)] uppercase tracking-wider whitespace-nowrap">
+                        <h3 className="text-base md:text-lg font-serif font-bold text-[var(--color-text-primary)] uppercase tracking-wider">
                             {t("settings.keyPerformanceIndicators")}
                         </h3>
-                        <div className="h-px bg-gray-200 w-full" />
+                        <div className="h-px bg-gray-200 flex-1" />
                     </div>
 
                     {isStatsLoading ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                             {[...Array(4)].map((_, i) => (
                                 <Card key={i} className="rounded-xl border border-border bg-surface-card">
                                     <CardContent className="p-6">
@@ -414,11 +414,11 @@ export default function ProfilePage() {
                             ))}
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                             <Card className="rounded-xl border border-border shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 bg-surface-card group">
-                                <CardContent className="p-6">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="w-10 h-10 rounded-full bg-[var(--color-warning-bg)] border border-brand-accent/20 shadow-sm flex items-center justify-center text-brand-accent group-hover:bg-brand-accent group-hover:text-white transition-colors">
+                                <CardContent className="p-4 md:p-6">
+                                    <div className="flex justify-between items-start mb-3 md:mb-4 gap-2">
+                                        <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-[var(--color-warning-bg)] border border-brand-accent/20 shadow-sm flex items-center justify-center text-brand-accent group-hover:bg-brand-accent group-hover:text-white transition-colors shrink-0">
                                             <Target className="h-5 w-5" />
                                         </div>
                                         <Badge variant="outline" className={cn(
@@ -432,16 +432,16 @@ export default function ProfilePage() {
                                         </Badge>
                                     </div>
                                     <div>
-                                        <p className="text-3xl font-bold text-[var(--color-text-primary)] mb-1">{stats.winRate}%</p>
+                                        <p className="text-2xl md:text-3xl font-bold text-[var(--color-text-primary)] mb-1">{stats.winRate}%</p>
                                         <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t("settings.successRate")}</p>
                                     </div>
                                 </CardContent>
                             </Card>
 
                             <Card className="rounded-xl border border-border shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 bg-surface-card group">
-                                <CardContent className="p-6">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="w-10 h-10 rounded-full bg-[var(--color-warning-bg)] border border-brand-accent/20 shadow-sm flex items-center justify-center text-brand-accent group-hover:bg-brand-accent group-hover:text-white transition-colors">
+                                <CardContent className="p-4 md:p-6">
+                                    <div className="flex justify-between items-start mb-3 md:mb-4 gap-2">
+                                        <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-[var(--color-warning-bg)] border border-brand-accent/20 shadow-sm flex items-center justify-center text-brand-accent group-hover:bg-brand-accent group-hover:text-white transition-colors shrink-0">
                                             <Users className="h-5 w-5" />
                                         </div>
                                         <Badge variant="outline" className={cn(
@@ -455,16 +455,16 @@ export default function ProfilePage() {
                                         </Badge>
                                     </div>
                                     <div>
-                                        <p className="text-3xl font-bold text-[var(--color-text-primary)] mb-1">{stats.clientSatisfaction}%</p>
+                                        <p className="text-2xl md:text-3xl font-bold text-[var(--color-text-primary)] mb-1">{stats.clientSatisfaction}%</p>
                                         <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t("settings.clientSatisfaction")}</p>
                                     </div>
                                 </CardContent>
                             </Card>
 
                             <Card className="rounded-xl border border-border shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 bg-surface-card group">
-                                <CardContent className="p-6">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="w-10 h-10 rounded-full bg-[var(--color-warning-bg)] border border-brand-accent/20 shadow-sm flex items-center justify-center text-brand-accent group-hover:bg-brand-accent group-hover:text-white transition-colors">
+                                <CardContent className="p-4 md:p-6">
+                                    <div className="flex justify-between items-start mb-3 md:mb-4 gap-2">
+                                        <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-[var(--color-warning-bg)] border border-brand-accent/20 shadow-sm flex items-center justify-center text-brand-accent group-hover:bg-brand-accent group-hover:text-white transition-colors shrink-0">
                                             <Clock className="h-5 w-5" />
                                         </div>
                                         <Badge variant="outline" className={cn(
@@ -478,16 +478,16 @@ export default function ProfilePage() {
                                         </Badge>
                                     </div>
                                     <div>
-                                        <p className="text-3xl font-bold text-[var(--color-text-primary)] mb-1">{stats.thisMonthHours}</p>
+                                        <p className="text-2xl md:text-3xl font-bold text-[var(--color-text-primary)] mb-1">{stats.thisMonthHours}</p>
                                         <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t("settings.monthlyHours")}</p>
                                     </div>
                                 </CardContent>
                             </Card>
 
                             <Card className="rounded-xl border border-border bg-surface-card shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group">
-                                <CardContent className="p-6">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="w-10 h-10 rounded-full bg-[var(--color-warning-bg)] border border-brand-accent/20 shadow-sm flex items-center justify-center text-brand-accent group-hover:bg-brand-accent group-hover:text-white transition-colors">
+                                <CardContent className="p-4 md:p-6">
+                                    <div className="flex justify-between items-start mb-3 md:mb-4 gap-2">
+                                        <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-[var(--color-warning-bg)] border border-brand-accent/20 shadow-sm flex items-center justify-center text-brand-accent group-hover:bg-brand-accent group-hover:text-white transition-colors shrink-0">
                                             <TrendingUp className="h-5 w-5" />
                                         </div>
                                         <Badge variant="outline" className={cn(
@@ -501,7 +501,7 @@ export default function ProfilePage() {
                                         </Badge>
                                     </div>
                                     <div>
-                                        <p className="text-3xl font-bold text-[var(--color-text-primary)] mb-1">{stats.avgCaseDuration}<span className="text-lg opacity-70 ml-0.5">d</span></p>
+                                        <p className="text-2xl md:text-3xl font-bold text-[var(--color-text-primary)] mb-1">{stats.avgCaseDuration}<span className="text-lg opacity-70 ml-0.5">d</span></p>
                                         <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t("settings.avgCaseDuration")}</p>
                                     </div>
                                 </CardContent>
@@ -509,17 +509,17 @@ export default function ProfilePage() {
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
                         <div className="space-y-6">
                             <div className="flex items-center gap-4">
-                                <h3 className="text-sm font-serif font-bold text-[var(--color-text-primary)] uppercase tracking-wider opacity-80 whitespace-nowrap">
+                                <h3 className="text-sm font-serif font-bold text-[var(--color-text-primary)] uppercase tracking-wider opacity-80">
                                     {t("settings.caseloadDistribution")}
                                 </h3>
-                                <div className="h-px bg-gray-200 w-full" />
+                                <div className="h-px bg-gray-200 flex-1" />
                             </div>
 
                             <Card className="border border-border shadow-sm rounded-xl bg-surface-card">
-                                <CardContent className="p-6">
+                                <CardContent className="p-4 md:p-6">
                                     <div className="flex items-center justify-between mb-8">
                                         <div>
                                             <p className="text-4xl font-light text-[var(--color-text-primary)]">{stats.totalCases}</p>
@@ -576,44 +576,44 @@ export default function ProfilePage() {
 
                         <div className="space-y-6">
                             <div className="flex items-center gap-4">
-                                <h3 className="text-sm font-serif font-bold text-[var(--color-text-primary)] uppercase tracking-wider opacity-80 whitespace-nowrap">
+                                <h3 className="text-sm font-serif font-bold text-[var(--color-text-primary)] uppercase tracking-wider opacity-80">
                                     {isRTL ? "الإنتاجية" : "Productivity Metrics"}
                                 </h3>
-                                <div className="h-px bg-gray-200 w-full" />
+                                <div className="h-px bg-gray-200 flex-1" />
                             </div>
 
                             <div className="grid gap-4">
-                                <div className="flex items-center p-4 bg-surface-card border border-border rounded-xl shadow-sm hover:border-brand-accent/40 transition-colors group">
-                                    <div className="h-12 w-12 rounded-full bg-[var(--color-warning-bg)] border border-brand-accent/20 shadow-sm flex items-center justify-center mr-4 rtl:ml-4 rtl:mr-0 text-brand-accent group-hover:bg-brand-accent group-hover:text-white transition-colors">
-                                        <Sparkles className="h-6 w-6" />
+                                <div className="flex items-center p-3 md:p-4 bg-surface-card border border-border rounded-xl shadow-sm hover:border-brand-accent/40 transition-colors group">
+                                    <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-[var(--color-warning-bg)] border border-brand-accent/20 shadow-sm flex items-center justify-center mr-3 md:mr-4 rtl:ml-3 rtl:md:ml-4 rtl:mr-0 text-brand-accent group-hover:bg-brand-accent group-hover:text-white transition-colors shrink-0">
+                                        <Sparkles className="h-5 w-5 md:h-6 md:w-6" />
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-sm font-bold text-[var(--color-text-primary)]">{t("settings.aiAssistanceRate")}</p>
                                         <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{t("settings.suggestionsAccepted")}</p>
                                     </div>
-                                    <span className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.aiSuggestionsAccepted}%</span>
+                                    <span className="text-xl md:text-2xl font-bold text-[var(--color-text-primary)] shrink-0">{stats.aiSuggestionsAccepted}%</span>
                                 </div>
 
-                                <div className="flex items-center p-4 bg-surface-card border border-border rounded-xl shadow-sm hover:border-brand-accent/40 transition-colors group">
-                                    <div className="h-12 w-12 rounded-full bg-[var(--color-warning-bg)] border border-brand-accent/20 shadow-sm flex items-center justify-center mr-4 rtl:ml-4 rtl:mr-0 text-brand-accent group-hover:bg-brand-accent group-hover:text-white transition-colors">
-                                        <FileText className="h-6 w-6" />
+                                <div className="flex items-center p-3 md:p-4 bg-surface-card border border-border rounded-xl shadow-sm hover:border-brand-accent/40 transition-colors group">
+                                    <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-[var(--color-warning-bg)] border border-brand-accent/20 shadow-sm flex items-center justify-center mr-3 md:mr-4 rtl:ml-3 rtl:md:ml-4 rtl:mr-0 text-brand-accent group-hover:bg-brand-accent group-hover:text-white transition-colors shrink-0">
+                                        <FileText className="h-5 w-5 md:h-6 md:w-6" />
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-sm font-bold text-[var(--color-text-primary)]">{isRTL ? "المستندات" : "Document Processing"}</p>
                                         <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{isRTL ? "تمت المراجعة هذا الشهر" : "Reviewed this month"}</p>
                                     </div>
-                                    <span className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.documentsProcessed}</span>
+                                    <span className="text-xl md:text-2xl font-bold text-[var(--color-text-primary)] shrink-0">{stats.documentsProcessed}</span>
                                 </div>
 
-                                <div className="flex items-center p-4 bg-surface-card border border-border rounded-xl shadow-sm hover:border-brand-accent/40 transition-colors group">
-                                    <div className="h-12 w-12 rounded-full bg-blue-50 border border-blue-200 shadow-sm flex items-center justify-center mr-4 rtl:ml-4 rtl:mr-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                                        <FileCheck className="h-6 w-6" />
+                                <div className="flex items-center p-3 md:p-4 bg-surface-card border border-border rounded-xl shadow-sm hover:border-brand-accent/40 transition-colors group">
+                                    <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-blue-50 border border-blue-200 shadow-sm flex items-center justify-center mr-3 md:mr-4 rtl:ml-3 rtl:md:ml-4 rtl:mr-0 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors shrink-0">
+                                        <FileCheck className="h-5 w-5 md:h-6 md:w-6" />
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-sm font-bold text-[var(--color-text-primary)]">{isRTL ? "اللوائح" : "Regulations Reviewed"}</p>
                                         <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{isRTL ? "إجمالي المراجعات" : "Total reviews"}</p>
                                     </div>
-                                    <span className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.regulationsReviewed}</span>
+                                    <span className="text-xl md:text-2xl font-bold text-[var(--color-text-primary)] shrink-0">{stats.regulationsReviewed}</span>
                                 </div>
                             </div>
                         </div>
@@ -622,10 +622,10 @@ export default function ProfilePage() {
                     <div className="pt-2">
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-4">
-                                <h3 className="text-sm font-serif font-bold text-[var(--color-text-primary)] uppercase tracking-wider opacity-80 whitespace-nowrap">
+                                <h3 className="text-sm font-serif font-bold text-[var(--color-text-primary)] uppercase tracking-wider opacity-80">
                                     {isRTL ? "سجل النشاط الأخير" : "Recent Activity Log"}
                                 </h3>
-                                <div className="h-px bg-border w-full" />
+                                <div className="h-px bg-border flex-1" />
                             </div>
                             <span className="text-xs text-[var(--color-text-muted)]">
                                 {totalActivities} {t("common.total")}
@@ -662,32 +662,31 @@ export default function ProfilePage() {
                                     {activities.map((item) => {
                                         const href = getActivityHref(item.type, item.referenceId);
                                         return (
-                                        <div key={item.id} className="flex items-center p-4 hover:bg-surface-muted transition-colors group">
+                                        <div key={item.id} className="flex items-center gap-3 p-3 md:p-4 hover:bg-surface-muted transition-colors group">
                                             <span className={cn(
-                                                "h-2.5 w-2.5 rounded-full mr-4 rtl:ml-4 rtl:mr-0 shrink-0 ring-4 ring-opacity-20",
+                                                "h-2.5 w-2.5 rounded-full shrink-0 ring-4 ring-opacity-20",
                                                 getActivityColor(item.type)
                                             )} />
-                                            <p className="text-xs font-mono text-[var(--color-text-muted)] uppercase w-20 shrink-0">
-                                                {formatRelativeTime(item.createdAt, isRTL, t)}
-                                            </p>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-semibold text-[var(--color-text-primary)] group-hover:text-brand-accent transition-colors truncate">
                                                     {item.title}
                                                 </p>
-                                                <p className="text-xs text-[var(--color-text-muted)] flex items-center gap-1">
-                                                    {getActionLabel(item.action, isRTL)}
+                                                <p className="text-[11px] text-[var(--color-text-muted)] flex items-center gap-2 mt-0.5">
+                                                    <span className="font-mono uppercase">{formatRelativeTime(item.createdAt, isRTL, t)}</span>
+                                                    <span className="text-slate-300">·</span>
+                                                    <span className="truncate">{getActionLabel(item.action, isRTL)}</span>
                                                 </p>
                                             </div>
                                             {href ? (
                                                 <button
                                                     type="button"
                                                     onClick={() => window.location.assign(href)}
-                                                    className="text-xs font-bold text-brand-primary hover:text-brand-accent mr-2"
+                                                    className="shrink-0 text-xs font-bold text-brand-primary hover:text-brand-accent"
                                                 >
                                                     {isRTL ? "فتح" : "Open"}
                                                 </button>
                                             ) : null}
-                                            <ChevronRight className={cn("h-4 w-4 text-[var(--color-text-muted)] opacity-50 group-hover:text-brand-accent ml-2 rtl:mr-2 rtl:ml-0 transition-colors", isRTL && "rotate-180")} />
+                                            <ChevronRight className={cn("h-4 w-4 shrink-0 text-[var(--color-text-muted)] opacity-50 group-hover:text-brand-accent transition-colors", isRTL && "rotate-180")} />
                                         </div>
                                     )})}
                                     {hasMoreActivities && (

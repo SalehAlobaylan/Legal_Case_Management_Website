@@ -80,6 +80,8 @@ import type {
 import { useToast } from "@/components/ui/use-toast";
 import { ProgressSteps } from "@/components/ui/progress-steps";
 import { useChatStore } from "@/lib/store/chat-store";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody } from "@/components/ui/sheet";
+import { useIsBelowLg } from "@/lib/hooks/use-media-query";
 
 
 
@@ -129,6 +131,9 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
   // Focus reading mode: slims page chrome + hides the right AI rail so the
   // case description reader fills the viewport.
   const [focusMode, setFocusMode] = React.useState(false);
+  // Mobile-only: the AI assistant right-rail becomes a bottom Sheet.
+  const [aiSheetOpen, setAiSheetOpen] = React.useState(false);
+  const isBelowLg = useIsBelowLg();
   const shownCandidateBatchKeysRef = React.useRef<Set<string>>(new Set());
   const { toast } = useToast();
   const { t } = useI18n();
@@ -360,13 +365,133 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
   // Count pending suggestions
   const pendingCount = aiLinks?.filter((l: CaseRegulationLink) => !l.verified)?.length || 0;
 
+  // Shared AI rail content — rendered inline on desktop (lg+) and inside
+  // a bottom Sheet on mobile, so both form-factors see identical UX.
+  const aiRailHeader = (
+    <div className="p-6 border-b border-slate-200 bg-white shadow-sm z-10">
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <div className="bg-[#0F2942] p-2 rounded-lg text-white">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="font-bold text-[#0F2942] leading-none">{t("ai.assistantTitle")}</h3>
+            <p className="text-xs text-slate-500 mt-1">{t("ai.regulationMatchingSubtitle")}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs bg-[#D97706] text-white px-3 py-1.5 rounded-lg font-bold shadow-sm shadow-orange-900/20">
+            {pendingCount} {t("cases.suggestions")}
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleGenerateSuggestions}
+            disabled={isGenerating}
+            className="text-xs"
+          >
+            {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : t("common.refresh")}
+          </Button>
+        </div>
+      </div>
+      <button
+        onClick={() => router.push(`/cases/${caseId}/linking`)}
+        className="mt-3 w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-[#0F2942]/5 hover:bg-[#0F2942]/10 border border-[#0F2942]/10 hover:border-[#0F2942]/20 transition-all text-[#0F2942] group"
+      >
+        <ArrowUpRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+        <span className="text-xs font-bold">{t("ai.openLinkingStudio")}</span>
+      </button>
+      <p className="mt-2 text-center text-[10px] text-slate-400">
+        {t("chat.askAboutCase")} →{" "}
+        <button
+          onClick={() => useChatStore.getState().openChat(undefined, caseId)}
+          className="text-[#D97706] hover:underline font-medium"
+        >
+          {t("chat.title")}
+        </button>
+      </p>
+    </div>
+  );
+
+  const aiRailBody = (
+    <div className="flex-1 overflow-y-auto p-6 space-y-5 pb-32">
+      {isGenerating && (
+        <div className="mb-4">
+          <ProgressSteps
+            isActive={isGenerating}
+            steps={aiLinkingSteps}
+            title={t("ai.progress.generatingMatches")}
+            subtitle={t("ai.progress.generatingMatchesSub")}
+            variant="compact"
+            i18nTexts={progressI18n}
+          />
+        </div>
+      )}
+      {isLoadingAILinks ? (
+        <div className="text-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin text-[#D97706] mx-auto" />
+          <p className="text-slate-500 text-sm mt-2">{t("common.loading")}</p>
+        </div>
+      ) : !aiLinks || aiLinks.length === 0 ? (
+        <div className="text-center py-8">
+          <div className="bg-slate-100 p-4 rounded-full w-fit mx-auto mb-3">
+            <Sparkles className="h-6 w-6 text-slate-400" />
+          </div>
+          <p className="text-sm text-slate-600 font-medium mb-2">{t("cases.noAiSuggestions")}</p>
+          <p className="text-xs text-slate-400 mb-4">
+            {t("cases.noAiSuggestionsDesc")}
+          </p>
+          <Button
+            size="sm"
+            onClick={handleGenerateSuggestions}
+            disabled={isGenerating}
+            className="bg-[#D97706] hover:bg-[#B45309] text-white"
+          >
+            {isGenerating ? t("cases.generating") : t("cases.generateSuggestions")}
+          </Button>
+        </div>
+      ) : (
+        <>
+          <div className="text-xs text-slate-500 text-center mb-2 font-medium bg-[#0F2942]/5 py-2 rounded-lg border border-[#0F2942]/10">
+            {t("cases.foundMatches", { count: aiLinks.length })}
+          </div>
+          {aiLinks.map((link: CaseRegulationLink) => (
+            <SuggestionCard
+              key={link.id}
+              link={link}
+              onVerify={() => handleVerifyLink(link.id)}
+              onDismiss={() => handleDismissLink(link.id)}
+              isVerifying={verifyLink.isPending}
+              isDismissing={dismissLink.isPending}
+              t={t}
+            />
+          ))}
+        </>
+      )}
+      <div className="p-6 border-2 border-dashed border-slate-300 hover:border-[#D97706] rounded-2xl text-center group transition-colors cursor-pointer bg-slate-50 hover:bg-white">
+        <div className="bg-white p-3 rounded-full w-fit mx-auto mb-3 shadow-sm group-hover:scale-110 transition-transform">
+          <Search className="h-5 w-5 text-slate-400 group-hover:text-[#D97706]" />
+        </div>
+        <p className="text-sm font-bold text-slate-600 mb-1">
+          {t("ai.manualSearchTitle")}
+        </p>
+        <p className="text-xs text-slate-400 mb-4">
+          {t("ai.manualSearchDesc")}
+        </p>
+        <span className="text-xs font-bold text-[#D97706] group-hover:underline">
+          {t("ai.manualSearchAction")}
+        </span>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="h-[calc(100vh-80px)] overflow-hidden flex flex-col lg:flex-row -mx-4 sm:-mx-6 lg:-mx-8 -my-8">
+    <div className="flex flex-col lg:h-[calc(100vh-80px)] lg:overflow-hidden lg:flex-row -mx-4 sm:-mx-6 lg:-mx-8 -my-8">
       {/* Left Panel: Case Info */}
       <div
         className={cn(
-          "flex-1 overflow-y-auto border-r border-slate-200 bg-white transition-all duration-300",
-          focusMode ? "p-4 pb-32" : "p-8 pb-32"
+          "flex-1 lg:overflow-y-auto border-r border-slate-200 bg-white transition-all duration-300",
+          focusMode ? "p-4 pb-32" : "p-4 md:p-8 pb-32"
         )}
       >
         <div
@@ -377,7 +502,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
         >
           {focusMode ? (
             /* Slim sticky case bar — focus reading mode */
-            <div className="sticky top-0 z-20 -mx-4 mb-4 flex items-center gap-3 border-b border-slate-100 bg-white/95 px-4 py-3 backdrop-blur">
+            <div className="sticky top-0 z-20 -mx-4 mb-4 flex items-center gap-3 border-b border-slate-100 bg-white/95 px-4 py-3 pt-safe backdrop-blur">
               <button
                 onClick={() => router.push("/cases")}
                 aria-label={t("cases.backToCases")}
@@ -423,37 +548,39 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
               </button>
 
               {/* Case Header */}
-              <div className="flex justify-between items-start mb-8">
-                <div>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-8">
+                <div className="min-w-0">
                   <Badge variant="warning" className="mb-4">
                     {case_.case_type?.replace(/_/g, " ") || t("cases.types.general")}
                   </Badge>
-                  <h1 className="text-4xl font-bold text-[#0F2942] font-serif">
+                  <h1 className="text-2xl md:text-4xl font-bold text-[#0F2942] font-serif break-words">
                     {case_.title}
                   </h1>
-                  <p className="text-sm text-slate-500 mt-2 font-medium">
+                  <p className="text-xs md:text-sm text-slate-500 mt-2 font-medium break-words">
                     {t("cases.caseIdLabel")}:{" "}
                     <span className="font-mono text-slate-700">#{case_.case_number}</span>
                     {" • "}
                     {t("cases.clientLabel")}: <span className="font-bold text-slate-800">{case_.client_info || t("common.unknown")}</span>
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <Button
                     variant="outline"
                     onClick={() => useChatStore.getState().openChat(undefined, caseId)}
-                    className="flex items-center gap-2 border-[#D97706]/30 text-[#D97706] hover:bg-[#D97706]/5 hover:border-[#D97706]/50"
+                    aria-label={t("chat.askAboutCase")}
+                    className="flex items-center gap-2 border-[#D97706]/30 text-[#D97706] hover:bg-[#D97706]/5 hover:border-[#D97706]/50 h-11 md:h-10 px-3 md:px-4"
                   >
                     <Brain className="h-4 w-4" />
-                    {t("chat.askAboutCase")}
+                    <span className="hidden md:inline">{t("chat.askAboutCase")}</span>
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => router.push(`/cases/${caseId}/edit`)}
-                    className="flex items-center gap-2"
+                    aria-label={t("cases.editCase")}
+                    className="flex items-center gap-2 h-11 md:h-10 px-3 md:px-4"
                   >
                     <Edit2 className="h-4 w-4" />
-                    {t("cases.editCase")}
+                    <span className="hidden md:inline">{t("cases.editCase")}</span>
                   </Button>
                 </div>
               </div>
@@ -519,140 +646,59 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
         </div>
       </div>
 
-      {/* Right Panel: AI Assistant — slides out in focus reading mode */}
+      {/* Right Panel: AI Assistant — desktop only. On mobile we render as Sheet below. */}
       <div
         aria-hidden={focusMode}
         className={cn(
-          "bg-slate-50/50 backdrop-blur-sm border-l border-slate-200 flex flex-col h-full shadow-inner transition-all duration-300 ease-out overflow-hidden",
+          "bg-slate-50/50 backdrop-blur-sm border-l border-slate-200 hidden lg:flex flex-col h-full shadow-inner transition-all duration-300 ease-out overflow-hidden",
           focusMode
-            ? "w-0 lg:w-0 border-l-0 opacity-0 pointer-events-none"
-            : "w-full lg:w-[480px]"
+            ? "lg:w-0 border-l-0 opacity-0 pointer-events-none"
+            : "lg:w-[480px]"
         )}
       >
-        {/* AI Header */}
-        <div className="p-6 border-b border-slate-200 bg-white shadow-sm z-10">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="bg-[#0F2942] p-2 rounded-lg text-white">
-                <Sparkles className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-[#0F2942] leading-none">{t("ai.assistantTitle")}</h3>
-                <p className="text-xs text-slate-500 mt-1">{t("ai.regulationMatchingSubtitle")}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs bg-[#D97706] text-white px-3 py-1.5 rounded-lg font-bold shadow-sm shadow-orange-900/20">
-                {pendingCount} {t("cases.suggestions")}
-              </span>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleGenerateSuggestions}
-                disabled={isGenerating}
-                className="text-xs"
-              >
-                {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : t("common.refresh")}
-              </Button>
-            </div>
-          </div>
-          {/* Open Linking Studio button */}
+        {aiRailHeader}
+        {aiRailBody}
+      </div>
+
+      {/* Mobile-only: floating "Ask AI" trigger + bottom Sheet with the same rail content */}
+      {!focusMode && (
+        <>
           <button
-            onClick={() => router.push(`/cases/${caseId}/linking`)}
-            className="mt-3 w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-[#0F2942]/5 hover:bg-[#0F2942]/10 border border-[#0F2942]/10 hover:border-[#0F2942]/20 transition-all text-[#0F2942] group"
+            type="button"
+            onClick={() => setAiSheetOpen(true)}
+            aria-label={t("ai.assistantTitle")}
+            className="lg:hidden fixed bottom-24 end-4 z-30 flex items-center gap-2 h-12 px-4 rounded-full bg-[#D97706] text-white shadow-lg shadow-orange-900/30 active:scale-95 transition-transform"
           >
-            <ArrowUpRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-            <span className="text-xs font-bold">{t("ai.openLinkingStudio")}</span>
+            <Sparkles className="h-5 w-5" />
+            <span className="text-sm font-bold">{t("ai.assistantTitle")}</span>
+            {pendingCount > 0 && (
+              <span className="bg-white text-[#D97706] text-[10px] font-bold min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center">
+                {pendingCount}
+              </span>
+            )}
           </button>
 
-          {/* Ask about this case — link to header button */}
-          <p className="mt-2 text-center text-[10px] text-slate-400">
-            {t("chat.askAboutCase")} →{" "}
-            <button
-              onClick={() => useChatStore.getState().openChat(undefined, caseId)}
-              className="text-[#D97706] hover:underline font-medium"
-            >
-              {t("chat.title")}
-            </button>
-          </p>
-        </div>
-
-        {/* Suggestions List */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-5 pb-32">
-          {/* Compact Progress Bar during generation */}
-          {isGenerating && (
-            <div className="mb-4">
-              <ProgressSteps
-                isActive={isGenerating}
-                steps={aiLinkingSteps}
-                title={t("ai.progress.generatingMatches")}
-                subtitle={t("ai.progress.generatingMatchesSub")}
-                variant="compact"
-                i18nTexts={progressI18n}
-              />
-            </div>
-          )}
-          {isLoadingAILinks ? (
-            <div className="text-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-[#D97706] mx-auto" />
-              <p className="text-slate-500 text-sm mt-2">{t("common.loading")}</p>
-            </div>
-          ) : !aiLinks || aiLinks.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="bg-slate-100 p-4 rounded-full w-fit mx-auto mb-3">
-                <Sparkles className="h-6 w-6 text-slate-400" />
-              </div>
-              <p className="text-sm text-slate-600 font-medium mb-2">{t("cases.noAiSuggestions")}</p>
-              <p className="text-xs text-slate-400 mb-4">
-                {t("cases.noAiSuggestionsDesc")}
-              </p>
-              <Button
-                size="sm"
-                onClick={handleGenerateSuggestions}
-                disabled={isGenerating}
-                className="bg-[#D97706] hover:bg-[#B45309] text-white"
+          {isBelowLg && (
+            <Sheet open={aiSheetOpen} onOpenChange={setAiSheetOpen}>
+              <SheetContent
+                side="bottom"
+                ariaLabel={t("ai.assistantTitle")}
+                className="lg:hidden max-h-[90dvh]"
               >
-                {isGenerating ? t("cases.generating") : t("cases.generateSuggestions")}
-              </Button>
-            </div>
-          ) : (
-            <>
-              {/* Analysis info */}
-              <div className="text-xs text-slate-500 text-center mb-2 font-medium bg-[#0F2942]/5 py-2 rounded-lg border border-[#0F2942]/10">
-                {t("cases.foundMatches", { count: aiLinks.length })}
-              </div>
-
-              {aiLinks.map((link: CaseRegulationLink) => (
-                <SuggestionCard
-                  key={link.id}
-                  link={link}
-                  onVerify={() => handleVerifyLink(link.id)}
-                  onDismiss={() => handleDismissLink(link.id)}
-                  isVerifying={verifyLink.isPending}
-                  isDismissing={dismissLink.isPending}
-                  t={t}
-                />
-              ))}
-            </>
+                <SheetHeader>
+                  <SheetTitle>{t("ai.assistantTitle")}</SheetTitle>
+                </SheetHeader>
+                <SheetBody className="p-0">
+                  <div className="flex flex-col">
+                    {aiRailHeader}
+                    {aiRailBody}
+                  </div>
+                </SheetBody>
+              </SheetContent>
+            </Sheet>
           )}
-
-          {/* Manual Search CTA */}
-          <div className="p-6 border-2 border-dashed border-slate-300 hover:border-[#D97706] rounded-2xl text-center group transition-colors cursor-pointer bg-slate-50 hover:bg-white">
-            <div className="bg-white p-3 rounded-full w-fit mx-auto mb-3 shadow-sm group-hover:scale-110 transition-transform">
-              <Search className="h-5 w-5 text-slate-400 group-hover:text-[#D97706]" />
-            </div>
-            <p className="text-sm font-bold text-slate-600 mb-1">
-              {t("ai.manualSearchTitle")}
-            </p>
-            <p className="text-xs text-slate-400 mb-4">
-              {t("ai.manualSearchDesc")}
-            </p>
-            <span className="text-xs font-bold text-[#D97706] group-hover:underline">
-              {t("ai.manualSearchAction")}
-            </span>
-          </div>
-        </div>
-      </div>
+        </>
+      )}
 
       <Dialog open={showSubscribeDialog} onOpenChange={setShowSubscribeDialog}>
         <DialogContent size="lg">
@@ -688,7 +734,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
                     onChange={() =>
                       handleToggleRegulationSelection(candidate.regulationId)
                     }
-                    className="mt-1 h-4 w-4 rounded border-slate-300 text-[#D97706] focus:ring-[#D97706]"
+                    className="mt-1 h-5 w-5 rounded border-slate-300 text-[#D97706] focus:ring-[#D97706]"
                   />
 
                   <div className="min-w-0 flex-1">

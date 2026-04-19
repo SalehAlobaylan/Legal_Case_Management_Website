@@ -29,6 +29,7 @@ import {
     useBulkSubscribeRegulations,
 } from "@/lib/hooks/use-ai-links";
 import { useI18n } from "@/lib/hooks/use-i18n";
+import { useIsBelowLg } from "@/lib/hooks/use-media-query";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -83,6 +84,14 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
     const [selectedLinkId, setSelectedLinkId] = React.useState<number | null>(
         null
     );
+    // Mobile (<lg) swaps between list view and detail view. Desktop shows both.
+    const isBelowLg = useIsBelowLg();
+    const [mobileView, setMobileView] = React.useState<"list" | "detail">("list");
+
+    const handleSelectLinkMobile = (id: number) => {
+        setSelectedLinkId(id);
+        setMobileView("detail");
+    };
 
     // Data fetching
     const { data: case_, isLoading: isLoadingCase } = useCase(caseId);
@@ -129,6 +138,10 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
                         (l: CaseRegulationLink) => l.id !== linkId
                     );
                     setSelectedLinkId(remaining.length > 0 ? remaining[0].id : null);
+                }
+                // On mobile pop back to the list so the user sees the updated set
+                if (isBelowLg) {
+                    setMobileView("list");
                 }
                 toast({
                     title: t("ai.linkDismissed"),
@@ -204,12 +217,19 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
     return (
         <div className="h-[calc(100vh-80px)] overflow-hidden flex flex-col -mx-4 sm:-mx-6 lg:-mx-8 -my-8">
             {/* ── Top Header ── */}
-            <div className="bg-white border-b border-slate-200 px-6 py-4 shrink-0 shadow-sm z-10">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 min-w-0">
-                        {/* Back button */}
+            <div className="bg-white border-b border-slate-200 px-3 md:px-6 py-3 md:py-4 shrink-0 shadow-sm z-10">
+                <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 md:gap-4 min-w-0">
+                        {/* Back button: on mobile in detail view, back goes to list; otherwise back to case */}
                         <button
-                            onClick={() => router.push(`/cases/${caseId}`)}
+                            onClick={() => {
+                                if (isBelowLg && mobileView === "detail") {
+                                    setMobileView("list");
+                                } else {
+                                    router.push(`/cases/${caseId}`);
+                                }
+                            }}
+                            aria-label={t("ai.backToCase")}
                             className={cn(
                                 "flex items-center text-slate-500 hover:text-[#0F2942]",
                                 "text-sm font-medium group transition-colors shrink-0"
@@ -217,16 +237,16 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
                         >
                             <div
                                 className={cn(
-                                    "bg-slate-100 p-1 rounded-md mr-2",
+                                    "bg-slate-100 p-1 rounded-md md:mr-2",
                                     "group-hover:bg-[#0F2942] group-hover:text-white transition-colors"
                                 )}
                             >
                                 <ChevronRight className="rotate-180 h-3.5 w-3.5" />
                             </div>
-                            {t("ai.backToCase")}
+                            <span className="hidden md:inline">{t("ai.backToCase")}</span>
                         </button>
 
-                        <div className="h-6 w-px bg-slate-200 shrink-0" />
+                        <div className="hidden md:block h-6 w-px bg-slate-200 shrink-0" />
 
                         {/* Case info */}
                         <div className="min-w-0">
@@ -235,7 +255,7 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
                                     <Sparkles className="h-4 w-4" />
                                 </div>
                                 <div className="min-w-0">
-                                    <h1 className="text-base font-bold text-[#0F2942] truncate">
+                                    <h1 className="text-sm md:text-base font-bold text-[#0F2942] truncate">
                                         {t("ai.linkingStudio")}
                                     </h1>
                                     <p className="text-[10px] text-slate-500 truncate">
@@ -247,7 +267,7 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex items-center gap-2 md:gap-3 shrink-0">
                         {isAdmin && evalSummary?.summary && (
                           <div className="hidden lg:flex items-center gap-2 text-[11px] text-slate-500 mr-1">
                             <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1">
@@ -280,16 +300,23 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
                             size="sm"
                             onClick={handleGenerate}
                             disabled={isGenerating}
+                            aria-label={
+                                isGenerating
+                                    ? t("ai.generatingStudio")
+                                    : t("ai.generateSuggestionsStudio")
+                            }
                             className="bg-[#D97706] hover:bg-[#B45309] text-white text-xs font-bold"
                         >
                             {isGenerating ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                                <Loader2 className="h-3.5 w-3.5 animate-spin sm:mr-1.5" />
                             ) : (
-                                <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                                <RefreshCw className="h-3.5 w-3.5 sm:mr-1.5" />
                             )}
-                            {isGenerating
-                                ? t("ai.generatingStudio")
-                                : t("ai.generateSuggestionsStudio")}
+                            <span className="hidden sm:inline">
+                                {isGenerating
+                                    ? t("ai.generatingStudio")
+                                    : t("ai.generateSuggestionsStudio")}
+                            </span>
                         </Button>
                     </div>
                 </div>
@@ -356,16 +383,24 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
                     </div>
                 ) : (
                     <>
-                        {/* Left Sidebar: Link List */}
+                        {/* Left Sidebar: Link List — hidden on mobile detail view */}
                         <LinkListSidebar
                             links={aiLinks}
                             selectedLinkId={selectedLinkId}
-                            onSelectLink={setSelectedLinkId}
-                            className="w-[300px] shrink-0"
+                            onSelectLink={isBelowLg ? handleSelectLinkMobile : setSelectedLinkId}
+                            className={cn(
+                                "w-full lg:w-[300px] shrink-0",
+                                isBelowLg && mobileView === "detail" && "hidden"
+                            )}
                         />
 
-                        {/* Right Panel: Detail View */}
-                        <div className="flex-1 bg-slate-50/30 overflow-hidden">
+                        {/* Right Panel: Detail View — hidden on mobile list view */}
+                        <div
+                            className={cn(
+                                "flex-1 bg-slate-50/30 overflow-hidden",
+                                isBelowLg && mobileView === "list" && "hidden"
+                            )}
+                        >
                             {selectedLink ? (
                                 <LinkDetailPanel
                                     link={selectedLink}

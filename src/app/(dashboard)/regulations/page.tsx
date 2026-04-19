@@ -208,19 +208,22 @@ export default function RegulationsPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-stretch md:items-end gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-[#0F2942] font-serif">
+          <h1 className="text-2xl md:text-3xl font-bold text-[#0F2942] font-serif">
             {t("regulations.title")}
           </h1>
-          <p className="text-slate-500 mt-2">
+          <p className="text-slate-500 mt-2 text-sm md:text-base">
             {t("regulations.subtitle")}
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Search */}
-          <div className="relative group">
+        {/* Toolbar: on mobile, stack search to its own row and let the
+            buttons sit side-by-side underneath with equal flex so the
+            whole thing fits in 375px without horizontal overflow. */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:flex-wrap gap-3">
+          {/* Search — full-width on mobile, capped on sm+ */}
+          <div className="relative group w-full sm:w-64">
             <Search className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#D97706] transition-colors`} />
             <input
               type="text"
@@ -228,10 +231,10 @@ export default function RegulationsPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={t("regulations.searchRegulations")}
               className={cn(
-                "py-2.5 rounded-xl",
+                "py-2.5 rounded-xl w-full",
                 isRTL ? "pr-10 pl-4" : "pl-10 pr-4",
                 "border border-slate-200 bg-white",
-                "text-sm w-64",
+                "text-sm",
                 "focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/20",
                 "transition-all shadow-sm"
               )}
@@ -240,7 +243,7 @@ export default function RegulationsPage() {
 
           {/* Discover New Button */}
           <Button
-            className="bg-[#D97706] hover:bg-[#B45309] text-white px-4 py-2.5 h-auto rounded-xl text-sm font-bold shadow-lg shadow-amber-500/20 hover:shadow-xl hover:shadow-amber-500/30 hover:-translate-y-0.5 flex items-center gap-2 transition-all"
+            className="bg-[#D97706] hover:bg-[#B45309] text-white px-4 py-2.5 h-auto rounded-xl text-sm font-bold shadow-lg shadow-amber-500/20 hover:shadow-xl hover:shadow-amber-500/30 hover:-translate-y-0.5 flex items-center justify-center gap-2 transition-all flex-1 sm:flex-none"
             onClick={() =>
               syncMojSource.mutate(
                 { extractContent: true, runInBackground: true },
@@ -272,15 +275,15 @@ export default function RegulationsPage() {
           </Button>
 
           {/* Filter Button */}
-          <Button variant="secondary" className="bg-[#0F2942] hover:bg-[#1E3A56] text-white px-4 py-2.5 h-auto rounded-xl text-sm font-bold flex items-center gap-2 shadow-sm">
+          <Button variant="secondary" className="bg-[#0F2942] hover:bg-[#1E3A56] text-white px-4 py-2.5 h-auto rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-sm flex-1 sm:flex-none">
             <Filter className="h-4 w-4" />
             {t("common.filter")}
           </Button>
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      {/* Quick Stats — stack on very narrow, 3-wide from sm upward */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm flex items-center gap-3">
           <div className="h-10 w-10 rounded-lg bg-[#0F2942]/5 flex items-center justify-center">
             <BookOpen className="h-5 w-5 text-[#0F2942]" />

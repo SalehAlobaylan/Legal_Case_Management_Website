@@ -134,20 +134,19 @@ export default function DashboardPage() {
     });
   };
 
-  const isLoading = casesLoading || clientsLoading || activityLoading || dailyOpsLoading;
-
-  if (isLoading) {
-    return (
-      <div className="space-y-8 animate-pulse p-4">
-        <div className="h-32 w-full bg-slate-200 rounded-3xl" />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="h-96 bg-slate-200 rounded-3xl" />
-          <div className="h-96 bg-slate-200 rounded-3xl" />
-          <div className="h-96 bg-slate-200 rounded-3xl" />
-        </div>
-      </div>
-    );
-  }
+  // NOTE: we intentionally do NOT block the whole page on a combined
+  // `isLoading` of all four queries. Each panel renders its own skeleton
+  // so the header + fast-returning panels can paint while slower endpoints
+  // (notably /dashboard/daily-operations, which aggregates hearings,
+  // document-review priorities and tasks) are still in flight.
+  const ColumnSkeleton = () => (
+    <div className="bg-white rounded-3xl border border-slate-100 p-4 animate-pulse space-y-3">
+      <div className="h-10 w-2/3 bg-slate-100 rounded" />
+      {[...Array(4)].map((_, i) => (
+        <div key={i} className="h-14 bg-slate-100 rounded-2xl" />
+      ))}
+    </div>
+  );
 
   return (
     <div className="space-y-8 pb-12 animate-in fade-in zoom-in-95 duration-500">
@@ -183,6 +182,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Column 1: Recent Clients */}
+        {clientsLoading ? <ColumnSkeleton /> : (
         <div className="bg-white rounded-3xl shadow-sm border border-slate-100 flex flex-col overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -215,8 +215,10 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+        )}
 
         {/* Column 2: Recent Cases */}
+        {casesLoading ? <ColumnSkeleton /> : (
         <div className="bg-white rounded-3xl shadow-sm border border-slate-100 flex flex-col overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -244,8 +246,10 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+        )}
 
         {/* Column 3: Regulation Updates */}
+        {activityLoading ? <ColumnSkeleton /> : (
         <div className="bg-slate-50/50 rounded-3xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
           <div className="p-6 border-b border-slate-200 flex items-center justify-between bg-white">
             <div className="flex items-center gap-3">
@@ -276,11 +280,17 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+        )}
 
       </div>
 
       {/* ── Functional Panels Grid (Phase 6 additions) ── */}
       <h2 className="text-2xl font-bold font-serif text-[#0F2942] pt-4 border-t border-slate-200">{isRTL ? "لوحة العمليات اليومية" : "Daily Operations"}</h2>
+      {dailyOpsLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (<ColumnSkeleton key={i} />))}
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
         {/* 1. Upcoming Hearings */}
@@ -505,6 +515,7 @@ export default function DashboardPage() {
         </div>
 
       </div>
+      )}
 
     </div>
   );

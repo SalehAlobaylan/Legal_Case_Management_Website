@@ -263,10 +263,14 @@ export function NavigationDock({
   return (
     <nav
       className={cn(
-        // Position
-        "fixed bottom-8 left-1/2 -translate-x-1/2 z-50",
+        // Position — lower on mobile (more content room, clearer of keyboard)
+        // and respect the iOS home-indicator via safe-area padding.
+        "fixed bottom-4 left-1/2 -translate-x-1/2 z-40 md:bottom-8",
+        "mb-[env(safe-area-inset-bottom,0px)]",
         // Container styling
         "flex items-center gap-1 p-2",
+        // Cap width on very narrow phones so we never spill past the viewport.
+        "max-w-[calc(100vw-1rem)]",
         "bg-[#0F2942]/95 backdrop-blur-xl",
         "border border-[#1E3A56] ring-1 ring-white/10",
         "rounded-2xl shadow-2xl"

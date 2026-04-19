@@ -259,17 +259,20 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      {/* Top Header: Back + Actions */}
-      <div className="flex items-center justify-between">
+      {/* Top Header: Back + Actions — compact buttons on mobile so the
+          "Back" label doesn't push the actions off screen at 375px. */}
+      <div className="flex items-center justify-between gap-2">
         <Button
           variant="outline"
           onClick={() => router.push("/regulations")}
-          className="gap-2 rounded-xl border-slate-200 hover:border-[#D97706]/40 hover:bg-amber-50/50 transition-all"
+          className="gap-2 rounded-xl border-slate-200 hover:border-[#D97706]/40 hover:bg-amber-50/50 transition-all px-3 md:px-4"
         >
           <ArrowLeft className={cn("h-4 w-4", isRTL && "rotate-180")} />
-          {t("regulations.backToRegulations")}
+          <span className="hidden sm:inline">
+            {t("regulations.backToRegulations")}
+          </span>
         </Button>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3">
           {/* Download Hard Copy if available */}
           {hardCopyUrl && (
             <a
@@ -470,8 +473,10 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
           )}
         </div>
 
-        {/* Surfaced Metadata Flags — visible without opening dialog */}
-        <div className="px-6 pb-5 flex flex-wrap gap-3">
+        {/* Surfaced Metadata Flags — visible without opening dialog.
+            On mobile: smaller padding + tighter gap so 4–6 badges fit in
+            one or two rows instead of stacking awkwardly. */}
+        <div className="px-4 md:px-6 pb-5 flex flex-wrap gap-2 md:gap-3">
           {/* Legal Type */}
           {legalTypeName !== "-" && (
             <span className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-semibold border border-blue-100">
@@ -516,30 +521,47 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
         </div>
       </div>
 
-      {/* Main Tabs Section */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      {/* Main Tabs Section — tighter padding on mobile so the reader has
+          more horizontal room; tab list stays horizontally scrollable. */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm">
         <Tabs defaultValue="content" className="w-full">
-          <TabsList className="mb-6 border-b pb-0 w-full justify-start overflow-x-auto">
-            <TabsTrigger value="content" className="flex items-center gap-2 px-5">
-              <FileText className="h-4 w-4" />
-              {t("regulations.fullContent") || "Content"}
+          {/* Mobile: flex-wrap so all four tabs are visible without horizontal
+              scrolling — tabs wrap onto two rows, bottom border sits under the
+              whole block. Desktop (md+): single flex row with gap-8, matching
+              the underline-style TabsList default. */}
+          <TabsList className="mb-6 border-b pb-2 md:pb-0 w-full flex-wrap justify-around gap-x-3 gap-y-3 md:flex-nowrap md:gap-8 md:justify-start">
+            <TabsTrigger
+              value="content"
+              className="justify-center md:justify-start gap-2 px-3 md:px-5 py-2 md:py-0 text-xs md:text-sm leading-tight whitespace-nowrap"
+            >
+              <FileText className="h-4 w-4 shrink-0" />
+              <span>{t("regulations.fullContent") || "Content"}</span>
             </TabsTrigger>
-            <TabsTrigger value="insights" className="flex items-center gap-2 px-5">
-              <Sparkles className="h-4 w-4" />
-              {t("regulations.ai.title") || "AI Analysis"}
+            <TabsTrigger
+              value="insights"
+              className="justify-center md:justify-start gap-2 px-3 md:px-5 py-2 md:py-0 text-xs md:text-sm leading-tight whitespace-nowrap"
+            >
+              <Sparkles className="h-4 w-4 shrink-0" />
+              <span>{t("regulations.ai.title") || "AI Analysis"}</span>
             </TabsTrigger>
-            <TabsTrigger value="versions" className="flex items-center gap-2 px-5">
-              <Clock3 className="h-4 w-4" />
-              {t("regulations.versions") || "Versions"}
+            <TabsTrigger
+              value="versions"
+              className="justify-center md:justify-start gap-2 px-3 md:px-5 py-2 md:py-0 text-xs md:text-sm leading-tight whitespace-nowrap"
+            >
+              <Clock3 className="h-4 w-4 shrink-0" />
+              <span>{t("regulations.versions") || "Versions"}</span>
               {versions && versions.length > 0 && (
-                <span className="ml-1.5 rounded-full bg-[#0F2942] text-white px-2 py-0.5 text-[10px] font-bold">
+                <span className="ml-1 md:ml-1.5 shrink-0 rounded-full bg-[#0F2942] text-white px-1.5 md:px-2 py-0.5 text-[10px] font-bold">
                   {versions.length}
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="compare" className="flex items-center gap-2 px-5">
-              <GitCompare className="h-4 w-4" />
-              {t("regulations.compareVersions") || "Compare"}
+            <TabsTrigger
+              value="compare"
+              className="justify-center md:justify-start gap-2 px-3 md:px-5 py-2 md:py-0 text-xs md:text-sm leading-tight whitespace-nowrap"
+            >
+              <GitCompare className="h-4 w-4 shrink-0" />
+              <span>{t("regulations.compareVersions") || "Compare"}</span>
             </TabsTrigger>
           </TabsList>
 

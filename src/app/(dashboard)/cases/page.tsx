@@ -254,8 +254,11 @@ export default function CasesPage() {
         </Button>
       </div>
 
-      {/* ── Status Pipeline ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      {/* ── Status Pipeline ──
+          Mobile: horizontal snap-scroll strip so all 5 statuses stay in
+          a single row and the user can swipe between them (matches the
+          filter-pills pattern). Desktop: 5-column grid as before. */}
+      <div className="flex overflow-x-auto gap-3 snap-x snap-mandatory -mx-4 px-4 pb-1 sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-5 sm:overflow-visible sm:snap-none">
         {([
           { key: "all", label: t("cases.filters.all"), count: counts.all, color: "slate" },
           { key: "open", label: t("cases.statuses.open"), count: counts.open, color: "emerald" },
@@ -268,6 +271,9 @@ export default function CasesPage() {
             onClick={() => setStatusFilter(item.key)}
             className={cn(
               "relative rounded-xl px-4 py-3 text-left transition-all border",
+              // Mobile strip: each chip gets a minimum width and snaps
+              // into the scroll container; desktop keeps grid behavior.
+              "min-w-[8.5rem] snap-start shrink-0 sm:min-w-0 sm:shrink",
               statusFilter === item.key
                 ? item.color === "emerald"
                   ? "bg-emerald-50 border-emerald-300 shadow-sm"
@@ -354,7 +360,7 @@ export default function CasesPage() {
               key={s.key}
               onClick={() => toggleSort(s.key)}
               className={cn(
-                "px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1",
+                "px-3 py-2 md:px-2.5 md:py-1.5 rounded-lg text-xs md:text-[11px] font-bold transition-all flex items-center gap-1",
                 sortKey === s.key
                   ? "bg-[#D97706]/10 text-[#D97706]"
                   : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
@@ -370,12 +376,15 @@ export default function CasesPage() {
           ))}
         </div>
 
-        {/* View toggle */}
-        <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl px-1 py-1 shadow-sm">
+        {/* View toggle — hidden on mobile (compact table is too wide for
+            narrow viewports; the card view works better there). Desktop
+            keeps both affordances. */}
+        <div className="hidden md:flex items-center gap-1 bg-white border border-slate-200 rounded-xl px-1 py-1 shadow-sm">
           <button
             onClick={() => setViewMode("cards")}
+            aria-label={isRTL ? "عرض البطاقات" : "Card view"}
             className={cn(
-              "p-1.5 rounded-lg transition-colors",
+              "flex h-9 w-9 items-center justify-center rounded-lg transition-colors",
               viewMode === "cards" ? "bg-[#D97706]/10 text-[#D97706]" : "text-slate-400 hover:text-slate-600"
             )}
           >
@@ -383,8 +392,9 @@ export default function CasesPage() {
           </button>
           <button
             onClick={() => setViewMode("compact")}
+            aria-label={isRTL ? "عرض مضغوط" : "Compact view"}
             className={cn(
-              "p-1.5 rounded-lg transition-colors",
+              "flex h-9 w-9 items-center justify-center rounded-lg transition-colors",
               viewMode === "compact" ? "bg-[#D97706]/10 text-[#D97706]" : "text-slate-400 hover:text-slate-600"
             )}
           >
@@ -445,13 +455,35 @@ export default function CasesPage() {
           ))}
         </div>
       ) : (
-        <CompactTable
-          cases={filteredCases}
-          formatStatus={formatStatus}
-          formatCaseType={formatCaseType}
-          isRTL={isRTL}
-          onView={(id) => router.push(`/cases/${id}`)}
-        />
+        <>
+          {/* Compact table only renders at md+ — the HTML <table> columns
+              are too wide for a 375px viewport even with column hiding.
+              Mobile always falls back to the card list, which already
+              stacks cleanly. */}
+          <div className="md:hidden space-y-3">
+            {filteredCases.map((c) => (
+              <CaseCard
+                key={c.id}
+                case_={c}
+                formatStatus={formatStatus}
+                formatCaseType={formatCaseType}
+                isRTL={isRTL}
+                onView={() => router.push(`/cases/${c.id}`)}
+                onEdit={() => router.push(`/cases/${c.id}/edit`)}
+                onLinkStudio={() => router.push(`/cases/${c.id}/linking`)}
+              />
+            ))}
+          </div>
+          <div className="hidden md:block">
+            <CompactTable
+              cases={filteredCases}
+              formatStatus={formatStatus}
+              formatCaseType={formatCaseType}
+              isRTL={isRTL}
+              onView={(id) => router.push(`/cases/${id}`)}
+            />
+          </div>
+        </>
       )}
     </div>
   );
@@ -565,21 +597,22 @@ function CaseCard({ case_, formatStatus, formatCaseType, isRTL, onView, onEdit, 
           <div className="flex items-center gap-1.5">
             <button
               onClick={(e) => { e.stopPropagation(); onEdit(); }}
-              className="p-2 rounded-lg text-slate-400 hover:text-[#D97706] hover:bg-[#D97706]/10 transition-colors"
+              className="flex h-10 w-10 md:h-8 md:w-8 items-center justify-center rounded-lg text-slate-400 hover:text-[#D97706] hover:bg-[#D97706]/10 transition-colors"
               title={isRTL ? "تعديل" : "Edit"}
             >
               <Edit2 className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); onLinkStudio(); }}
-              className="p-2 rounded-lg text-slate-400 hover:text-[#D97706] hover:bg-[#D97706]/10 transition-colors"
+              className="flex h-10 w-10 md:h-8 md:w-8 items-center justify-center rounded-lg text-slate-400 hover:text-[#D97706] hover:bg-[#D97706]/10 transition-colors"
               title={isRTL ? "ربط بالأنظمة" : "Link Studio"}
             >
               <Sparkles className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); onView(); }}
-              className="p-2 rounded-lg text-slate-400 hover:text-[#1a1a1a] hover:bg-slate-100 transition-colors"
+              aria-label={isRTL ? "فتح" : "Open"}
+              className="flex h-10 w-10 md:h-8 md:w-8 items-center justify-center rounded-lg text-slate-400 hover:text-[#1a1a1a] hover:bg-slate-100 transition-colors"
             >
               <ChevronRight className={cn("h-4 w-4", isRTL && "rotate-180")} />
             </button>

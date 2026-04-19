@@ -19,6 +19,20 @@
 @import "tailwindcss";
 
 /* =============================================================================
+   TAILWIND v4 DARK-MODE VARIANT
+   ----------------------------------------------------------------------------
+   By default Tailwind v4 activates the `dark:` utility via the OS
+   `prefers-color-scheme: dark` media query. This site has no dark-mode
+   toggle — the `.dark` block below is dormant — so scattered `dark:*`
+   classes from legacy shadcn components would otherwise fire on users
+   with OS dark mode enabled while our CSS tokens stayed in light mode,
+   producing a broken half-dark palette with stray navy surfaces.
+   Binding `dark:` to the `.dark` class (which nothing sets) effectively
+   disables dark mode until a real toggle is shipped.
+   ============================================================================= */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* =============================================================================
    GOOGLE FONTS
    Note: Fonts are loaded via Next.js font optimization in layout.tsx
    The CSS variables --font-inter and --font-playfair are set there.
@@ -992,4 +1006,60 @@ h6 {
 
 .font-arabic-reader mark {
   transition: background-color 0.6s ease;
+}
+
+/* =============================================================================
+   Mobile: safe-area insets (notched phones, home indicator)
+   Pair with viewport-fit=cover in app/layout.tsx. Apply these to fixed
+   elements like the header, navigation dock, bottom sheets, and any
+   sticky focus bars so content doesn't sit under the notch / home bar.
+   ============================================================================= */
+@supports (padding: env(safe-area-inset-top)) {
+  .pt-safe {
+    padding-top: max(env(safe-area-inset-top), 0px);
+  }
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
+  .pl-safe {
+    padding-left: max(env(safe-area-inset-left), 0px);
+  }
+  .pr-safe {
+    padding-right: max(env(safe-area-inset-right), 0px);
+  }
+  .px-safe {
+    padding-left: max(env(safe-area-inset-left), 0px);
+    padding-right: max(env(safe-area-inset-right), 0px);
+  }
+  .py-safe {
+    padding-top: max(env(safe-area-inset-top), 0px);
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
+  /* Additive variants — use when the element already has non-zero padding
+     and you want the safe-area added on top. Drop-in for `pb-4` etc. */
+  .pb-safe-plus-2 {
+    padding-bottom: calc(0.5rem + max(env(safe-area-inset-bottom), 0px));
+  }
+  .pb-safe-plus-4 {
+    padding-bottom: calc(1rem + max(env(safe-area-inset-bottom), 0px));
+  }
+  .pt-safe-plus-4 {
+    padding-top: calc(1rem + max(env(safe-area-inset-top), 0px));
+  }
+}
+
+/* =============================================================================
+   Mobile: touch-visible — show "hover-only" affordances on touch devices.
+   Desktop keeps the subtle hover reveal; touch devices (no :hover) get a
+   faint permanent opacity so the control is discoverable without hovering.
+   Apply to copy buttons, row actions, etc. that previously used
+   `opacity-0 group-hover:opacity-100`.
+   ============================================================================= */
+@media (hover: none) {
+  .touch-visible {
+    opacity: 0.6 !important;
+  }
+  .touch-visible:active {
+    opacity: 1 !important;
+  }
 }
