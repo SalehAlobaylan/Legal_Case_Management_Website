@@ -26,6 +26,9 @@ import {
   Smartphone,
   MapPin,
   Zap,
+  CalendarDays,
+  Database,
+  Webhook,
   Shield,
   Mail,
   Scale,
@@ -38,6 +41,7 @@ import { useAuthStore } from "@/lib/store/auth-store";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils/cn";
@@ -57,6 +61,17 @@ import { LicenseBadgeCard } from "@/components/features/dashboard/najiz-placehol
 import { useNotificationSettings, useUpdateNotificationSettings } from "@/lib/hooks/use-notification-settings";
 import { useLoginActivity, useChangePassword } from "@/lib/hooks/use-security-settings";
 import { useAISettings, useUpdateAISettings } from "@/lib/hooks/use-ai-settings";
+import {
+  useConnectMicrosoft,
+  useConnectOdoo,
+  useCreateWebhook,
+  useDeleteWebhook,
+  useIntegrations,
+  useSyncMicrosoft,
+  useSyncOdoo,
+  useTestWebhook,
+  useWebhooks,
+} from "@/lib/hooks/use-integrations";
 import {
   useAIEvaluationLabels,
   useAIEvaluationRuns,
@@ -184,33 +199,116 @@ export default function SettingsPage() {
 
 function ProfileTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }) {
   const { user } = useAuthStore();
-  const { mutate: updateProfile } = useUpdateProfile();
+  const { mutate: updateProfile, isPending: isUpdatingProfile } = useUpdateProfile();
+  const [draft, setDraft] = React.useState({
+    fullName: user?.fullName || "",
+    phone: user?.phone || "",
+    location: user?.location || "",
+    bio: user?.bio || "",
+  });
+  const [profileFeedback, setProfileFeedback] = React.useState<
+    { type: "success" | "error"; message: string } | null
+  >(null);
 
-  const initials = user?.fullName?.split(" ").map(n => n[0]).join("").toUpperCase() || "AL";
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateProfile({
+  React.useEffect(() => {
+    setDraft({
       fullName: user?.fullName || "",
       phone: user?.phone || "",
       location: user?.location || "",
       bio: user?.bio || "",
     });
+  }, [user?.fullName, user?.phone, user?.location, user?.bio]);
+
+  const initials = user?.fullName?.split(" ").map(n => n[0]).join("").toUpperCase() || "AL";
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileFeedback(null);
+    updateProfile(
+      {
+        fullName: draft.fullName,
+        phone: draft.phone,
+        location: draft.location,
+        bio: draft.bio,
+      },
+      {
+        onSuccess: () => {
+          setProfileFeedback({
+            type: "success",
+            message: t("settings.profileUpdated"),
+          });
+          setTimeout(() => setProfileFeedback(null), 3000);
+        },
+        onError: () => {
+          setProfileFeedback({
+            type: "error",
+            message: t("settings.profileUpdateError"),
+          });
+          setTimeout(() => setProfileFeedback(null), 4000);
+        },
+      }
+    );
   };
 
   return (
     <div className="space-y-6">
-      {/* Avatar Section */}
-      <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4 md:gap-6">
-        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[#0F2942] text-white flex items-center justify-center text-xl md:text-2xl font-bold ring-4 ring-slate-100 flex-shrink-0">
-          {initials}
+      {profileFeedback && (
+        <div
+          className={cn(
+            "p-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-all",
+            profileFeedback.type === "success"
+              ? "bg-green-50 text-green-700 border border-green-200"
+              : "bg-red-50 text-red-700 border border-red-200"
+          )}
+        >
+          {profileFeedback.type === "success" ? <CheckCircle size={16} /> : <Shield size={16} />}
+          {profileFeedback.message}
         </div>
-        <div className="min-w-0 flex-1">
-          <h4 className="text-base md:text-lg font-bold text-[#0F2942] truncate">{user?.fullName || t("common.loading")}</h4>
-          <p className="text-sm text-slate-500 mb-2 md:mb-3">{user?.role ? t(`roles.${user.role === 'senior_lawyer' ? 'seniorLawyer' : user.role}`) : t("settings.userLabel")}</p>
-          <button className="text-xs font-bold text-[#D97706] border border-[#D97706] px-3 py-1.5 rounded-lg hover:bg-orange-50 transition-colors whitespace-nowrap">
-            {t("settings.changeAvatar")}
-          </button>
+      )}
+      {/* Avatar Section */}
+      <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 md:gap-6">
+          <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[#0F2942] text-white flex items-center justify-center text-xl md:text-2xl font-bold ring-4 ring-slate-100 flex-shrink-0">
+            {initials}
+          </div>
+          <div className="min-w-0 flex-1">
+            <h4 className="text-base md:text-lg font-bold text-[#0F2942] truncate">{draft.fullName || t("common.loading")}</h4>
+            <p className="text-sm text-slate-500 mb-2 md:mb-3">
+              {user?.role ? t(`roles.${user.role === 'senior_lawyer' ? 'seniorLawyer' : user.role}`) : t("settings.userLabel")}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-[#D97706] text-[#D97706] hover:bg-orange-50"
+              >
+                {t("settings.changeAvatar")}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-slate-600 border-slate-200"
+              >
+                {t("settings.viewProfile")}
+              </Button>
+            </div>
+          </div>
+        </div>
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+            <p className="text-[10px] uppercase tracking-wide text-slate-400 font-bold">{t("settings.profileCard.role")}</p>
+            <p className="text-sm font-semibold text-[#0F2942]">
+              {user?.role ? t(`roles.${user.role === 'senior_lawyer' ? 'seniorLawyer' : user.role}`) : t("settings.userLabel")}
+            </p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+            <p className="text-[10px] uppercase tracking-wide text-slate-400 font-bold">{t("settings.profileCard.workspace")}</p>
+            <p className="text-sm font-semibold text-[#0F2942]">{t("settings.profileCard.workspaceValue")}</p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+            <p className="text-[10px] uppercase tracking-wide text-slate-400 font-bold">{t("settings.profileCard.lastUpdated")}</p>
+            <p className="text-sm font-semibold text-[#0F2942]">{t("settings.profileCard.justNow")}</p>
+          </div>
         </div>
       </div>
 
@@ -220,10 +318,47 @@ function ProfileTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }
         className="bg-white p-4 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          <FormField label={t("auth.fullName")} defaultValue={user?.fullName || ""} />
-          <FormField label={t("auth.emailAddress")} type="email" defaultValue={user?.email || ""} disabled />
-          <FormField label={t("auth.role")} defaultValue={user?.role || ""} disabled />
-          <FormField label={t("auth.email")} type="tel" defaultValue={user?.phone || ""} />
+          <div className="space-y-2">
+            <Label>{t("auth.fullName")}</Label>
+            <Input
+              value={draft.fullName}
+              onChange={(e) => setDraft((prev) => ({ ...prev, fullName: e.target.value }))}
+              className="h-11 bg-[var(--color-surface-bg)]"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>{t("auth.emailAddress")}</Label>
+            <Input
+              value={user?.email || ""}
+              disabled
+              className="h-11 bg-[var(--color-surface-bg)]"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>{t("auth.role")}</Label>
+            <Input
+              value={user?.role || ""}
+              disabled
+              className="h-11 bg-[var(--color-surface-bg)]"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>{t("auth.phone")}</Label>
+            <Input
+              value={draft.phone}
+              onChange={(e) => setDraft((prev) => ({ ...prev, phone: e.target.value }))}
+              className="h-11 bg-[var(--color-surface-bg)]"
+            />
+          </div>
+          <div className="md:col-span-2 space-y-2">
+            <Label>{t("settings.profileBio")}</Label>
+            <Textarea
+              value={draft.bio}
+              onChange={(e) => setDraft((prev) => ({ ...prev, bio: e.target.value }))}
+              placeholder={t("settings.profileBioPlaceholder")}
+              rows={4}
+            />
+          </div>
         </div>
 
         <div className="pt-4 border-t border-slate-100">
@@ -243,6 +378,29 @@ function ProfileTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }
               </Select>
             </div>
           </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3 justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            className="border-slate-200 text-slate-600"
+            onClick={() => setDraft({
+              fullName: user?.fullName || "",
+              phone: user?.phone || "",
+              location: user?.location || "",
+              bio: user?.bio || "",
+            })}
+          >
+            {t("common.cancel")}
+          </Button>
+          <Button
+            type="submit"
+            className="bg-[#0F2942] hover:bg-[#1E3A56]"
+            disabled={isUpdatingProfile}
+          >
+            {isUpdatingProfile ? t("settings.saving") : t("settings.saveChanges")}
+          </Button>
         </div>
       </form>
     </div>
@@ -289,12 +447,10 @@ function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; i
         </NajizLockOverlay>
         <div className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col justify-center">
           <h4 className="font-bold text-[#0F2942] mb-1">
-            {isRTL ? "ترخيص المحاماة" : "Bar License"}
+            {t("settings.barLicenseTitle")}
           </h4>
           <p className="text-sm text-slate-600 leading-relaxed">
-            {isRTL
-              ? "سيتم التحقق من ترخيص المحاماة للمؤسسة تلقائياً عبر ناجز وعرضه هنا، مع إشعارات عند اقتراب انتهاء الصلاحية، وتفعيل الإجراءات التي تتطلب محامياً مرخّصاً."
-              : "Your organization's bar license will be auto-verified via Najiz and shown here — with expiry reminders and gating for actions that require a licensed lawyer."}
+            {t("settings.barLicenseDesc")}
           </p>
         </div>
       </div>
@@ -374,7 +530,7 @@ function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; i
               )
             }
           >
-            <Plus size={14} className="mr-2" />
+            <Plus size={14} className={cn(isRTL ? "ml-2" : "mr-2")} />
             {inviteMember.isPending ? t("common.inviting") : t("settings.inviteMember")}
           </Button>
           {lastCode && (
@@ -681,18 +837,19 @@ function NotificationsTab({ t, isRTL }: { t: (key: string) => string; isRTL: boo
             <Label className="mb-2 block">{t("settings.digestFrequency")}</Label>
             <div className="flex gap-3">
               {(["daily", "weekly"] as const).map((freq) => (
-                <button
+                <Button
                   key={freq}
+                  variant={localPrefs.digestFrequency === freq ? "default" : "outline"}
+                  size="sm"
                   onClick={() => setLocal("digestFrequency", freq)}
                   className={cn(
-                    "px-4 py-2.5 rounded-xl text-sm font-medium border transition-all",
                     localPrefs.digestFrequency === freq
-                      ? "bg-[#0F2942] text-white border-[#0F2942] shadow-md"
-                      : "bg-white text-slate-600 border-slate-200 hover:border-[#D97706] hover:text-[#D97706]"
+                      ? "bg-[#0F2942] text-white border-[#0F2942]"
+                      : "text-slate-600 border-slate-200 hover:border-[#D97706] hover:text-[#D97706]"
                   )}
                 >
                   {t(`settings.digest${freq.charAt(0).toUpperCase() + freq.slice(1)}`)}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -795,139 +952,162 @@ function SecurityTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean 
         </div>
       )}
 
-      {/* 2FA Status */}
-      <div className="bg-white p-4 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
-          <div className="bg-green-100 p-2 rounded-lg text-green-700">
-            <Shield size={20} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h5 className="font-bold text-[#0F2942] text-sm md:text-base">{t("settings.strongSecurity")}</h5>
-            <p className="text-xs md:text-sm text-slate-500">{t("settings.strongSecurityDesc")}</p>
-          </div>
-          <button className={`${isRTL ? 'ml-auto sm:mr-auto' : 'mr-auto sm:ml-auto'} text-xs font-bold text-[#D97706] border border-[#D97706] px-3 py-1.5 rounded-lg hover:bg-orange-50 transition-colors whitespace-nowrap`}>
-            {t("settings.configure2FA")}
-          </button>
-        </div>
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-6">
+        <div className="space-y-6">
+          {/* Change Password */}
+          <div className="bg-white p-4 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+            <div>
+              <h5 className="font-bold text-[#0F2942] text-lg flex items-center gap-2">
+                <Lock size={20} className="text-[#D97706]" />
+                {t("settings.changePassword")}
+              </h5>
+              <p className="text-sm text-slate-500 mt-1">{t("settings.changePasswordDesc")}</p>
+            </div>
 
-      {/* Change Password */}
-      <div className="bg-white p-4 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-5">
-        <div>
-          <h5 className="font-bold text-[#0F2942] text-lg flex items-center gap-2">
-            <Lock size={20} className="text-[#D97706]" />
-            {t("settings.changePassword")}
-          </h5>
-          <p className="text-sm text-slate-500 mt-1">{t("settings.changePasswordDesc")}</p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4">
-          <Input
-            type="password"
-            placeholder={t("settings.currentPassword")}
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            className="h-11 bg-[var(--color-surface-bg)]"
-          />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 gap-4">
               <Input
                 type="password"
-                placeholder={t("settings.newPassword")}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder={t("settings.currentPassword")}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
                 className="h-11 bg-[var(--color-surface-bg)]"
               />
-              {newPassword.length > 0 && newPassword.length < 8 && (
-                <p className="text-xs text-red-500">{t("settings.passwordMinLength")}</p>
-              )}
-              {/* Strength Meter */}
-              {newPassword.length > 0 && (
-                <div className="space-y-1">
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div
-                        key={i}
-                        className={cn(
-                          "h-1.5 flex-1 rounded-full transition-colors",
-                          i <= strength.level ? strength.color : "bg-slate-200"
-                        )}
-                      />
-                    ))}
-                  </div>
-                  <p className={cn("text-xs font-medium", strength.level <= 1 ? "text-red-500" : strength.level <= 2 ? "text-orange-500" : strength.level <= 3 ? "text-yellow-600" : "text-green-600")}>
-                    {t("settings.passwordStrength")}: {strength.label}
-                  </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Input
+                    type="password"
+                    placeholder={t("settings.newPassword")}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="h-11 bg-[var(--color-surface-bg)]"
+                  />
+                  {newPassword.length > 0 && newPassword.length < 8 && (
+                    <p className="text-xs text-red-500">{t("settings.passwordMinLength")}</p>
+                  )}
+                  {newPassword.length > 0 && (
+                    <div className="space-y-1">
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4].map((i) => (
+                          <div
+                            key={i}
+                            className={cn(
+                              "h-1.5 flex-1 rounded-full transition-colors",
+                              i <= strength.level ? strength.color : "bg-slate-200"
+                            )}
+                          />
+                        ))}
+                      </div>
+                      <p className={cn("text-xs font-medium", strength.level <= 1 ? "text-red-500" : strength.level <= 2 ? "text-orange-500" : strength.level <= 3 ? "text-yellow-600" : "text-green-600")}>
+                        {t("settings.passwordStrength")}: {strength.label}
+                      </p>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Input
-                type="password"
-                placeholder={t("auth.confirmPassword")}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                error={!passwordsMatch}
-                className={cn(
-                  "h-11 bg-[var(--color-surface-bg)]"
-                )}
-              />
-              {!passwordsMatch && (
-                <p className="text-xs text-red-500">{t("settings.passwordsDoNotMatch")}</p>
-              )}
-            </div>
-          </div>
-          <Button
-            onClick={handleChangePassword}
-            disabled={!canSubmit}
-            className="w-full sm:w-fit bg-[#0F2942] hover:bg-[#1E3A56] disabled:opacity-50"
-          >
-            {isChanging ? t("settings.updatingPassword") : t("settings.updatePassword")}
-          </Button>
-        </div>
-      </div>
-
-      {/* Login Activity */}
-      <div className="bg-white p-4 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
-        <div className="mb-5">
-          <h5 className="font-bold text-[#0F2942] text-lg flex items-center gap-2">
-            <Smartphone size={20} className="text-[#D97706]" />
-            {t("settings.loginActivity")}
-          </h5>
-          <p className="text-sm text-slate-500 mt-1">{t("settings.loginActivityDesc")}</p>
-        </div>
-
-        {activityLoading ? (
-          <div className="flex items-center justify-center py-10">
-            <div className="w-6 h-6 border-4 border-slate-200 border-t-[#D97706] rounded-full animate-spin" />
-          </div>
-        ) : activityData?.activity && activityData.activity.length > 0 ? (
-          <div className="space-y-3">
-            {activityData.activity.map((log, idx) => (
-              <div key={log.id} className="flex flex-col sm:flex-row justify-start sm:justify-between items-start sm:items-center gap-2 text-sm p-3 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="bg-slate-100 p-2 rounded-full text-slate-600 flex-shrink-0">
-                    {log.device?.toLowerCase().includes("iphone") || log.device?.toLowerCase().includes("android") ? <Smartphone size={14} /> : <Zap size={14} />}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-bold text-[#0F2942] text-sm">{log.device}{log.browser ? ` - ${log.browser}` : ""}</p>
-                    <p className="text-xs text-slate-500 flex items-center gap-1">
-                      <MapPin size={10} /> {log.location || "Unknown"} • {log.ip}
-                    </p>
-                  </div>
+                <div className="space-y-2">
+                  <Input
+                    type="password"
+                    placeholder={t("auth.confirmPassword")}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    error={!passwordsMatch}
+                    className={cn(
+                      "h-11 bg-[var(--color-surface-bg)]"
+                    )}
+                  />
+                  {!passwordsMatch && (
+                    <p className="text-xs text-red-500">{t("settings.passwordsDoNotMatch")}</p>
+                  )}
                 </div>
-                <span className={cn("text-xs font-bold whitespace-nowrap", idx === 0 ? "text-green-600" : "text-slate-400")}>
-                  {formatTime(log.loginAt)}
-                </span>
               </div>
-            ))}
+              <Button
+                onClick={handleChangePassword}
+                disabled={!canSubmit}
+                className="w-full sm:w-fit bg-[#0F2942] hover:bg-[#1E3A56] disabled:opacity-50"
+              >
+                {isChanging ? t("settings.updatingPassword") : t("settings.updatePassword")}
+              </Button>
+            </div>
           </div>
-        ) : (
-          <div className="text-center py-8">
-            <Smartphone size={32} className="mx-auto text-slate-300 mb-2" />
-            <p className="text-sm text-slate-400">{t("settings.noLoginActivity")}</p>
+
+          {/* Login Activity */}
+          <div className="bg-white p-4 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="mb-5">
+              <h5 className="font-bold text-[#0F2942] text-lg flex items-center gap-2">
+                <Smartphone size={20} className="text-[#D97706]" />
+                {t("settings.loginActivity")}
+              </h5>
+              <p className="text-sm text-slate-500 mt-1">{t("settings.loginActivityDesc")}</p>
+            </div>
+
+            {activityLoading ? (
+              <div className="flex items-center justify-center py-10">
+                <div className="w-6 h-6 border-4 border-slate-200 border-t-[#D97706] rounded-full animate-spin" />
+              </div>
+            ) : activityData?.activity && activityData.activity.length > 0 ? (
+              <div className="space-y-3">
+                {activityData.activity.map((log, idx) => (
+                  <div key={log.id} className="flex flex-col sm:flex-row justify-start sm:justify-between items-start sm:items-center gap-2 text-sm p-3 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="bg-slate-100 p-2 rounded-full text-slate-600 flex-shrink-0">
+                        {log.device?.toLowerCase().includes("iphone") || log.device?.toLowerCase().includes("android") ? <Smartphone size={14} /> : <Zap size={14} />}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-[#0F2942] text-sm">{log.device}{log.browser ? ` - ${log.browser}` : ""}</p>
+                        <p className="text-xs text-slate-500 flex items-center gap-1">
+                          <MapPin size={10} /> {log.location || t("common.unknown")} • {log.ip}
+                        </p>
+                      </div>
+                    </div>
+                    <span className={cn("text-xs font-bold whitespace-nowrap", idx === 0 ? "text-green-600" : "text-slate-400")}>
+                      {formatTime(log.loginAt)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Smartphone size={32} className="mx-auto text-slate-300 mb-2" />
+                <p className="text-sm text-slate-400">{t("settings.noLoginActivity")}</p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
+
+        <div className="space-y-6">
+          {/* 2FA Status */}
+          <div className="bg-white p-4 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-start gap-3">
+                <div className="bg-green-100 p-2 rounded-lg text-green-700">
+                  <Shield size={20} />
+                </div>
+                <div>
+                  <h5 className="font-bold text-[#0F2942] text-base">{t("settings.strongSecurity")}</h5>
+                  <p className="text-xs md:text-sm text-slate-500">{t("settings.strongSecurityDesc")}</p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-[#D97706] text-[#D97706] hover:bg-orange-50"
+              >
+                {t("settings.configure2FA")}
+              </Button>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="bg-slate-100 p-2 rounded-lg text-slate-700">
+                <Shield size={18} />
+              </div>
+              <div>
+                <h6 className="text-sm font-bold text-[#0F2942]">{t("settings.securityTips")}</h6>
+                <p className="text-xs text-slate-500 mt-1">{t("settings.securityTipsDesc")}</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -938,44 +1118,468 @@ function SecurityTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean 
    ============================================================================= */
 
 function IntegrationsTab({ t }: { t: (key: string) => string }) {
+  const { data: integrations = [] } = useIntegrations();
+  const { data: webhooks = [] } = useWebhooks();
+  const connectMicrosoft = useConnectMicrosoft();
+  const syncMicrosoft = useSyncMicrosoft();
+  const connectOdoo = useConnectOdoo();
+  const syncOdoo = useSyncOdoo();
+  const createWebhook = useCreateWebhook();
+  const deleteWebhook = useDeleteWebhook();
+  const testWebhook = useTestWebhook();
+  const { isRTL } = useI18n();
+
+  const [msForm, setMsForm] = React.useState({
+    clientId: "",
+    clientSecret: "",
+    tenantId: "common",
+    redirectUri: "",
+  });
+  const [odooForm, setOdooForm] = React.useState({
+    baseUrl: "",
+    database: "",
+    username: "",
+    apiKey: "",
+  });
+  const [webhookForm, setWebhookForm] = React.useState({
+    name: "",
+    url: "",
+    secret: "",
+    events: "case.created,case.updated,document.uploaded,client.created,invoice.created",
+  });
+
+  const microsoftIntegration = integrations.find((item) => item.provider === "microsoft_365");
+  const odooIntegration = integrations.find((item) => item.provider === "odoo");
+  const [expanded, setExpanded] = React.useState<string | null>(null);
+
+  const statusLabels = {
+    connected: t("settings.integrationStatus.connected"),
+    in_setup: t("settings.integrationStatus.inSetup"),
+    not_connected: t("settings.integrationStatus.notConnected"),
+    error: t("settings.integrationStatus.error"),
+    coming_soon: t("settings.integrationStatus.comingSoon"),
+  } as const;
+
+  const getStatusLabel = (status?: string) => {
+    if (status === "connected") return statusLabels.connected;
+    if (status === "in_setup") return statusLabels.in_setup;
+    if (status === "error") return statusLabels.error;
+    if (status === "coming_soon") return statusLabels.coming_soon;
+    return statusLabels.not_connected;
+  };
+
+  const togglePanel = (id: string) => {
+    setExpanded((prev) => (prev === id ? null : id));
+  };
+
+  const handleMicrosoftConnect = async () => {
+    const fallbackRedirect = `${window.location.origin}/api/integrations/microsoft/callback`;
+    const redirectUri = msForm.redirectUri
+      ? msForm.redirectUri
+      : fallbackRedirect;
+    const { redirectUrl } = await connectMicrosoft.mutateAsync({
+      ...msForm,
+      redirectUri,
+    });
+    window.location.href = redirectUrl;
+  };
+
+  const handleOdooConnect = async () => {
+    await connectOdoo.mutateAsync(odooForm);
+  };
+
+  const handleWebhookCreate = async () => {
+    const events = webhookForm.events
+      .split(",")
+      .map((event) => event.trim())
+      .filter(Boolean);
+    await createWebhook.mutateAsync({
+      name: webhookForm.name,
+      url: webhookForm.url,
+      secret: webhookForm.secret || undefined,
+      events,
+    });
+    setWebhookForm((prev) => ({ ...prev, name: "", url: "" }));
+  };
+
   return (
-    <div className="bg-white p-4 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+    <div className="bg-white p-4 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h5 className="font-bold text-[#0F2942] text-base md:text-lg">{t("settings.connectedApps")}</h5>
-          <p className="text-xs md:text-sm text-slate-500 mt-1">{t("settings.connectedAppsDesc")}</p>
+          <h5 className="font-bold text-[#0F2942] text-base md:text-lg">{t("settings.integrationHubTitle")}</h5>
+          <p className="text-xs md:text-sm text-slate-500 mt-1">{t("settings.integrationHubDesc")}</p>
         </div>
-        <Button className="bg-[#D97706] hover:bg-[#B45309] w-full sm:w-auto">
-          {t("settings.browseMarketplace")}
-        </Button>
       </div>
 
       <div className="space-y-4">
+        <div>
+          <h6 className="text-sm font-bold text-slate-700">{t("settings.recommendedIntegrations")}</h6>
+        </div>
+
         <IntegrationCard
           icon={<Scale className="text-[#0F2942]" size={24} />}
           name={t("settings.mojNajiz")}
           description={t("settings.mojNajizDesc")}
-          connected
-          connectedLabel={t("settings.connected")}
-          connectLabel={t("common.connect")}
-        />
-        <IntegrationCard
-          icon={<Mail className="text-slate-700" size={24} />}
-          name={t("settings.outlookCalendar")}
-          description={t("settings.outlookCalendarDesc")}
+          status="coming_soon"
+          statusLabel={getStatusLabel("coming_soon")}
           iconBg="bg-slate-100 border-slate-200"
-          connectedLabel={t("settings.connected")}
-          connectLabel={t("common.connect")}
+          actions={
+            <Button variant="outline" size="sm" disabled className="w-full sm:w-auto">
+              <Lock size={14} className="mr-2" /> {getStatusLabel("coming_soon")}
+            </Button>
+          }
         />
+
         <IntegrationCard
-          icon={<UploadCloud className="text-yellow-600" size={24} />}
-          name={t("settings.cloudStorage")}
-          description={t("settings.cloudStorageDesc")}
-          iconBg="bg-yellow-50 border-yellow-100"
-          hasToggle
-          connectedLabel={t("settings.connected")}
-          connectLabel={t("common.connect")}
+          icon={<CalendarDays className="text-blue-600" size={24} />}
+          name={t("settings.microsoft365")}
+          description={t("settings.microsoft365Desc")}
+          status={microsoftIntegration?.status || "not_connected"}
+          statusLabel={getStatusLabel(microsoftIntegration?.status)}
+          iconBg="bg-blue-50 border-blue-100"
+          actions={
+            <div className="flex gap-2 w-full sm:w-auto">
+              {microsoftIntegration?.status === "connected" && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => syncMicrosoft.mutate()}
+                  disabled={syncMicrosoft.isPending}
+                >
+                  {t("settings.syncNow")}
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => togglePanel("microsoft_365")}
+              >
+                {microsoftIntegration?.status === "connected"
+                  ? t("settings.manage")
+                  : t("settings.configure")}
+              </Button>
+            </div>
+          }
         />
+
+        {expanded === "microsoft_365" && (
+          <IntegrationPanel title={t("settings.microsoftSetup")} description={t("settings.microsoftSetupDesc")}>
+            <ol className="text-xs text-slate-600 space-y-1">
+              <li>{t("settings.microsoftStep1")}</li>
+              <li>{t("settings.microsoftStep2")}</li>
+              <li>{t("settings.microsoftStep3")}</li>
+            </ol>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div>
+                <Label>{t("settings.microsoftClientId")}</Label>
+                <Input
+                  value={msForm.clientId}
+                  onChange={(e) => setMsForm((prev) => ({ ...prev, clientId: e.target.value }))}
+                  placeholder="xxxx-xxxx-xxxx"
+                />
+              </div>
+              <div>
+                <Label>{t("settings.microsoftClientSecret")}</Label>
+                <Input
+                  value={msForm.clientSecret}
+                  onChange={(e) => setMsForm((prev) => ({ ...prev, clientSecret: e.target.value }))}
+                  placeholder="********"
+                  type="password"
+                />
+              </div>
+              <div>
+                <Label>{t("settings.microsoftTenant")}</Label>
+                <Input
+                  value={msForm.tenantId}
+                  onChange={(e) => setMsForm((prev) => ({ ...prev, tenantId: e.target.value }))}
+                  placeholder="common"
+                />
+              </div>
+              <div>
+                <Label>{t("settings.microsoftRedirect")}</Label>
+                <Input
+                  value={msForm.redirectUri}
+                  onChange={(e) => setMsForm((prev) => ({ ...prev, redirectUri: e.target.value }))}
+                  placeholder="https://your-domain.com/api/integrations/microsoft/callback"
+                />
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 mt-4">
+              <Button
+                className="bg-[#0F2942] hover:bg-[#1E3A56]"
+                onClick={handleMicrosoftConnect}
+                disabled={connectMicrosoft.isPending}
+              >
+                {t("common.connect")}
+              </Button>
+              <Button variant="outline" onClick={() => togglePanel("microsoft_365")}>
+                {t("common.close")}
+              </Button>
+            </div>
+          </IntegrationPanel>
+        )}
+
+        <IntegrationCard
+          icon={<Database className="text-emerald-600" size={24} />}
+          name={t("settings.odoo")}
+          description={t("settings.odooDesc")}
+          status={odooIntegration?.status || "not_connected"}
+          statusLabel={getStatusLabel(odooIntegration?.status)}
+          iconBg="bg-emerald-50 border-emerald-100"
+          actions={
+            <div className="flex gap-2 w-full sm:w-auto">
+              {odooIntegration?.status === "connected" && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => syncOdoo.mutate()}
+                  disabled={syncOdoo.isPending}
+                >
+                  {t("settings.syncNow")}
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => togglePanel("odoo")}
+              >
+                {odooIntegration?.status === "connected"
+                  ? t("settings.manage")
+                  : t("settings.configure")}
+              </Button>
+            </div>
+          }
+        />
+
+        {expanded === "odoo" && (
+          <IntegrationPanel title={t("settings.odooSetup")} description={t("settings.odooSetupDesc")}>
+            <ol className="text-xs text-slate-600 space-y-1">
+              <li>{t("settings.odooStep1")}</li>
+              <li>{t("settings.odooStep2")}</li>
+            </ol>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div>
+                <Label>{t("settings.odooBaseUrl")}</Label>
+                <Input
+                  value={odooForm.baseUrl}
+                  onChange={(e) => setOdooForm((prev) => ({ ...prev, baseUrl: e.target.value }))}
+                  placeholder="https://odoo.yourcompany.com"
+                />
+              </div>
+              <div>
+                <Label>{t("settings.odooDatabase")}</Label>
+                <Input
+                  value={odooForm.database}
+                  onChange={(e) => setOdooForm((prev) => ({ ...prev, database: e.target.value }))}
+                  placeholder="odoo_db"
+                />
+              </div>
+              <div>
+                <Label>{t("settings.odooUsername")}</Label>
+                <Input
+                  value={odooForm.username}
+                  onChange={(e) => setOdooForm((prev) => ({ ...prev, username: e.target.value }))}
+                  placeholder="admin@company.com"
+                />
+              </div>
+              <div>
+                <Label>{t("settings.odooApiKey")}</Label>
+                <Input
+                  value={odooForm.apiKey}
+                  onChange={(e) => setOdooForm((prev) => ({ ...prev, apiKey: e.target.value }))}
+                  placeholder="********"
+                  type="password"
+                />
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 mt-4">
+              <Button
+                className="bg-[#0F2942] hover:bg-[#1E3A56]"
+                onClick={handleOdooConnect}
+                disabled={connectOdoo.isPending}
+              >
+                {t("common.connect")}
+              </Button>
+              <Button variant="outline" onClick={() => togglePanel("odoo")}>
+                {t("common.close")}
+              </Button>
+            </div>
+          </IntegrationPanel>
+        )}
+
+        <IntegrationCard
+          icon={<Webhook className="text-amber-600" size={24} />}
+          name={t("settings.webhooks")}
+          description={t("settings.webhooksDesc")}
+          status="connected"
+          statusLabel={getStatusLabel("connected")}
+          iconBg="bg-amber-50 border-amber-100"
+          actions={
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => togglePanel("webhooks")}
+            >
+              {expanded === "webhooks" ? t("common.close") : t("settings.manage")}
+            </Button>
+          }
+        />
+
+        {expanded === "webhooks" && (
+          <IntegrationPanel title={t("settings.webhookSetup")} description={t("settings.webhookSetupDesc")}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>{t("settings.webhookName")}</Label>
+                <Input
+                  value={webhookForm.name}
+                  onChange={(e) => setWebhookForm((prev) => ({ ...prev, name: e.target.value }))}
+                  placeholder={t("settings.webhookNamePlaceholder")}
+                />
+              </div>
+              <div>
+                <Label>{t("settings.webhookUrl")}</Label>
+                <Input
+                  value={webhookForm.url}
+                  onChange={(e) => setWebhookForm((prev) => ({ ...prev, url: e.target.value }))}
+                  placeholder="https://hooks.yourapp.com/silah"
+                />
+              </div>
+              <div>
+                <Label>{t("settings.webhookSecret")}</Label>
+                <Input
+                  value={webhookForm.secret}
+                  onChange={(e) => setWebhookForm((prev) => ({ ...prev, secret: e.target.value }))}
+                  placeholder="whsec_..."
+                />
+              </div>
+              <div>
+                <Label>{t("settings.webhookEvents")}</Label>
+                <Input
+                  value={webhookForm.events}
+                  onChange={(e) => setWebhookForm((prev) => ({ ...prev, events: e.target.value }))}
+                  placeholder="case.created,case.updated"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2 mt-4">
+              <Button
+                className="bg-[#0F2942] hover:bg-[#1E3A56]"
+                onClick={handleWebhookCreate}
+                disabled={createWebhook.isPending}
+              >
+                {t("settings.addWebhook")}
+              </Button>
+            </div>
+
+            {webhooks.length > 0 ? (
+              <div className="space-y-3 mt-4">
+                {webhooks.map((hook) => (
+                  <div
+                    key={hook.id}
+                    className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border border-slate-200 rounded-lg bg-white p-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-[#0F2942] truncate">{hook.name}</p>
+                      <p className="text-xs text-slate-500 truncate">{hook.url}</p>
+                      {hook.events && hook.events.length > 0 && (
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          {hook.events.join(", ")}
+                        </p>
+                      )}
+                    </div>
+                    <div className={`flex items-center gap-3 ${isRTL ? "md:flex-row-reverse" : ""}`}>
+                      <span className={cn(
+                        "text-[10px] font-bold px-2 py-1 rounded-full",
+                        hook.active ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
+                      )}>
+                        {hook.active ? t("common.active") : t("common.inactive")}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => testWebhook.mutate(hook.id)}
+                        disabled={testWebhook.isPending}
+                      >
+                        {t("settings.testWebhook")}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => deleteWebhook.mutate(hook.id)}
+                        disabled={deleteWebhook.isPending}
+                      >
+                        {t("common.remove")}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-400 mt-4">{t("settings.noWebhooks")}</p>
+            )}
+          </IntegrationPanel>
+        )}
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <h6 className="text-sm font-bold text-slate-700">{t("settings.moreIntegrations")}</h6>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <IntegrationCard
+            icon={<Mail className="text-slate-700" size={24} />}
+            name={t("settings.hubspot")}
+            description={t("settings.hubspotDesc")}
+            status="in_setup"
+            statusLabel={getStatusLabel("in_setup")}
+            iconBg="bg-slate-100 border-slate-200"
+            actions={
+              <Button variant="outline" size="sm" disabled>
+                {t("settings.inProgress")}
+              </Button>
+            }
+          />
+          <IntegrationCard
+            icon={<Mail className="text-slate-700" size={24} />}
+            name={t("settings.salesforce")}
+            description={t("settings.salesforceDesc")}
+            status="in_setup"
+            statusLabel={getStatusLabel("in_setup")}
+            iconBg="bg-slate-100 border-slate-200"
+            actions={
+              <Button variant="outline" size="sm" disabled>
+                {t("settings.inProgress")}
+              </Button>
+            }
+          />
+          <IntegrationCard
+            icon={<UploadCloud className="text-yellow-600" size={24} />}
+            name={t("settings.googleDrive")}
+            description={t("settings.googleDriveDesc")}
+            status="in_setup"
+            statusLabel={getStatusLabel("in_setup")}
+            iconBg="bg-yellow-50 border-yellow-100"
+            actions={
+              <Button variant="outline" size="sm" disabled>
+                {t("settings.inProgress")}
+              </Button>
+            }
+          />
+          <IntegrationCard
+            icon={<UploadCloud className="text-slate-700" size={24} />}
+            name={t("settings.dropbox")}
+            description={t("settings.dropboxDesc")}
+            status="in_setup"
+            statusLabel={getStatusLabel("in_setup")}
+            iconBg="bg-slate-100 border-slate-200"
+            actions={
+              <Button variant="outline" size="sm" disabled>
+                {t("settings.inProgress")}
+              </Button>
+            }
+          />
+        </div>
       </div>
     </div>
   );
@@ -2038,7 +2642,19 @@ function NotificationToggle({
   );
 }
 
-function IntegrationCard({ icon, name, description, iconBg = "bg-white border-slate-200", connected = false, hasToggle = false, connectedLabel, connectLabel }: {
+function IntegrationCard({
+  icon,
+  name,
+  description,
+  iconBg = "bg-white border-slate-200",
+  connected = false,
+  hasToggle = false,
+  connectedLabel,
+  connectLabel,
+  status,
+  statusLabel,
+  actions,
+}: {
   icon: React.ReactNode;
   name: string;
   description: string;
@@ -2047,13 +2663,32 @@ function IntegrationCard({ icon, name, description, iconBg = "bg-white border-sl
   hasToggle?: boolean;
   connectedLabel?: string;
   connectLabel?: string;
+  status?: "not_connected" | "in_setup" | "connected" | "error" | "coming_soon";
+  statusLabel?: string;
+  actions?: React.ReactNode;
 }) {
   const [enabled, setEnabled] = React.useState(false);
   const { isRTL } = useI18n();
+  const statusTone = status === "connected"
+    ? "bg-green-100 text-green-700"
+    : status === "in_setup"
+      ? "bg-amber-100 text-amber-700"
+      : status === "error"
+        ? "bg-red-100 text-red-700"
+        : status === "coming_soon"
+          ? "bg-slate-200 text-slate-600"
+          : "bg-slate-100 text-slate-500";
+  const borderTone = status === "connected"
+    ? "border-green-200 bg-green-50/50"
+    : status === "error"
+      ? "border-red-200 bg-red-50/50"
+      : status === "coming_soon"
+        ? "border-slate-200 bg-slate-50"
+        : "border-slate-200 bg-white";
   return (
     <div className={cn(
       "flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 gap-4 border rounded-xl",
-      connected ? "border-green-200 bg-green-50/50" : "border-slate-200 bg-white"
+      connected ? "border-green-200 bg-green-50/50" : borderTone
     )}>
       <div className="flex items-center gap-3 md:gap-4 min-w-0">
         <div className={cn("w-10 h-10 md:w-12 md:h-12 rounded-lg border flex items-center justify-center p-2 flex-shrink-0", iconBg)}>
@@ -2062,9 +2697,18 @@ function IntegrationCard({ icon, name, description, iconBg = "bg-white border-sl
         <div className="min-w-0">
           <h6 className="font-bold text-[#0F2942] text-sm md:text-base truncate">{name}</h6>
           <p className="text-xs text-slate-500 line-clamp-2">{description}</p>
+          {statusLabel && (
+            <span className={cn("inline-flex mt-2 text-[10px] font-bold px-2 py-1 rounded-full", statusTone)}>
+              {statusLabel}
+            </span>
+          )}
         </div>
       </div>
-      {connected ? (
+      {actions ? (
+        <div className="w-full sm:w-auto flex justify-between sm:justify-end items-center">
+          {actions}
+        </div>
+      ) : connected ? (
         <div className="flex items-center gap-2 md:gap-4 w-full sm:w-auto justify-between sm:justify-end">
           <span className="flex items-center gap-1 text-[10px] md:text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-full">
             <CheckCircle size={10} /> {connectedLabel || "Connected"}
@@ -2097,6 +2741,26 @@ function IntegrationCard({ icon, name, description, iconBg = "bg-white border-sl
           {connectLabel || "Connect"}
         </Button>
       )}
+    </div>
+  );
+}
+
+function IntegrationPanel({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 md:p-5 space-y-3">
+      <div>
+        <h6 className="font-bold text-[#0F2942] text-sm md:text-base">{title}</h6>
+        {description && <p className="text-xs text-slate-500 mt-1">{description}</p>}
+      </div>
+      {children}
     </div>
   );
 }

@@ -15,7 +15,6 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
-  Edit2,
   Sparkles,
   CheckCircle,
   Search,
@@ -33,7 +32,8 @@ import {
   Brain,
   RotateCcw,
 } from "lucide-react";
-import { useCase } from "@/lib/hooks/use-cases";
+import { useCase, useDeleteCase, usePatchCase } from "@/lib/hooks/use-cases";
+import { useClients } from "@/lib/hooks/use-clients";
 import {
   useAILinks,
   useGenerateAILinks,
@@ -52,6 +52,7 @@ import { documentsApi } from "@/lib/api/documents";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CaseActionsMenu } from "@/components/features/cases/case-actions-menu";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
   Dialog,
@@ -61,6 +62,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  ConfirmDialog,
 } from "@/components/ui/dialog";
 import { DocumentViewerModal } from "@/components/ui/document-viewer-modal";
 import {
@@ -71,6 +73,8 @@ import { stripInlineDecorations } from "@/lib/utils/text-segmentation";
 import { CaseAIPanel } from "@/components/features/cases/case-ai-panel";
 import { cn } from "@/lib/utils/cn";
 import type { Document } from "@/lib/types/document";
+import { CaseStatus } from "@/lib/types/case";
+import type { Client } from "@/lib/types/client";
 import type {
   CaseRegulationLink,
   LinkLineMatch,
@@ -137,6 +141,12 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
   const shownCandidateBatchKeysRef = React.useRef<Set<string>>(new Set());
   const { toast } = useToast();
   const { t } = useI18n();
+  const patchCase = usePatchCase();
+  const deleteCase = useDeleteCase();
+  const [showDeleteCaseDialog, setShowDeleteCaseDialog] = React.useState(false);
+  const [showClientLinker, setShowClientLinker] = React.useState(false);
+  const [selectedClientId, setSelectedClientId] = React.useState("");
+  const { data: clientsData, isLoading: isLoadingClients } = useClients({ limit: 100 });
 
   const aiLinkingSteps = React.useMemo(() => [
     { label: t("ai.progress.analyzingCase"), estimatedMs: 10000 },
@@ -317,12 +327,114 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
     }
   };
 
+  const getErrorMessage = React.useCallback((error: unknown, fallback: string) => {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "response" in error &&
+      typeof (error as { response?: { data?: { error?: unknown } } }).response?.data?.error === "string"
+    ) {
+      return (error as { response?: { data?: { error?: string } } }).response?.data?.error || fallback;
+    }
+
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "response" in error &&
+      typeof (error as { response?: { data?: { message?: unknown } } }).response?.data?.message === "string"
+    ) {
+      return (error as { response?: { data?: { message?: string } } }).response?.data?.message || fallback;
+    }
+
+    if (error instanceof Error) {
+      return error.message;
+    }
+
+    return fallback;
+  }, []);
+
+  const formatCaseStatus = React.useCallback((status: string) => {
+    const map: Record<string, string> = {
+      open: t("cases.statuses.open"),
+      in_progress: t("cases.statuses.in_progress"),
+      pending_hearing: t("cases.statuses.pending_hearing"),
+      closed: t("cases.statuses.closed"),
+      archived: t("cases.statuses.archived"),
+    };
+    return map[status] || status;
+  }, [t]);
+
+  const handleCaseStatusChange = (nextStatus: string) => {
+    patchCase.mutate(
+      {
+        id: caseId,
+        updates: { status: nextStatus as CaseStatus },
+      },
+      {
+        onError: (error) => {
+          toast({
+            title: t("common.error"),
+            description: getErrorMessage(error, t("cases.statusUpdateFailed")),
+            variant: "destructive",
+          });
+        },
+      }
+    );
+  };
+
+  const handleDeleteCase = () => {
+    deleteCase.mutate(caseId, {
+      onSuccess: () => {
+        router.push("/cases");
+      },
+      onError: (error) => {
+        toast({
+          title: t("common.error"),
+          description: getErrorMessage(error, t("cases.deleteFailed")),
+          variant: "destructive",
+        });
+      },
+    });
+  };
+
+  const handleLinkClient = () => {
+    const clientId = Number(selectedClientId);
+    const matchedClient = clientsData?.clients.find((client) => client.id === clientId);
+
+    if (!clientId || !matchedClient) {
+      return;
+    }
+
+    patchCase.mutate(
+      {
+        id: caseId,
+        updates: {
+          clientId: matchedClient.id,
+          clientInfo: matchedClient.name,
+        },
+      },
+      {
+        onSuccess: () => {
+          setShowClientLinker(false);
+          setSelectedClientId("");
+        },
+        onError: (error) => {
+          toast({
+            title: t("common.error"),
+            description: getErrorMessage(error, t("cases.clientLinkFailed")),
+            variant: "destructive",
+          });
+        },
+      }
+    );
+  };
+
   const handlePreviewDocument = async (doc: Document) => {
     try {
       setIsPreviewLoading(prev => ({ ...prev, [doc.id]: true }));
       const url = await documentsApi.getDocumentBlobUrl(doc.id);
       setPreviewDocument({ url, name: doc.fileName || 'Document', mimeType: doc.mimeType });
-    } catch (error) {
+    } catch {
       toast({
         title: t("common.error"),
         description: t("documents.previewError"),
@@ -361,6 +473,9 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
       />
     );
   }
+
+  const availableClients = clientsData?.clients || [];
+  const hasLinkedClient = Boolean(case_.client_info);
 
   // Count pending suggestions
   const pendingCount = aiLinks?.filter((l: CaseRegulationLink) => !l.verified)?.length || 0;
@@ -560,10 +675,79 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
                     {t("cases.caseIdLabel")}:{" "}
                     <span className="font-mono text-slate-700">#{case_.case_number}</span>
                     {" • "}
-                    {t("cases.clientLabel")}: <span className="font-bold text-slate-800">{case_.client_info || t("common.unknown")}</span>
+                    {t("cases.clientLabel")}:{" "}
+                    <span className="font-bold text-slate-800">
+                      {case_.client_info || t("common.unknown")}
+                    </span>
+                    {!hasLinkedClient && (
+                      <button
+                        type="button"
+                        onClick={() => setShowClientLinker((current) => !current)}
+                        className="ml-2 text-[11px] font-medium text-slate-400 transition-colors hover:text-[#D97706] hover:underline underline-offset-2"
+                      >
+                        {t("cases.linkClient")}
+                      </button>
+                    )}
                   </p>
+                  {showClientLinker && !hasLinkedClient && (
+                    <div className="mt-3 inline-flex max-w-full flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 shadow-sm">
+                      <span className="text-[11px] font-medium text-slate-500">
+                        {t("cases.linkClientHint")}
+                      </span>
+                      {isLoadingClients ? (
+                        <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          {t("common.loading")}
+                        </span>
+                      ) : availableClients.length > 0 ? (
+                        <>
+                          <select
+                            value={selectedClientId}
+                            onChange={(event) => setSelectedClientId(event.target.value)}
+                            disabled={patchCase.isPending}
+                            className="h-8 min-w-[11rem] rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700 focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/20 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            <option value="">{t("cases.selectClient")}</option>
+                            {availableClients.map((client: Client) => (
+                              <option key={client.id} value={client.id}>
+                                {client.name}
+                              </option>
+                            ))}
+                          </select>
+                          <Button
+                            size="sm"
+                            onClick={handleLinkClient}
+                            disabled={!selectedClientId || patchCase.isPending}
+                            className="h-8 bg-[#D97706] px-3 text-xs text-white hover:bg-[#B45309]"
+                          >
+                            {patchCase.isPending ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              t("common.save")
+                            )}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setShowClientLinker(false);
+                              setSelectedClientId("");
+                            }}
+                            disabled={patchCase.isPending}
+                            className="h-8 px-3 text-xs"
+                          >
+                            {t("common.cancel")}
+                          </Button>
+                        </>
+                      ) : (
+                        <span className="text-[11px] text-slate-400">
+                          {t("cases.noClientsAvailable")}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
                   <Button
                     variant="outline"
                     onClick={() => useChatStore.getState().openChat(undefined, caseId)}
@@ -573,15 +757,14 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
                     <Brain className="h-4 w-4" />
                     <span className="hidden md:inline">{t("chat.askAboutCase")}</span>
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push(`/cases/${caseId}/edit`)}
-                    aria-label={t("cases.editCase")}
-                    className="flex items-center gap-2 h-11 md:h-10 px-3 md:px-4"
-                  >
-                    <Edit2 className="h-4 w-4" />
-                    <span className="hidden md:inline">{t("cases.editCase")}</span>
-                  </Button>
+                  <CaseActionsMenu
+                    caseStatus={case_.status}
+                    formatStatus={formatCaseStatus}
+                    isBusy={patchCase.isPending || deleteCase.isPending}
+                    onEdit={() => router.push(`/cases/${caseId}/edit`)}
+                    onDelete={() => setShowDeleteCaseDialog(true)}
+                    onStatusChange={handleCaseStatusChange}
+                  />
                 </div>
               </div>
             </>
@@ -639,7 +822,6 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
             <CaseLinkingTab
               aiLinks={aiLinks || []}
               isLoading={isLoadingAILinks}
-              caseId={caseId}
               onNavigateToStudio={() => router.push(`/cases/${caseId}/linking`)}
             />
           )}
@@ -805,6 +987,17 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
         documentUrl={previewDocument?.url || null}
         documentName={previewDocument?.name || ''}
         documentMimeType={previewDocument?.mimeType || ''}
+      />
+
+      <ConfirmDialog
+        open={showDeleteCaseDialog}
+        onOpenChange={setShowDeleteCaseDialog}
+        title={t("cases.confirmDeleteTitle")}
+        description={t("cases.confirmDeleteDesc", { title: case_.title })}
+        confirmText={t("common.delete")}
+        cancelText={t("common.cancel")}
+        variant="danger"
+        onConfirm={handleDeleteCase}
       />
     </div>
   );
@@ -986,14 +1179,12 @@ function DetailsTab({ case_, caseId, focusMode, onFocusModeChange }: DetailsTabP
 interface CaseLinkingTabProps {
   aiLinks: CaseRegulationLink[];
   isLoading: boolean;
-  caseId: number;
   onNavigateToStudio: () => void;
 }
 
 function CaseLinkingTab({
   aiLinks,
   isLoading,
-  caseId,
   onNavigateToStudio,
 }: CaseLinkingTabProps) {
   const { t } = useI18n();

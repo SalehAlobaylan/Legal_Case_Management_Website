@@ -183,11 +183,8 @@ export interface RegulationSubscription {
   id: number;
   organizationId: number;
   regulationId: number;
-  sourceUrl: string;
-  lastCheckedAt?: string;
-  lastContentHash?: string;
-  checkIntervalHours: number;
   isActive: boolean;
+  subscribedVia: string;
   createdAt: string;
 }
 

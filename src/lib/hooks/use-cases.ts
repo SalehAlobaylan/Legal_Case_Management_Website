@@ -11,6 +11,11 @@ import { apiClient } from "@/lib/api/client";
 import type { Case, CreateCaseInput } from "@/lib/types/case";
 import { toast } from "@/components/ui/use-toast";
 
+interface PatchCaseInput {
+  id: number;
+  updates: Partial<CreateCaseInput>;
+}
+
 export function useCases() {
   return useQuery({
     queryKey: ["cases"],
@@ -61,21 +66,31 @@ export function useCreateCase() {
   });
 }
 
-export function useUpdateCase(id: number) {
+export function usePatchCase() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (updates: Partial<CreateCaseInput>) => {
+    mutationFn: async ({ id, updates }: PatchCaseInput) => {
       const { data } = await apiClient.put<{ case: Case }>(
         `/api/cases/${id}`,
         updates
       );
       return data.case;
     },
-    onSuccess: () => {
+    onSuccess: (updatedCase) => {
       queryClient.invalidateQueries({ queryKey: ["cases"] });
-      queryClient.invalidateQueries({ queryKey: ["case", id] });
+      queryClient.invalidateQueries({ queryKey: ["case", updatedCase.id] });
       toast({ title: "Case updated successfully" });
+    },
+  });
+}
+
+export function useUpdateCase(id: number) {
+  const patchCase = usePatchCase();
+
+  return useMutation({
+    mutationFn: async (updates: Partial<CreateCaseInput>) => {
+      return patchCase.mutateAsync({ id, updates });
     },
   });
 }

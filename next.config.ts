@@ -14,6 +14,14 @@ const nextConfig: NextConfig = {
       tailwindcss: path.resolve(__dirname, "node_modules/tailwindcss"),
     },
   },
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: "http://localhost:3001/api/:path*",
+      },
+    ];
+  },
 };
 
 export default nextConfig;

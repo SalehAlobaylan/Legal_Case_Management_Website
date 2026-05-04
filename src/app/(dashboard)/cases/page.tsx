@@ -17,7 +17,6 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
-  FileText,
   ChevronRight,
   Search,
   Plus,
@@ -27,19 +26,20 @@ import {
   MapPin,
   Calendar,
   Clock,
-  Edit2,
   Sparkles,
   LayoutList,
   LayoutGrid,
   SortAsc,
   SortDesc,
-  ArrowUpDown,
   Briefcase,
 } from "lucide-react";
-import { useCases } from "@/lib/hooks/use-cases";
+import { useCases, useDeleteCase, usePatchCase } from "@/lib/hooks/use-cases";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ConfirmDialog } from "@/components/ui/dialog";
+import { CaseActionsMenu } from "@/components/features/cases/case-actions-menu";
+import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils/cn";
 import { type Case, CaseType, CaseStatus } from "@/lib/types/case";
 import { formatDate } from "@/lib/utils/format";
@@ -114,6 +114,9 @@ export default function CasesPage() {
   const router = useRouter();
   const { data: cases, isLoading, error, refetch } = useCases();
   const { t, isRTL } = useI18n();
+  const { toast } = useToast();
+  const patchCase = usePatchCase();
+  const deleteCase = useDeleteCase();
 
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [typeFilter, setTypeFilter] = React.useState("all");
@@ -122,6 +125,8 @@ export default function CasesPage() {
   const [viewMode, setViewMode] = React.useState<"cards" | "compact">("cards");
   const [sortKey, setSortKey] = React.useState<SortKey>("updated");
   const [sortDir, setSortDir] = React.useState<SortDir>("desc");
+  const [activeCaseId, setActiveCaseId] = React.useState<number | null>(null);
+  const [pendingDeleteCase, setPendingDeleteCase] = React.useState<Case | null>(null);
 
   // Debounce search
   React.useEffect(() => {
@@ -158,7 +163,7 @@ export default function CasesPage() {
   const filteredCases = React.useMemo(() => {
     if (!cases) return [];
 
-    let result = cases.filter((c) => {
+    const result = cases.filter((c) => {
       if (statusFilter !== "all" && c.status !== statusFilter) return false;
       if (typeFilter !== "all" && c.case_type !== typeFilter) return false;
       if (debouncedSearch) {
@@ -215,6 +220,79 @@ export default function CasesPage() {
       setSortDir("desc");
     }
   };
+
+  const getErrorMessage = React.useCallback((error: unknown, fallback: string) => {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "response" in error &&
+      typeof (error as { response?: unknown }).response === "object" &&
+      (error as { response?: unknown }).response !== null &&
+      "data" in ((error as { response?: { data?: unknown } }).response || {}) &&
+      typeof ((error as { response?: { data?: { error?: unknown; message?: unknown } } }).response?.data?.error) === "string"
+    ) {
+      return (error as { response?: { data?: { error?: string } } }).response?.data?.error || fallback;
+    }
+
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "response" in error &&
+      typeof (error as { response?: { data?: { message?: unknown } } }).response?.data?.message === "string"
+    ) {
+      return (error as { response?: { data?: { message?: string } } }).response?.data?.message || fallback;
+    }
+
+    if (error instanceof Error) {
+      return error.message;
+    }
+
+    return fallback;
+  }, []);
+
+  const handleStatusChange = React.useCallback((caseId: number, status: string) => {
+    setActiveCaseId(caseId);
+    patchCase.mutate(
+      {
+        id: caseId,
+        updates: { status: status as CaseStatus },
+      },
+      {
+        onError: (error) => {
+          toast({
+            title: t("common.error"),
+            description: getErrorMessage(error, t("cases.statusUpdateFailed")),
+            variant: "destructive",
+          });
+        },
+        onSettled: () => {
+          setActiveCaseId(null);
+        },
+      }
+    );
+  }, [getErrorMessage, patchCase, t, toast]);
+
+  const handleConfirmDelete = React.useCallback(() => {
+    if (!pendingDeleteCase) {
+      return;
+    }
+
+    const caseToDelete = pendingDeleteCase;
+    setActiveCaseId(caseToDelete.id);
+    deleteCase.mutate(caseToDelete.id, {
+      onError: (error) => {
+        toast({
+          title: t("common.error"),
+          description: getErrorMessage(error, t("cases.deleteFailed")),
+          variant: "destructive",
+        });
+      },
+      onSettled: () => {
+        setActiveCaseId(null);
+        setPendingDeleteCase(null);
+      },
+    });
+  }, [deleteCase, getErrorMessage, pendingDeleteCase, t, toast]);
 
   if (isLoading) {
     return (
@@ -451,6 +529,9 @@ export default function CasesPage() {
               onView={() => router.push(`/cases/${c.id}`)}
               onEdit={() => router.push(`/cases/${c.id}/edit`)}
               onLinkStudio={() => router.push(`/cases/${c.id}/linking`)}
+              onDelete={() => setPendingDeleteCase(c)}
+              onStatusChange={(status) => handleStatusChange(c.id, status)}
+              isBusy={activeCaseId === c.id}
             />
           ))}
         </div>
@@ -471,6 +552,9 @@ export default function CasesPage() {
                 onView={() => router.push(`/cases/${c.id}`)}
                 onEdit={() => router.push(`/cases/${c.id}/edit`)}
                 onLinkStudio={() => router.push(`/cases/${c.id}/linking`)}
+                onDelete={() => setPendingDeleteCase(c)}
+                onStatusChange={(status) => handleStatusChange(c.id, status)}
+                isBusy={activeCaseId === c.id}
               />
             ))}
           </div>
@@ -481,10 +565,31 @@ export default function CasesPage() {
               formatCaseType={formatCaseType}
               isRTL={isRTL}
               onView={(id) => router.push(`/cases/${id}`)}
+              onEdit={(id) => router.push(`/cases/${id}/edit`)}
+              onDelete={(case_) => setPendingDeleteCase(case_)}
+              onStatusChange={handleStatusChange}
+              activeCaseId={activeCaseId}
             />
           </div>
         </>
       )}
+
+      <ConfirmDialog
+        open={pendingDeleteCase !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingDeleteCase(null);
+          }
+        }}
+        title={t("cases.confirmDeleteTitle")}
+        description={pendingDeleteCase ? t("cases.confirmDeleteDesc", {
+          title: pendingDeleteCase.title,
+        }) : t("cases.confirmDelete")}
+        confirmText={t("common.delete")}
+        cancelText={t("common.cancel")}
+        variant="danger"
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }
@@ -501,9 +606,23 @@ interface CaseCardProps {
   onView: () => void;
   onEdit: () => void;
   onLinkStudio: () => void;
+  onDelete: () => void;
+  onStatusChange: (status: string) => void;
+  isBusy: boolean;
 }
 
-function CaseCard({ case_, formatStatus, formatCaseType, isRTL, onView, onEdit, onLinkStudio }: CaseCardProps) {
+function CaseCard({
+  case_,
+  formatStatus,
+  formatCaseType,
+  isRTL,
+  onView,
+  onEdit,
+  onLinkStudio,
+  onDelete,
+  onStatusChange,
+  isBusy,
+}: CaseCardProps) {
   const sc = getStatusConfig(case_.status);
   const typeEmoji = CASE_TYPE_ICONS[case_.case_type] || "⚖️";
 
@@ -596,13 +715,6 @@ function CaseCard({ case_, formatStatus, formatCaseType, isRTL, onView, onEdit, 
           {/* Quick actions */}
           <div className="flex items-center gap-1.5">
             <button
-              onClick={(e) => { e.stopPropagation(); onEdit(); }}
-              className="flex h-10 w-10 md:h-8 md:w-8 items-center justify-center rounded-lg text-slate-400 hover:text-[#D97706] hover:bg-[#D97706]/10 transition-colors"
-              title={isRTL ? "تعديل" : "Edit"}
-            >
-              <Edit2 className="h-3.5 w-3.5" />
-            </button>
-            <button
               onClick={(e) => { e.stopPropagation(); onLinkStudio(); }}
               className="flex h-10 w-10 md:h-8 md:w-8 items-center justify-center rounded-lg text-slate-400 hover:text-[#D97706] hover:bg-[#D97706]/10 transition-colors"
               title={isRTL ? "ربط بالأنظمة" : "Link Studio"}
@@ -616,6 +728,14 @@ function CaseCard({ case_, formatStatus, formatCaseType, isRTL, onView, onEdit, 
             >
               <ChevronRight className={cn("h-4 w-4", isRTL && "rotate-180")} />
             </button>
+            <CaseActionsMenu
+              caseStatus={case_.status}
+              formatStatus={formatStatus}
+              isBusy={isBusy}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onStatusChange={onStatusChange}
+            />
           </div>
         </div>
       </div>
@@ -633,9 +753,23 @@ interface CompactTableProps {
   formatCaseType: (s: string) => string;
   isRTL: boolean;
   onView: (id: number) => void;
+  onEdit: (id: number) => void;
+  onDelete: (case_: Case) => void;
+  onStatusChange: (caseId: number, status: string) => void;
+  activeCaseId: number | null;
 }
 
-function CompactTable({ cases, formatStatus, formatCaseType, isRTL, onView }: CompactTableProps) {
+function CompactTable({
+  cases,
+  formatStatus,
+  formatCaseType,
+  isRTL,
+  onView,
+  onEdit,
+  onDelete,
+  onStatusChange,
+  activeCaseId,
+}: CompactTableProps) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
       <table className="w-full text-left">
@@ -702,7 +836,16 @@ function CompactTable({ cases, formatStatus, formatCaseType, isRTL, onView }: Co
                   {formatDate(c.updated_at)}
                 </td>
                 <td className="px-5 py-3.5">
-                  <ChevronRight className={cn("h-4 w-4 text-slate-300 group-hover:text-[#D97706] transition-colors", isRTL && "rotate-180")} />
+                  <div className="flex justify-end">
+                    <CaseActionsMenu
+                      caseStatus={c.status}
+                      formatStatus={formatStatus}
+                      isBusy={activeCaseId === c.id}
+                      onEdit={() => onEdit(c.id)}
+                      onDelete={() => onDelete(c)}
+                      onStatusChange={(status) => onStatusChange(c.id, status)}
+                    />
+                  </div>
                 </td>
               </tr>
             );

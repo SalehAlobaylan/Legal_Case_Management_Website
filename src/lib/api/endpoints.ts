@@ -4,7 +4,7 @@
  * Used by: API modules (cases.ts, regulations.ts, etc.) to avoid hardcoding URLs.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 export const endpoints = {
   // Authentication
@@ -60,6 +60,10 @@ export const endpoints = {
     aiHealth: `${API_BASE}/api/regulations/ai/health`,
     search: `${API_BASE}/api/regulations/search`,
     subscribe: `${API_BASE}/api/regulations/subscribe`,
+    subscriptionsBulk: `${API_BASE}/api/regulations/subscriptions/bulk`,
+    subscriptionsMe: `${API_BASE}/api/regulations/subscriptions/me`,
+    monitorRun: `${API_BASE}/api/regulations/monitor/run`,
+    monitorRuns: `${API_BASE}/api/regulations/monitor/runs`,
     sourceSync: `${API_BASE}/api/regulations/source/moj/sync`,
     sourceHealth: `${API_BASE}/api/regulations/source/moj/health`,
   },
@@ -103,10 +107,13 @@ export const endpoints = {
     downloadDocument: (id: number, docId: number) => `${API_BASE}/api/clients/${id}/documents/${docId}/download`,
   },
 
-  // Intake forms (private + public)
+  // Intake forms
   intake: {
     forms: `${API_BASE}/api/intake-forms`,
     form: (id: number) => `${API_BASE}/api/intake-forms/${id}`,
+    submissions: (id: number) => `${API_BASE}/api/intake-forms/${id}/submissions`,
+    allSubmissions: `${API_BASE}/api/intake-forms/submissions/all`,
+    analytics: `${API_BASE}/api/intake-forms/analytics`,
     publicForm: (formId: number) => `${API_BASE}/api/public/intake/${formId}`,
     publicSubmit: (formId: number) => `${API_BASE}/api/public/intake/${formId}`,
   },
@@ -165,6 +172,18 @@ export const endpoints = {
       changePassword: `${API_BASE}/api/settings/security/password`,
       loginActivity: `${API_BASE}/api/settings/security/activity`,
     },
+  },
+
+  // Integrations
+  integrations: {
+    list: `${API_BASE}/api/integrations`,
+    connectMicrosoft: `${API_BASE}/api/integrations/microsoft/connect`,
+    syncMicrosoft: `${API_BASE}/api/integrations/microsoft/sync`,
+    connectOdoo: `${API_BASE}/api/integrations/odoo/connect`,
+    syncOdoo: `${API_BASE}/api/integrations/odoo/sync`,
+    webhooks: `${API_BASE}/api/integrations/webhooks`,
+    webhookById: (id: number) => `${API_BASE}/api/integrations/webhooks/${id}`,
+    testWebhook: (id: number) => `${API_BASE}/api/integrations/webhooks/${id}/test`,
   },
 
   // Search

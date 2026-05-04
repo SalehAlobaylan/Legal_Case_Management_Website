@@ -1,37 +1,54 @@
 "use client";
 
-/*
- * File: src/components/ui/use-toast.ts
- * Purpose: Provide a toast() helper with the same API expected by the plan, so hooks can show feedback without errors.
- * Used by: Data hooks and components that want to display success/error notifications (can later be wired to shadcn/toaster UI).
- */
+import * as React from "react";
 
-export type ToastVariant = "default" | "destructive";
+export type ToastVariant = "default" | "destructive" | "success";
 
-interface ToastOptions {
+export interface ToastItem {
+  id: number;
   title?: string;
   description?: string;
   variant?: ToastVariant;
 }
 
-/**
- * Minimal toast implementation compatible with the planned API.
- * This can later be replaced by the full shadcn/ui toast system.
- */
-export function toast(options: ToastOptions) {
-  // For now, just log to the console to avoid runtime errors.
-  // UI toast renderer will be added in the shadcn/ui setup phase.
-  console.log(
-    `[toast:${options.variant ?? "default"}]`,
-    options.title ?? "",
-    options.description ?? ""
-  );
+type Listener = (toasts: ToastItem[]) => void;
+
+const listeners: Listener[] = [];
+let memoryToasts: ToastItem[] = [];
+let nextId = 1;
+
+function emit() {
+  for (const l of listeners) l(memoryToasts);
 }
 
-/**
- * Hook wrapper for toast function to match the common pattern.
- * Returns { toast } so components can destructure it.
- */
+export function toast(options: Omit<ToastItem, "id">) {
+  const id = nextId++;
+  memoryToasts = [...memoryToasts, { id, ...options }];
+  emit();
+  setTimeout(() => {
+    memoryToasts = memoryToasts.filter((t) => t.id !== id);
+    emit();
+  }, 4000);
+  return id;
+}
+
+export function dismissToast(id: number) {
+  memoryToasts = memoryToasts.filter((t) => t.id !== id);
+  emit();
+}
+
+export function useToastStore() {
+  const [toasts, setToasts] = React.useState<ToastItem[]>(memoryToasts);
+  React.useEffect(() => {
+    listeners.push(setToasts);
+    return () => {
+      const idx = listeners.indexOf(setToasts);
+      if (idx >= 0) listeners.splice(idx, 1);
+    };
+  }, []);
+  return toasts;
+}
+
 export function useToast() {
   return { toast };
 }

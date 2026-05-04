@@ -22,9 +22,13 @@ export const documentsApi = {
   },
 
   /**
-   * Upload a document to a case
+   * Upload a document to a case. Optional onProgress receives 0–100 as bytes are sent.
    */
-  async uploadDocument(caseId: number, file: File): Promise<Document> {
+  async uploadDocument(
+    caseId: number,
+    file: File,
+    onProgress?: (percent: number) => void
+  ): Promise<Document> {
     const formData = new FormData();
     formData.append("file", file);
 
@@ -35,6 +39,14 @@ export const documentsApi = {
         headers: {
           "Content-Type": "multipart/form-data",
         },
+        onUploadProgress: onProgress
+          ? (event) => {
+              const total = event.total ?? file.size;
+              if (!total) return;
+              const percent = Math.min(100, Math.round((event.loaded / total) * 100));
+              onProgress(percent);
+            }
+          : undefined,
       }
     );
     return data.document;

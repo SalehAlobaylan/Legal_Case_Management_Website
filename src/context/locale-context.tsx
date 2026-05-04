@@ -52,6 +52,7 @@ const translations: Record<Locale, Record<string, string>> = {
     // Navigation
     "nav.dashboard": "Dashboard",
     "nav.cases": "Cases",
+    "nav.forms": "Forms",
     "nav.regulations": "Regulations",
     "nav.clients": "Clients",
     "nav.alerts": "Alerts",
@@ -131,6 +132,17 @@ const translations: Record<Locale, Record<string, string>> = {
     "form.type": "Type",
     "form.status": "Status",
     "form.required": "Required",
+    "forms.title": "Forms Platform",
+    "forms.subtitle": "Create and manage custom forms",
+    "forms.newForm": "New Form",
+    "forms.builder": "Form Builder",
+    "forms.preview": "Preview",
+    "forms.settings": "Settings",
+    "forms.analytics": "Analytics",
+    "forms.submissions": "Submissions",
+    "forms.versions": "Versions",
+    "forms.noForms": "No forms found",
+    "forms.createFirst": "Create your first form to get started",
   },
   ar: {
     // Common
@@ -153,6 +165,7 @@ const translations: Record<Locale, Record<string, string>> = {
     // Navigation
     "nav.dashboard": "لوحة التحكم",
     "nav.cases": "القضايا",
+    "nav.forms": "النماذج",
     "nav.regulations": "الأنظمة",
     "nav.clients": "العملاء",
     "nav.alerts": "التنبيهات",
@@ -232,6 +245,17 @@ const translations: Record<Locale, Record<string, string>> = {
     "form.type": "النوع",
     "form.status": "الحالة",
     "form.required": "مطلوب",
+    "forms.title": "منصة النماذج",
+    "forms.subtitle": "إنشاء وإدارة النماذج المخصصة",
+    "forms.newForm": "نموذج جديد",
+    "forms.builder": "منشئ النماذج",
+    "forms.preview": "معاينة",
+    "forms.settings": "الإعدادات",
+    "forms.analytics": "التحليلات",
+    "forms.submissions": "التقديمات",
+    "forms.versions": "الإصدارات",
+    "forms.noForms": "لا توجد نماذج",
+    "forms.createFirst": "أنشئ نموذجك الأول للبدء",
   },
 };
 

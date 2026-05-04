@@ -31,6 +31,8 @@ export interface Case {
   case_type: CaseType;
   status: CaseStatus;
   client_info?: string;
+  client_id?: number | null;
+  clientId?: number | null;
   assigned_lawyer_id?: number;
   court_jurisdiction?: string;
   filing_date?: string;
@@ -46,6 +48,7 @@ export interface CreateCaseInput {
   caseType: CaseType;
   status?: CaseStatus;
   clientInfo?: string;
+  clientId?: number;
   courtJurisdiction?: string;
   filingDate?: string;
   nextHearing?: string;

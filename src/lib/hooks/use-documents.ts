@@ -22,13 +22,17 @@ export function useDocuments(caseId: number) {
 }
 
 /**
- * Hook for uploading a document
+ * Hook for uploading a document. Accepts an optional onProgress callback for 0–100 progress.
  */
-export function useUploadDocument(caseId: number) {
+export function useUploadDocument(
+  caseId: number,
+  onProgress?: (percent: number) => void
+) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (file: File) => documentsApi.uploadDocument(caseId, file),
+    mutationFn: (file: File) =>
+      documentsApi.uploadDocument(caseId, file, onProgress),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["documents", caseId] });
     },

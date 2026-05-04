@@ -33,7 +33,6 @@ export interface RegulationsResponse {
 export interface SubscribeInput {
   regulationId: number;
   sourceUrl?: string;
-  checkIntervalHours?: number;
 }
 
 export const regulationsApi = {
@@ -157,6 +156,78 @@ export const regulationsApi = {
    */
   async subscribeToRegulation(input: SubscribeInput): Promise<void> {
     await apiClient.post(endpoints.regulations.subscribe, input);
+  },
+
+  /**
+   * Bulk subscribe the current user to a list of regulations for a case.
+   */
+  async subscribeToRegulationsBulk(input: {
+    caseId: number;
+    regulationIds: number[];
+  }): Promise<{
+    created: number;
+    alreadySubscribed: number;
+    failed: Array<{ regulationId: number; reason: string }>;
+  }> {
+    const { data } = await apiClient.post<{
+      created: number;
+      alreadySubscribed: number;
+      failed: Array<{ regulationId: number; reason: string }>;
+    }>(endpoints.regulations.subscriptionsBulk, input);
+    return data;
+  },
+
+  /**
+   * Trigger an admin monitor run.
+   */
+  async triggerMonitorRun(input?: {
+    regulationId?: number;
+    dryRun?: boolean;
+  }): Promise<{
+    scanned: number;
+    changed: number;
+    versionsCreated: number;
+    failed: number;
+  }> {
+    const { data } = await apiClient.post<{
+      scanned: number;
+      changed: number;
+      versionsCreated: number;
+      failed: number;
+    }>(endpoints.regulations.monitorRun, input || {});
+    return data;
+  },
+
+  /**
+   * Get the most recent regulation monitor runs (admin).
+   */
+  async getMonitorRuns(limit = 50): Promise<{
+    runs: Array<{
+      id: number;
+      startedAt: string;
+      finishedAt: string | null;
+      status: string;
+      triggerSource: string;
+      dryRun: boolean;
+      scanned: number;
+      changed: number;
+      versionsCreated: number;
+      failed: number;
+      errorMessage: string | null;
+    }>;
+    health: {
+      hasRun: boolean;
+      lastRunAt: string | null;
+      lastStatus: string | null;
+      minutesSinceLastRun: number | null;
+      failedRuns24h: number;
+      successfulRuns24h: number;
+    };
+  }> {
+    const { data } = await apiClient.get(
+      `${endpoints.regulations.monitorRuns}?limit=${limit}`
+    );
+    return data;
   },
 
   /**

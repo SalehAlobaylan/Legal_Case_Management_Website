@@ -22,7 +22,8 @@ export type ButtonVariant =
   | "outline"
   | "ghost"
   | "destructive"
-  | "link";
+  | "link"
+  | "default";
 
 export type ButtonSize = "sm" | "md" | "lg" | "icon";
 
@@ -110,6 +111,12 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         "bg-transparent text-[var(--color-brand-accent)]",
         "underline-offset-4 hover:underline",
         "p-0 h-auto"
+      ),
+      default: cn(
+        // Default button (alias for primary)
+        "bg-[var(--color-brand-accent)] text-white",
+        "hover:bg-[var(--color-brand-accent-hover)]",
+        "shadow-md hover:shadow-lg"
       ),
     };
 
