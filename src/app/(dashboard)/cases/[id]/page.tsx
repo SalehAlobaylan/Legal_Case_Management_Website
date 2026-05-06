@@ -71,6 +71,14 @@ import {
 } from "@/components/features/legal-text/legal-text-reader";
 import { stripInlineDecorations } from "@/lib/utils/text-segmentation";
 import { CaseAIPanel } from "@/components/features/cases/case-ai-panel";
+import { MultiSourceSuggestions, SourceGroupSection } from "@/components/features/cases/multi-source-suggestions";
+import {
+  useCaseSources,
+  useFindRelatedCaseSources,
+  useVerifyCaseSourceLink,
+  useDismissCaseSourceLink,
+} from "@/lib/hooks/use-case-sources";
+import type { CaseSourceItem, SourceType } from "@/lib/api/case-sources";
 import { cn } from "@/lib/utils/cn";
 import type { Document } from "@/lib/types/document";
 import { CaseStatus } from "@/lib/types/case";
@@ -170,10 +178,16 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
   // Fetch documents for this case
   const { data: documents, isLoading: isLoadingDocuments } = useDocuments(caseId);
 
-  // Fetch AI links/suggestions for this case
+  // Fetch AI links/suggestions for this case (legacy — still used in CaseLinkingTab)
   const { data: aiLinks, isLoading: isLoadingAILinks } = useAILinks(caseId);
 
-  // Mutations
+  // Multi-source hooks for the AI sidebar rail
+  const { data: multiSourceData, isLoading: isLoadingMultiSource } = useCaseSources(caseId);
+  const findRelatedMulti = useFindRelatedCaseSources(caseId);
+  const verifySourceLink = useVerifyCaseSourceLink(caseId);
+  const dismissSourceLink = useDismissCaseSourceLink(caseId);
+
+  // Mutations (legacy — still used by subscription dialog)
   const { mutate: generateLinks, isPending: isGenerating } = useGenerateAILinks(caseId);
   const verifyLink = useVerifyLink();
   const dismissLink = useDismissLink();
@@ -452,6 +466,23 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
     setPreviewDocument(null);
   };
 
+  // Non-regulation source groups for the sidebar (judicial, gov, web).
+  // Must be above early returns so hook order is stable.
+  const NON_REGULATION_TYPES: SourceType[] = ["judicial_decision", "gov_data", "web_source"];
+  const sidebarNonRegGroups = React.useMemo(() => {
+    const map = new Map<SourceType, CaseSourceItem[]>();
+    for (const st of NON_REGULATION_TYPES) map.set(st, []);
+    if (multiSourceData) {
+      for (const g of multiSourceData.groups) {
+        const st = g.sourceType as SourceType;
+        if (st !== "regulation" && map.has(st)) {
+          map.set(st, g.items);
+        }
+      }
+    }
+    return map;
+  }, [multiSourceData]);
+
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -477,7 +508,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
   const availableClients = clientsData?.clients || [];
   const hasLinkedClient = Boolean(case_.client_info);
 
-  // Count pending suggestions
+  // Count pending suggestions (regulations from legacy + other source types)
   const pendingCount = aiLinks?.filter((l: CaseRegulationLink) => !l.verified)?.length || 0;
 
   // Shared AI rail content — rendered inline on desktop (lg+) and inside
@@ -570,7 +601,36 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
           <div className="text-xs text-slate-500 text-center mb-2 font-medium bg-[#0F2942]/5 py-2 rounded-lg border border-[#0F2942]/10">
             {t("cases.foundMatches", { count: aiLinks.length })}
           </div>
-          {aiLinks.map((link: CaseRegulationLink) => (
+          {/* First 4 regulations */}
+          {aiLinks.slice(0, 4).map((link: CaseRegulationLink) => (
+            <SuggestionCard
+              key={link.id}
+              link={link}
+              onVerify={() => handleVerifyLink(link.id)}
+              onDismiss={() => handleDismissLink(link.id)}
+              isVerifying={verifyLink.isPending}
+              isDismissing={dismissLink.isPending}
+              t={t}
+            />
+          ))}
+
+          {/* Non-regulation sources splice in after the 4th regulation */}
+          {NON_REGULATION_TYPES.map((sourceType) => {
+            const items = sidebarNonRegGroups.get(sourceType) ?? [];
+            if (items.length === 0) return null;
+            return (
+              <SourceGroupSection
+                key={sourceType}
+                sourceType={sourceType}
+                items={items}
+                onVerify={(linkId) => verifySourceLink.mutate(linkId)}
+                onDismiss={(linkId) => dismissSourceLink.mutate({ linkId })}
+              />
+            );
+          })}
+
+          {/* Remaining regulations (5th onward) */}
+          {aiLinks.slice(4).map((link: CaseRegulationLink) => (
             <SuggestionCard
               key={link.id}
               link={link}
@@ -583,6 +643,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
           ))}
         </>
       )}
+
       <div className="p-6 border-2 border-dashed border-slate-300 hover:border-[#D97706] rounded-2xl text-center group transition-colors cursor-pointer bg-slate-50 hover:bg-white">
         <div className="bg-white p-3 rounded-full w-fit mx-auto mb-3 shadow-sm group-hover:scale-110 transition-transform">
           <Search className="h-5 w-5 text-slate-400 group-hover:text-[#D97706]" />
@@ -820,6 +881,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
             />
           ) : (
             <CaseLinkingTab
+              caseId={caseId}
               aiLinks={aiLinks || []}
               isLoading={isLoadingAILinks}
               onNavigateToStudio={() => router.push(`/cases/${caseId}/linking`)}
@@ -1177,12 +1239,14 @@ function DetailsTab({ case_, caseId, focusMode, onFocusModeChange }: DetailsTabP
    ============================================================================= */
 
 interface CaseLinkingTabProps {
+  caseId: number;
   aiLinks: CaseRegulationLink[];
   isLoading: boolean;
   onNavigateToStudio: () => void;
 }
 
 function CaseLinkingTab({
+  caseId,
   aiLinks,
   isLoading,
   onNavigateToStudio,
@@ -1354,6 +1418,9 @@ function CaseLinkingTab({
           </div>
         </div>
       )}
+
+      {/* Multi-Source Linked Legal Sources */}
+      <MultiSourceSuggestions caseId={caseId} />
     </div>
   );
 }

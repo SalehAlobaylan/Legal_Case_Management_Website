@@ -76,6 +76,25 @@ export const endpoints = {
     dismiss: (linkId: number) => `${API_BASE}/api/ai-links/${linkId}`,
   },
 
+  // Multi-source case linking (regulations + judicial decisions + gov data + web)
+  caseSources: {
+    list: (caseId: number) => `${API_BASE}/api/case-sources/${caseId}`,
+    findRelated: (caseId: number) =>
+      `${API_BASE}/api/case-sources/${caseId}/find-related`,
+    webResearch: (caseId: number) =>
+      `${API_BASE}/api/case-sources/${caseId}/web-research`,
+    verifyLink: (linkId: number) =>
+      `${API_BASE}/api/case-sources/links/${linkId}/verify`,
+    dismissLink: (linkId: number) =>
+      `${API_BASE}/api/case-sources/links/${linkId}/dismiss`,
+    curatorQueue: `${API_BASE}/api/case-sources/curator/queue`,
+    curatorStats: `${API_BASE}/api/case-sources/curator/stats`,
+    curatorPromote: (sourceId: number) =>
+      `${API_BASE}/api/case-sources/curator/sources/${sourceId}/promote`,
+    curatorReject: (sourceId: number) =>
+      `${API_BASE}/api/case-sources/curator/sources/${sourceId}/reject`,
+  },
+
   // Documents
   documents: {
     list: (caseId: number) => `${API_BASE}/api/cases/${caseId}/documents`,
