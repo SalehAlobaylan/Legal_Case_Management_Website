@@ -24,18 +24,21 @@ export function usePermission() {
 
     const role = user.role as UserRole;
     const rolePermissions = PERMISSIONS[role] as readonly string[] | undefined;
+    const granted = user.grantedPermissions ?? [];
 
-    if (!rolePermissions) return false;
+    if (!rolePermissions && granted.length === 0) return false;
 
     // Admin has all permissions
-    if (rolePermissions.includes("*")) return true;
+    if (rolePermissions?.includes("*")) return true;
 
-    // Check for exact permission match
-    if (rolePermissions.includes(permission)) return true;
+    // Check for exact permission match (role or per-user grant)
+    if (rolePermissions?.includes(permission)) return true;
+    if (granted.includes(permission)) return true;
 
     // Check for wildcard permission (e.g., "cases.*" matches "cases.create")
     const [resource] = permission.split(".");
-    if (rolePermissions.includes(`${resource}.*`)) return true;
+    if (rolePermissions?.includes(`${resource}.*`)) return true;
+    if (granted.includes(`${resource}.*`)) return true;
 
     return false;
   };

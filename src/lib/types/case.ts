@@ -22,10 +22,17 @@ export enum CaseStatus {
   ARCHIVED = "archived",
 }
 
+export interface AssignedLawyerSummary {
+  id: string;
+  fullName: string | null;
+  email: string;
+}
+
 export interface Case {
   id: number;
   organization_id: number;
   case_number: string;
+  caseNumber?: string;
   title: string;
   description?: string;
   case_type: CaseType;
@@ -33,7 +40,9 @@ export interface Case {
   client_info?: string;
   client_id?: number | null;
   clientId?: number | null;
-  assigned_lawyer_id?: number;
+  assigned_lawyer_id?: string | null;
+  assignedLawyerId?: string | null;
+  assignedLawyer?: AssignedLawyerSummary | null;
   court_jurisdiction?: string;
   filing_date?: string;
   next_hearing?: string;

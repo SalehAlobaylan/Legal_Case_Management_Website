@@ -42,6 +42,26 @@ export const endpoints = {
     create: `${API_BASE}/api/cases`,
     update: (id: number) => `${API_BASE}/api/cases/${id}`,
     delete: (id: number) => `${API_BASE}/api/cases/${id}`,
+    assign: (id: number) => `${API_BASE}/api/cases/${id}/assign`,
+    bulkAssign: `${API_BASE}/api/cases/bulk/assign`,
+  },
+
+  // Admin dashboard
+  admin: {
+    stats: `${API_BASE}/api/admin/stats`,
+    lawyer: (id: string) => `${API_BASE}/api/admin/lawyers/${id}`,
+    pulse: `${API_BASE}/api/admin/pulse`,
+    trends: `${API_BASE}/api/admin/trends`,
+    auditLog: `${API_BASE}/api/admin/audit-log`,
+  },
+
+  // Org announcements (visible to all org members for /active; admin for the rest).
+  announcements: {
+    active: `${API_BASE}/api/announcements/active`,
+    listAll: `${API_BASE}/api/announcements`,
+    create: `${API_BASE}/api/announcements`,
+    update: (id: number) => `${API_BASE}/api/announcements/${id}`,
+    remove: (id: number) => `${API_BASE}/api/announcements/${id}`,
   },
 
   // Regulations
@@ -181,10 +201,20 @@ export const endpoints = {
     teamInvite: `${API_BASE}/api/settings/team/invite`,
     teamInvitations: `${API_BASE}/api/settings/team/invitations`,
     teamAcceptInvitation: `${API_BASE}/api/settings/team/invitations/accept`,
+    teamInvitationRevoke: (id: number) =>
+      `${API_BASE}/api/settings/team/invitations/${id}`,
+    teamInvitationResend: (id: number) =>
+      `${API_BASE}/api/settings/team/invitations/${id}/resend`,
     teamUpdateRole: (memberId: string) =>
       `${API_BASE}/api/settings/team/members/${memberId}/role`,
     teamRemoveMember: (memberId: string) =>
       `${API_BASE}/api/settings/team/members/${memberId}`,
+    teamMemberLeave: (memberId: string) =>
+      `${API_BASE}/api/settings/team/members/${memberId}/leave`,
+    teamMemberPermissions: (memberId: string) =>
+      `${API_BASE}/api/settings/team/members/${memberId}/permissions`,
+    teamMemberPermission: (memberId: string, permission: string) =>
+      `${API_BASE}/api/settings/team/members/${memberId}/permissions/${encodeURIComponent(permission)}`,
     billing: `${API_BASE}/api/settings/billing`,
     ai: `${API_BASE}/api/settings/ai`,
     security: {

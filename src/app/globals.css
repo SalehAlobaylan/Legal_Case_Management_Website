@@ -270,6 +270,7 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -279,6 +280,16 @@ body {
   line-height: 1.5;
   color: var(--color-text-primary);
   background-color: var(--color-surface-bg);
+}
+
+/* Prevent iOS Safari auto-zoom on input focus.
+   Body font-size is 14px; inputs must be ≥ 16px on touch devices. */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
 
 /* -------------------------------------------------------------------------

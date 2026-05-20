@@ -108,3 +108,75 @@ export function useDeleteCase() {
     },
   });
 }
+
+/**
+ * Bulk-reassign cases (pass null to unassign all).
+ */
+export function useBulkAssignCases() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: {
+      caseIds: number[];
+      assignedLawyerId: string | null;
+    }) => {
+      const { data } = await apiClient.post<{ updated: Case[] }>(
+        "/api/cases/bulk/assign",
+        input
+      );
+      return data.updated;
+    },
+    onSuccess: (updated) => {
+      queryClient.invalidateQueries({ queryKey: ["cases"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-pulse"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-trends"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-audit-log"] });
+      toast({
+        title: "Cases reassigned",
+        description: `${updated.length} case${updated.length === 1 ? "" : "s"} updated.`,
+      });
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      toast({
+        title: "Bulk assign failed",
+        description:
+          error?.response?.data?.message || "Please try again later.",
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+/**
+ * Assign or reassign a case to a lawyer (pass null to unassign).
+ */
+export function useAssignCase() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: { id: number; assignedLawyerId: string | null }) => {
+      const { data } = await apiClient.patch<{ case: Case }>(
+        `/api/cases/${input.id}/assign`,
+        { assignedLawyerId: input.assignedLawyerId }
+      );
+      return data.case;
+    },
+    onSuccess: (updatedCase) => {
+      queryClient.invalidateQueries({ queryKey: ["cases"] });
+      queryClient.invalidateQueries({ queryKey: ["case", updatedCase.id] });
+      queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+      toast({ title: "Case assignment updated" });
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      toast({
+        title: "Could not update assignment",
+        description:
+          error?.response?.data?.message || "Please try again later.",
+        variant: "destructive",
+      });
+    },
+  });
+}

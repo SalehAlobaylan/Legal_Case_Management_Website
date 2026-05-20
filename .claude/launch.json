@@ -7,6 +7,13 @@
       "runtimeArgs": ["/Users/salehalobaylan/Desktop/Silah-Legal/Legal_Case_Management_Website/.claude/start-dev.sh"],
       "port": 3000,
       "urlPath": "/"
+    },
+    {
+      "name": "backend",
+      "runtimeExecutable": "/bin/bash",
+      "runtimeArgs": ["/Users/salehalobaylan/Desktop/Silah-Legal/Legal-Case-Management-System/.claude/start-backend.sh"],
+      "port": 3001,
+      "urlPath": "/docs"
     }
   ]
 }

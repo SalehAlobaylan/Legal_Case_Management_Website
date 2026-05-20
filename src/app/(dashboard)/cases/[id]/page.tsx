@@ -825,6 +825,8 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
                     onEdit={() => router.push(`/cases/${caseId}/edit`)}
                     onDelete={() => setShowDeleteCaseDialog(true)}
                     onStatusChange={handleCaseStatusChange}
+                    caseId={case_.id}
+                    assignedLawyerId={case_.assignedLawyerId ?? case_.assigned_lawyer_id ?? null}
                   />
                 </div>
               </div>

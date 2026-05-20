@@ -27,6 +27,16 @@ export interface TeamListResponse {
       contactInfo?: string | null;
       country?: string;
       subscriptionTier?: string;
+      restrictCaseVisibility?: boolean;
+      settings?: {
+        privacy?: {
+          documents?: boolean;
+          clients?: boolean;
+          teamDirectory?: boolean;
+          adminClosureRequired?: boolean;
+        };
+        [k: string]: unknown;
+      };
     };
 }
 
@@ -140,6 +150,17 @@ export const teamApi = {
       return response.data;
     },
 
+    /**
+     * Toggle a member's on-leave flag (admin only).
+     */
+    setMemberOnLeave: async (memberId: string, isOnLeave: boolean) => {
+      const response = await apiClient.patch<{
+        success: boolean;
+        member: { id: string; fullName: string | null; email: string; isOnLeave: boolean };
+      }>(endpoints.settings.teamMemberLeave(memberId), { isOnLeave });
+      return response.data;
+    },
+
     leaveOrganization: async (): Promise<AcceptInvitationResponse> => {
       const response = await apiClient.post<AcceptInvitationResponse>(
         endpoints.settings.organizationLeave
@@ -159,4 +180,116 @@ export const teamApi = {
       );
       return response.data;
     },
+
+    /**
+     * Revoke a pending invitation (admin only). The code stops working.
+     */
+    revokeInvitation: async (
+      id: number
+    ): Promise<{ success: boolean; invitation: TeamInvitation }> => {
+      const response = await apiClient.delete<{ success: boolean; invitation: TeamInvitation }>(
+        endpoints.settings.teamInvitationRevoke(id)
+      );
+      return response.data;
+    },
+
+    /**
+     * Resend (rotate) an invitation code (admin only). Returns the new code.
+     */
+    resendInvitation: async (
+      id: number
+    ): Promise<{ success: boolean; invitation: TeamInvitation; invitationCode: string; expiresAt: string }> => {
+      const response = await apiClient.post<{
+        success: boolean;
+        invitation: TeamInvitation;
+        invitationCode: string;
+        expiresAt: string;
+      }>(endpoints.settings.teamInvitationResend(id));
+      return response.data;
+    },
+
+    /**
+     * List granted permissions for a team member (admin only).
+     */
+    getMemberPermissions: async (
+      memberId: string
+    ): Promise<{ permissions: string[]; grantable: string[] }> => {
+      const response = await apiClient.get<{ permissions: string[]; grantable: string[] }>(
+        endpoints.settings.teamMemberPermissions(memberId)
+      );
+      return response.data;
+    },
+
+    /**
+     * Grant a permission to a team member (admin only).
+     */
+    grantMemberPermission: async (
+      memberId: string,
+      permission: string
+    ): Promise<{ permissions: string[] }> => {
+      const response = await apiClient.post<{ permissions: string[] }>(
+        endpoints.settings.teamMemberPermissions(memberId),
+        { permission }
+      );
+      return response.data;
+    },
+
+    /**
+     * Revoke a permission from a team member (admin only).
+     */
+    revokeMemberPermission: async (
+      memberId: string,
+      permission: string
+    ): Promise<{ permissions: string[] }> => {
+      const response = await apiClient.delete<{ permissions: string[] }>(
+        endpoints.settings.teamMemberPermission(memberId, permission)
+      );
+      return response.data;
+    },
+};
+
+/**
+ * Privacy & sharing toggles live under `organizations.settings.privacy`.
+ * Each one is a boolean tag; the matching `delegated.*.viewAll` permission
+ * exempts an individual user from the policy.
+ */
+export interface OrgPrivacySettings {
+  documents?: boolean;
+  clients?: boolean;
+  teamDirectory?: boolean;
+  adminClosureRequired?: boolean;
+}
+
+export interface OrgSettings {
+  privacy?: OrgPrivacySettings;
+  [k: string]: unknown;
+}
+
+export interface UpdateOrganizationInput {
+  name?: string;
+  contactInfo?: string;
+  restrictCaseVisibility?: boolean;
+  settings?: OrgSettings;
+}
+
+export interface OrganizationDto {
+  id: number;
+  name: string;
+  isPersonal?: boolean;
+  restrictCaseVisibility?: boolean;
+  settings?: OrgSettings;
+  contactInfo?: string | null;
+}
+
+/**
+ * Settings API — organization metadata patching (admin only).
+ */
+export const organizationSettingsApi = {
+  async updateOrganization(patch: UpdateOrganizationInput): Promise<OrganizationDto> {
+    const response = await apiClient.patch<{ organization: OrganizationDto }>(
+      endpoints.settings.organization,
+      patch
+    );
+    return response.data.organization;
+  },
 };

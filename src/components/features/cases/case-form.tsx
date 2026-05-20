@@ -15,7 +15,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { useCreateCase } from "@/lib/hooks/use-cases";
+import { useAssignCase, useCreateCase } from "@/lib/hooks/use-cases";
+import { useTeamMembers } from "@/lib/hooks/use-team";
+import { usePermission } from "@/lib/hooks/use-permission";
 import { CaseType, CaseStatus } from "@/lib/types/case";
 
 const caseSchema = z.object({
@@ -28,6 +30,7 @@ const caseSchema = z.object({
   courtJurisdiction: z.string().optional(),
   filingDate: z.string().optional(),
   nextHearing: z.string().optional(),
+  assignedLawyerId: z.string().uuid().optional().or(z.literal("")),
 });
 
 type CaseFormData = z.input<typeof caseSchema>;
@@ -38,6 +41,11 @@ interface CaseFormProps {
 
 export function CaseForm({ onSuccess }: CaseFormProps) {
   const { mutate: createCase, isPending } = useCreateCase();
+  const assignCase = useAssignCase();
+  const { can } = usePermission();
+  const canAssign = can("delegated.cases.assign");
+  const { data: teamData } = useTeamMembers();
+  const teamMembers = teamData?.members ?? [];
 
   const {
     register,
@@ -51,8 +59,17 @@ export function CaseForm({ onSuccess }: CaseFormProps) {
   });
 
   const onSubmit = (data: CaseFormData) => {
-    createCase(data, {
-      onSuccess: () => {
+    const { assignedLawyerId, ...rest } = data;
+    createCase(rest, {
+      onSuccess: (newCase) => {
+        // Backend auto-assigns the creator; if the admin picked someone else
+        // explicitly, reassign right after creation.
+        if (assignedLawyerId && canAssign) {
+          assignCase.mutate({
+            id: newCase.id,
+            assignedLawyerId,
+          });
+        }
         onSuccess?.();
       },
     });
@@ -175,6 +192,24 @@ export function CaseForm({ onSuccess }: CaseFormProps) {
           />
         </div>
       </div>
+
+      {canAssign && (
+        <div className="space-y-2">
+          <Label htmlFor="assignedLawyerId">Assigned to</Label>
+          <Select
+            id="assignedLawyerId"
+            defaultValue=""
+            {...register("assignedLawyerId")}
+          >
+            <option value="">(Default — me)</option>
+            {teamMembers.map((m: { id: string; fullName?: string | null; email: string }) => (
+              <option key={m.id} value={m.id}>
+                {m.fullName || m.email}
+              </option>
+            ))}
+          </Select>
+        </div>
+      )}
 
       <div className="flex justify-end">
         <Button type="submit" className="w-full md:w-auto" disabled={isPending}>

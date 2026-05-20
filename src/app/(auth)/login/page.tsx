@@ -36,19 +36,19 @@ export default function SignInPage() {
   };
 
   return (
-    <div className={`min-h-screen flex bg-gradient-to-br from-slate-50 to-slate-100 ${isRTL ? 'flex-row-reverse' : ''}`}>
+    <div className={`min-h-screen min-h-[100dvh] flex bg-gradient-to-br from-slate-50 to-slate-100 ${isRTL ? 'flex-row-reverse' : ''}`}>
       {/* Language Toggle - Fixed Position */}
-      <div className="fixed top-6 right-6 z-50">
+      <div className="fixed top-3 right-3 sm:top-6 sm:right-6 z-50">
         <LanguageToggle variant="full" />
       </div>
 
       {/* Back to Home - Fixed Position */}
       <Link
         href="/"
-        className="fixed top-6 left-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm group"
+        className="fixed top-3 left-3 sm:top-6 sm:left-6 z-50 flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm group"
       >
         {isRTL ? <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" /> : <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />}
-        <span className="text-sm font-semibold">{isRTL ? t("nav.home") : 'Home'}</span>
+        <span className="text-xs sm:text-sm font-semibold">{isRTL ? t("nav.home") : 'Home'}</span>
       </Link>
 
       {/* Left Side - Visual */}
@@ -106,13 +106,15 @@ export default function SignInPage() {
       </div>
 
       {/* Right Side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-8">
+      <div className="w-full lg:w-1/2 flex items-center justify-center px-4 py-6 sm:p-6 md:p-8">
         <div className="max-w-md w-full">
           {/* Mobile Header with Gradient Background */}
           <div className="lg:hidden mb-8">
             <div className="bg-gradient-to-r from-[#0F2942] to-[#1E3A56] rounded-2xl p-6 text-center shadow-xl">
-<Link href="/" className="inline-block mb-4">
-                <Image src="/silah-logo.svg" alt="Silah" width={48} height={48} className="h-12 w-auto mx-auto" />
+              <Link href="/" className="inline-block mb-4">
+                <div className="inline-flex items-center justify-center rounded-full bg-white p-2.5 shadow-md">
+                  <Image src="/silah-logo.svg" alt="Silah" width={48} height={48} className="h-12 w-auto" />
+                </div>
               </Link>
               <h2 className="text-xl font-bold text-white mb-1">{t("auth.signInToSilah")}</h2>
               <p className="text-blue-200/80 text-sm">{t("auth.enterCredentials")}</p>

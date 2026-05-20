@@ -64,6 +64,84 @@ export function useTeamInvitations() {
   });
 }
 
+/**
+ * Revoke a pending invitation. Returns the updated invitation row.
+ */
+export function useRevokeInvitation() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: (id: number) => teamApi.revokeInvitation(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["team", "invitations"] });
+      toast({ title: "Invitation revoked" });
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (err: any) => {
+      toast({
+        title: "Could not revoke",
+        description: err?.response?.data?.message || "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+/**
+ * Toggle a member's on-leave flag. Pure tag — affects admin UI cues only.
+ */
+export function useSetMemberOnLeave() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: (input: { memberId: string; isOnLeave: boolean }) =>
+      teamApi.setMemberOnLeave(input.memberId, input.isOnLeave),
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["team", "members"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-lawyer", vars.memberId] });
+      queryClient.invalidateQueries({ queryKey: ["admin-audit-log"] });
+      toast({
+        title: vars.isOnLeave ? "Marked on leave" : "Marked active",
+      });
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (err: any) => {
+      toast({
+        title: "Could not update",
+        description: err?.response?.data?.message || "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+/**
+ * Resend (rotate) an invitation code. Returns the new code so the admin can
+ * share it. The old code stops working.
+ */
+export function useResendInvitation() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: (id: number) => teamApi.resendInvitation(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["team", "invitations"] });
+      toast({
+        title: "Invitation re-sent",
+        description: "A new code was generated — old code no longer works.",
+      });
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (err: any) => {
+      toast({
+        title: "Could not resend",
+        description: err?.response?.data?.message || "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+}
+
 export function useAcceptTeamInvitation() {
   const queryClient = useQueryClient();
   const { toast } = useToast();

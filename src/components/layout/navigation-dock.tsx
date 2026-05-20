@@ -23,9 +23,11 @@ import {
   BookOpen,
   Users,
   Bell,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useI18n } from "@/lib/hooks/use-i18n";
+import { usePermission } from "@/lib/hooks/use-permission";
 
 /* =============================================================================
    NAVIGATION ITEMS CONFIGURATION
@@ -37,6 +39,7 @@ interface NavItem {
   path?: string;
   isCenter?: boolean;
   showBadge?: boolean;
+  adminOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -64,6 +67,12 @@ const navItems: NavItem[] = [
     icon: Users,
     translationKey: "nav.clients",
     path: "/clients",
+  },
+  {
+    icon: Shield,
+    translationKey: "nav.admin",
+    path: "/admin/dashboard",
+    adminOnly: true,
   },
   {
     icon: Bell,
@@ -250,6 +259,10 @@ export function NavigationDock({
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useI18n();
+  const { isAdmin } = usePermission();
+  const visibleNavItems = navItems.filter(
+    (item) => !item.adminOnly || isAdmin()
+  );
 
   const handleNewCase = () => {
     if (onNewCase) {
@@ -277,7 +290,7 @@ export function NavigationDock({
       )}
       aria-label="Main navigation"
     >
-      {navItems.map((item, index) => {
+      {visibleNavItems.map((item, index) => {
         const label = t(item.translationKey);
 
         // Center action button

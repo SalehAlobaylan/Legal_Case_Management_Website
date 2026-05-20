@@ -623,6 +623,7 @@ function CaseCard({
   onStatusChange,
   isBusy,
 }: CaseCardProps) {
+  const { t } = useI18n();
   const sc = getStatusConfig(case_.status);
   const typeEmoji = CASE_TYPE_ICONS[case_.case_type] || "⚖️";
 
@@ -698,6 +699,19 @@ function CaseCard({
                 <span className="font-bold">{formatDate(case_.next_hearing)}</span>
               </span>
             )}
+            {case_.assignedLawyer?.fullName ? (
+              <span className="inline-flex items-center gap-1.5">
+                <Briefcase className="h-3 w-3 text-slate-400" />
+                <span className="font-medium truncate max-w-32">
+                  {case_.assignedLawyer.fullName}
+                </span>
+              </span>
+            ) : !(case_.assignedLawyerId || case_.assigned_lawyer_id) ? (
+              <span className="inline-flex items-center gap-1.5 text-amber-600">
+                <Briefcase className="h-3 w-3" />
+                <span className="font-medium">{t("cases.unassigned")}</span>
+              </span>
+            ) : null}
           </div>
         </div>
 
@@ -735,6 +749,8 @@ function CaseCard({
               onEdit={onEdit}
               onDelete={onDelete}
               onStatusChange={onStatusChange}
+              caseId={case_.id}
+              assignedLawyerId={case_.assignedLawyerId ?? case_.assigned_lawyer_id ?? null}
             />
           </div>
         </div>
@@ -844,6 +860,8 @@ function CompactTable({
                       onEdit={() => onEdit(c.id)}
                       onDelete={() => onDelete(c)}
                       onStatusChange={(status) => onStatusChange(c.id, status)}
+                      caseId={c.id}
+                      assignedLawyerId={c.assignedLawyerId ?? c.assigned_lawyer_id ?? null}
                     />
                   </div>
                 </td>

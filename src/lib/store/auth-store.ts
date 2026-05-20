@@ -21,6 +21,9 @@ export interface User {
   specialization?: string;
   avatarUrl?: string;
   isOAuthUser?: boolean;
+  // Per-user permission overrides granted by an admin (e.g. "cases.assign",
+  // "cases.viewAll"). Merged with role permissions in usePermission().
+  grantedPermissions?: string[];
 }
 
 interface AuthState {

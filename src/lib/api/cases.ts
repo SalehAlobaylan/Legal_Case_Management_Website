@@ -72,4 +72,29 @@ export const casesApi = {
   async deleteCase(id: number): Promise<void> {
     await apiClient.delete(endpoints.cases.delete(id));
   },
+
+  /**
+   * Assign or reassign a case to a lawyer (pass null to unassign).
+   */
+  async assignCase(id: number, assignedLawyerId: string | null): Promise<Case> {
+    const { data } = await apiClient.patch<{ case: Case }>(
+      endpoints.cases.assign(id),
+      { assignedLawyerId }
+    );
+    return data.case;
+  },
+
+  /**
+   * Bulk-reassign cases. Returns the updated rows.
+   */
+  async bulkAssignCases(
+    caseIds: number[],
+    assignedLawyerId: string | null
+  ): Promise<Case[]> {
+    const { data } = await apiClient.post<{ updated: Case[] }>(
+      endpoints.cases.bulkAssign,
+      { caseIds, assignedLawyerId }
+    );
+    return data.updated;
+  },
 };

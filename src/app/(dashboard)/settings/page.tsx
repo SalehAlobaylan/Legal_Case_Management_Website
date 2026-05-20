@@ -54,6 +54,12 @@ import {
   useTeamMembers,
   useUpdateTeamMemberRole,
 } from "@/lib/hooks/use-team";
+import { Switch } from "@/components/ui/switch";
+import { GRANTABLE_PERMISSIONS } from "@/lib/types/auth";
+import { organizationSettingsApi, teamApi } from "@/lib/api/team";
+import { useAdminStats } from "@/lib/hooks/use-admin-stats";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/components/ui/use-toast";
 // [HIDDEN FOR GRADUATION PRESENTATION] import { useBillingInfo, useSubscribeToPlan, useCancelSubscription, useDownloadInvoicePDF } from "@/lib/hooks/use-billing";
 import { useUpdateProfile } from "@/lib/hooks/use-profile";
 import { NajizLockOverlay } from "@/components/features/dashboard/najiz-lock-overlay";
@@ -83,6 +89,7 @@ import {
 import { useCases } from "@/lib/hooks/use-cases";
 import { useRegulations } from "@/lib/hooks/use-regulations";
 import type { AISettings } from "@/lib/api/ai-settings";
+import { OrganizationTab } from "./_tabs/organization-tab";
 
 type TabId = "profile" | "org" | "notifications" | "security" | "integrations" | "ai"; // "billing" hidden for graduation presentation
 
@@ -407,234 +414,6 @@ function ProfileTab({ t, isRTL }: { t: (key: string) => string; isRTL: boolean }
   );
 }
 
-/* =============================================================================
-   ORGANIZATION TAB
-   ============================================================================= */
-
-function OrganizationTab({ t, isRTL, teamData }: { t: (key: string) => string; isRTL: boolean; teamData?: { members: any[]; total: number; organization?: { id: number; name: string; isPersonal: boolean; contactInfo?: string | null } } }) {
-  const { user } = useAuthStore();
-  const isAdmin = user?.role === "admin";
-  const [inviteEmail, setInviteEmail] = React.useState("");
-  const [inviteRole, setInviteRole] = React.useState("lawyer");
-  const [joinCode, setJoinCode] = React.useState("");
-  const [newOrgName, setNewOrgName] = React.useState("");
-  const [lastCode, setLastCode] = React.useState<string | null>(null);
-
-  const inviteMember = useInviteTeamMember();
-  const acceptInvite = useAcceptTeamInvitation();
-  const updateRole = useUpdateTeamMemberRole();
-  const removeMember = useRemoveTeamMember();
-  const leaveOrg = useLeaveOrganization();
-  const createOrg = useCreateOrganizationAndSwitch();
-
-  const org = teamData?.organization;
-  const members = teamData?.members || [];
-  const isPersonalWorkspace = Boolean(org?.isPersonal);
-
-  return (
-    <div className="space-y-6">
-      <div className="bg-[#0F2942] rounded-2xl p-4 md:p-6 text-white shadow-lg">
-        <h4 className="text-lg md:text-xl font-bold">{org?.name || t("settings.organization")}</h4>
-        <p className="text-slate-200 text-xs md:text-sm mt-1">
-          {isPersonalWorkspace ? t("settings.personalWorkspace") : t("settings.teamWorkspace")} • {members.length} {t("settings.members")}
-        </p>
-      </div>
-
-      {/* Lawyer License — Najiz-verified (locked until integration is live) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <NajizLockOverlay>
-          <LicenseBadgeCard />
-        </NajizLockOverlay>
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col justify-center">
-          <h4 className="font-bold text-[#0F2942] mb-1">
-            {t("settings.barLicenseTitle")}
-          </h4>
-          <p className="text-sm text-slate-600 leading-relaxed">
-            {t("settings.barLicenseDesc")}
-          </p>
-        </div>
-      </div>
-
-      {isPersonalWorkspace && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-            <h4 className="font-bold text-[#0F2942]">{t("settings.createOrganization")}</h4>
-            <Input
-              value={newOrgName}
-              onChange={(e) => setNewOrgName(e.target.value)}
-              placeholder={t("settings.orgNamePlaceholder")}
-              className="h-11"
-            />
-            <Button
-              className="bg-[#0F2942] hover:bg-[#1E3A56]"
-              disabled={!newOrgName.trim() || createOrg.isPending}
-              onClick={() => createOrg.mutate({ name: newOrgName.trim() })}
-            >
-              {createOrg.isPending ? t("common.creating") : t("settings.createAndSwitch")}
-            </Button>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-            <h4 className="font-bold text-[#0F2942]">{t("settings.joinByCode")}</h4>
-            <Input
-              value={joinCode}
-              onChange={(e) => setJoinCode(e.target.value)}
-              placeholder={t("settings.pasteCodePlaceholder")}
-              className="h-11"
-            />
-            <Button
-              className="bg-[#D97706] hover:bg-[#B45309]"
-              disabled={!joinCode.trim() || acceptInvite.isPending}
-              onClick={() => acceptInvite.mutate(joinCode.trim())}
-            >
-              {acceptInvite.isPending ? t("common.joining") : t("settings.joinOrganization")}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {isAdmin && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-          <h4 className="font-bold text-[#0F2942]">{t("settings.inviteMember")}</h4>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <Input
-              value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-              placeholder={t("settings.emailPlaceholder")}
-              className="h-11 md:col-span-2"
-            />
-            <Select
-              value={inviteRole}
-              onChange={(e) => setInviteRole(e.target.value)}
-              className="h-11"
-            >
-              <option value="admin">{t("roles.admin")}</option>
-              <option value="senior_lawyer">{t("roles.seniorLawyer")}</option>
-              <option value="lawyer">{t("roles.lawyer")}</option>
-              <option value="paralegal">{t("roles.paralegal")}</option>
-              <option value="clerk">{t("roles.clerk")}</option>
-            </Select>
-          </div>
-          <Button
-            className="bg-[#D97706] hover:bg-[#B45309]"
-            disabled={!inviteEmail.trim() || inviteMember.isPending}
-            onClick={() =>
-              inviteMember.mutate(
-                { email: inviteEmail.trim(), role: inviteRole },
-                {
-                  onSuccess: (data) => {
-                    setLastCode(data.invitationCode || null);
-                    setInviteEmail("");
-                  },
-                }
-              )
-            }
-          >
-            <Plus size={14} className={cn(isRTL ? "ml-2" : "mr-2")} />
-            {inviteMember.isPending ? t("common.inviting") : t("settings.inviteMember")}
-          </Button>
-          {lastCode && (
-            <p className="text-xs text-slate-600">
-              {t("settings.invitationCodeLabel")} <code className="bg-slate-100 px-1 py-0.5 rounded">{lastCode}</code>
-            </p>
-          )}
-        </div>
-      )}
-
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-4 md:p-6 border-b border-slate-100 flex justify-between items-center">
-          <h4 className="font-bold text-[#0F2942]">{t("settings.teamMembers")}</h4>
-          {!isPersonalWorkspace && (
-            <Button
-              variant="outline"
-              className="border-red-200 text-red-700 hover:bg-red-50"
-              disabled={leaveOrg.isPending}
-              onClick={() => leaveOrg.mutate()}
-            >
-              {leaveOrg.isPending ? t("common.leaving") : t("settings.leaveOrganization")}
-            </Button>
-          )}
-        </div>
-
-        <div className="hidden md:block">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-500">
-              <tr>
-                <th className="px-6 py-4 font-bold">{t("settings.name")}</th>
-                <th className="px-6 py-4 font-bold">{t("settings.role")}</th>
-                <th className="px-6 py-4 font-bold">{t("table.status")}</th>
-                <th className={`px-6 py-4 font-bold ${isRTL ? "text-left" : "text-right"}`}>{t("settings.actions")}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {members.map((member: any) => (
-                <tr key={member.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="font-bold text-[#0F2942]">{member.fullName}</div>
-                    <div className="text-xs text-slate-400">{member.email}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <RoleBadge role={member.role} />
-                  </td>
-                  <td className="px-6 py-4">
-                    <StatusDot status={member.status} />
-                  </td>
-                  <td className={`px-6 py-4 ${isRTL ? "text-left" : "text-right"} space-x-2`}>
-                    {isAdmin && user?.id !== member.id && (
-                      <>
-                        <div className="inline-block min-w-[9rem] align-middle">
-                          <Select
-                            defaultValue={member.role}
-                            className="h-8 min-w-[9rem] rounded-md px-2 py-1 text-xs"
-                            onChange={(e) =>
-                              updateRole.mutate({
-                                memberId: member.id,
-                                role: e.target.value,
-                              })
-                            }
-                          >
-                            <option value="admin">{t("roles.admin")}</option>
-                            <option value="senior_lawyer">{t("roles.seniorLawyer")}</option>
-                            <option value="lawyer">{t("roles.lawyer")}</option>
-                            <option value="paralegal">{t("roles.paralegal")}</option>
-                            <option value="clerk">{t("roles.clerk")}</option>
-                          </Select>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-red-200 text-red-700 hover:bg-red-50"
-                          onClick={() => removeMember.mutate(member.id)}
-                        >
-                          {t("settings.removeMember")}
-                        </Button>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="md:hidden space-y-3 p-4">
-          {members.map((member: any) => (
-            <div key={member.id} className="bg-slate-50 rounded-xl p-4 space-y-3">
-              <div>
-                <div className="font-bold text-[#0F2942]">{member.fullName}</div>
-                <div className="text-xs text-slate-400">{member.email}</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <RoleBadge role={member.role} />
-                <StatusDot status={member.status} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 /* =============================================================================
    NOTIFICATIONS TAB
@@ -2576,30 +2355,6 @@ function StatBox({ title, value, max, progress, color }: { title: string; value:
   );
 }
 
-function RoleBadge({ role }: { role: string }) {
-  const styles: Record<string, string> = {
-    admin: "bg-purple-50 text-purple-700 border-purple-100",
-    senior_lawyer: "bg-indigo-50 text-indigo-700 border-indigo-100",
-    lawyer: "bg-slate-100 text-slate-700 border-slate-200",
-    paralegal: "bg-green-50 text-green-700 border-green-100",
-    clerk: "bg-slate-100 text-slate-600 border-slate-200",
-  };
-  return (
-    <span className={cn("px-2 py-1 rounded text-xs font-bold border", styles[role] || styles.clerk)}>
-      {role}
-    </span>
-  );
-}
-
-function StatusDot({ status }: { status: string }) {
-  const normalized = status?.toLowerCase();
-  return (
-    <div className="flex items-center gap-2">
-      <div className={cn("w-2 h-2 rounded-full", normalized === "active" ? "bg-green-500" : "bg-amber-500")} />
-      <span className="text-slate-600 font-medium">{status}</span>
-    </div>
-  );
-}
 
 function NotificationToggle({
   title,

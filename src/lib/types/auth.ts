@@ -107,6 +107,15 @@ export const USER_ROLE_CONFIG = {
 } as const;
 
 // RBAC Permissions
+//
+// Notes on the new admin-capability permissions (under `delegated.*`):
+//   - `delegated.cases.assign`  — assign/reassign cases. Admin has via "*".
+//                                  Non-admins can be granted it individually by an admin.
+//   - `delegated.cases.viewAll` — bypass the org's restrict-case-visibility toggle.
+//                                  Admin has via "*". Optionally granted to senior lawyers.
+//
+// They live under `delegated.*` (not `cases.*`) so the lawyer's role-default
+// `cases.*` wildcard does NOT implicitly grant them.
 export const PERMISSIONS = {
   admin: ["*"],
   senior_lawyer: ["cases.*", "regulations.read", "ai-links.verify", "clients.*", "documents.*"],
@@ -115,3 +124,13 @@ export const PERMISSIONS = {
   clerk: ["cases.create", "cases.read", "regulations.read", "clients.read", "documents.read"],
   client: ["cases.read", "documents.read", "billing.read"],
 } as const;
+
+// Permissions an admin can grant to individual team members on top of role defaults.
+export const GRANTABLE_PERMISSIONS = [
+  "delegated.cases.assign",
+  "delegated.cases.viewAll",
+  "delegated.cases.close",
+  "delegated.documents.viewAll",
+  "delegated.clients.viewAll",
+] as const;
+export type GrantablePermission = (typeof GRANTABLE_PERMISSIONS)[number];

@@ -157,7 +157,8 @@
         "clients": "Clients",
         "alerts": "Alerts",
         "settings": "Settings",
-        "profile": "Profile"
+        "profile": "Profile",
+        "admin": "Admin"
     },
     "landing": {
         "appName": "SILAH",
@@ -390,6 +391,11 @@
         "changeStatus": "Change status",
         "moreActions": "More actions",
         "quickActions": "Case actions",
+        "assignment": "Assignment",
+        "reassign": "Reassign…",
+        "unassignMe": "Unassign me",
+        "selectLawyer": "Select lawyer…",
+        "unassigned": "Unassigned",
         "linkClient": "Link client",
         "linkClientHint": "Attach this case to an existing client.",
         "selectClient": "Select client",
@@ -1190,6 +1196,139 @@
         ,"noAutomations": "No automation rules yet."
         ,"defaultAutomationName": "Lead retained to welcome email"
         ,"defaultAutomationTemplate": "Welcome {{client_name}} to Silah Legal. Your portal access is ready."
+        ,"adminControls": "Admin controls"
+        ,"adminControlsHelp": "Org-wide policies. Admins and members with override permissions are unaffected."
+        ,"restrictCaseVisibility": "Restrict case visibility to assignee"
+        ,"restrictCaseVisibilityHelp": "Lawyers will only see cases they are assigned to. Users with the view-all permission are unaffected."
+        ,"visibilitySaved": "Visibility updated"
+        ,"workloadGlance": "Workload at a glance"
+        ,"openAdminDashboard": "Open admin dashboard"
+        ,"openCases": "Open cases"
+        ,"totalCases": "Total cases"
+        ,"permissions": "Permissions"
+        ,"memberPermissions": "Member permissions"
+        ,"permissionGranted": "Permission granted"
+        ,"permissionRevoked": "Permission revoked"
+        ,"permCasesAssignTitle": "Assign cases"
+        ,"permCasesAssignDesc": "Reassign cases to other lawyers in the organization."
+        ,"permCasesViewAllTitle": "View all cases"
+        ,"permCasesViewAllDesc": "Bypass the org's restrict-case-visibility setting."
+        ,"permCasesCloseTitle": "Close cases"
+        ,"permCasesCloseDesc": "Allow this user to close cases when admin-only closure is enabled."
+        ,"permDocsViewAllTitle": "View all documents"
+        ,"permDocsViewAllDesc": "Bypass the org's restrict-document-sharing setting."
+        ,"permClientsViewAllTitle": "View all clients"
+        ,"permClientsViewAllDesc": "Bypass the org's restrict-client-sharing setting."
+        ,"privacyTitle": "Privacy & sharing"
+        ,"privacySubtitle": "Org-wide policies. Admins and members with override permissions are unaffected."
+        ,"privacySaved": "Setting updated"
+        ,"privacyDocsTitle": "Restrict document sharing"
+        ,"privacyDocsHelp": "Lawyers can only open documents on cases assigned to them."
+        ,"privacyClientsTitle": "Restrict client sharing"
+        ,"privacyClientsHelp": "Lawyers see only clients tied to a case they're assigned to."
+        ,"privacyDirectoryTitle": "Hide team directory"
+        ,"privacyDirectoryHelp": "Only admins can browse the team member list."
+        ,"privacyClosureTitle": "Require admin approval to close cases"
+        ,"privacyClosureHelp": "Lawyers can update cases freely but cannot mark them closed."
+        ,"pendingInvitations": "Pending invitations"
+        ,"noPendingInvitations": "No pending invitations — invite someone above to grow the team."
+        ,"resendInvite": "Resend"
+        ,"revokeInvite": "Revoke"
+        ,"invitationResent": "Re-sends invitation with a new code; the old code stops working."
+        ,"invitationRevoked": "Invitation revoked"
+    },
+    "admin": {
+        "dashboardTitle": "Admin dashboard",
+        "dashboardSubtitle": "Team workload, unassigned cases, and recent activity at a glance.",
+        "tabOverview": "Overview",
+        "tabTeam": "Team",
+        "tabAnalytics": "Analytics",
+        "tabAudit": "Audit",
+        "orgSettingsLink": "Organization settings",
+        "statTotalCases": "Total cases",
+        "statOpenCases": "Open cases",
+        "statTeamMembers": "Team members",
+        "statUnassigned": "Unassigned",
+        "workloadPerLawyer": "Workload per lawyer",
+        "name": "Name",
+        "role": "Role",
+        "open": "Open",
+        "total": "Total",
+        "noMembers": "No team members yet.",
+        "unassignedCases": "Unassigned cases",
+        "allAssigned": "All cases are assigned.",
+        "assignTo": "Assign to…",
+        "recentActivity": "Recent team activity",
+        "noActivity": "No recent activity yet.",
+        "loadFailed": "Failed to load admin stats.",
+        "hearingsTitle": "Hearings & deadlines",
+        "hearingsOverdue": "Overdue",
+        "hearingsThisWeek": "This week",
+        "hearingsNextWeek": "Next week",
+        "hearingsLater": "Later",
+        "hearingsNoneOverdue": "No overdue hearings — you're clear.",
+        "hearingsNoneInBucket": "Nothing scheduled in this window.",
+        "daysUntil": "in {{n}} days",
+        "dueToday": "due today",
+        "overdueBy": "overdue by {{n}} days",
+        "caseNumber": "Case #",
+        "caseTitle": "Title",
+        "caseUpdated": "Updated",
+        "lawyerBackToDashboard": "Back to admin dashboard",
+        "lawyerUpcomingHearings": "Upcoming hearings",
+        "lawyerClosedCases": "Closed cases",
+        "lawyerCases": "Cases",
+        "lawyerNextHearing": "Next hearing",
+        "lawyerNoCases": "This lawyer has no assigned cases yet.",
+        "lawyerLoadFailed": "Failed to load lawyer details.",
+        "teamGrowthTitle": "Team growth",
+        "teamCapacity": "Team capacity",
+        "teamMomentum": "Team momentum",
+        "capacityAvg": "Avg open",
+        "capacityMax": "Max",
+        "capacityMin": "Min",
+        "announcementsTitle": "Org announcements",
+        "announcementsNew": "New announcement",
+        "announcementsTitlePlaceholder": "Short title (e.g. Court closed Thursday)",
+        "announcementsBodyPlaceholder": "Message visible to every team member",
+        "announcementsNoneActive": "No announcements yet. Post one to coordinate the team.",
+        "announcementsRetire": "Retire",
+        "announcementsActive": "Activate",
+        "announcementsRetired": "Retired",
+        "severityInfo": "Info",
+        "severityWarning": "Warning",
+        "severityImportant": "Important",
+        "lawyerProfileSubtitle": "Team member profile — delegate work, balance load, or onboard.",
+        "assignmentHelp": "Delegate any of their cases to balance the team's load.",
+        "recentContributions": "Recent contributions",
+        "selectAll": "Select all",
+        "bulkSelected": "{{n}} selected",
+        "bulkAssignTo": "Assign to…",
+        "bulkAssign": "Assign",
+        "bulkClear": "Clear",
+        "pulseTitle": "Org pulse",
+        "pulseStale": "Stale cases",
+        "pulseStaleHint": "No activity for 30+ days",
+        "pulseAiAwaiting": "AI suggestions to review",
+        "pulseAiHint": "Unverified case-regulation matches",
+        "pulseAiPerCase": "to review",
+        "pulseRegUpdates": "Regulation updates",
+        "pulseRegHint": "Updated in last 7 days, affecting open cases",
+        "trendsTitle": "Trends",
+        "trendsCasesOverTime": "Cases over time",
+        "trendsStatus": "Status breakdown",
+        "trendsCaseType": "Case type breakdown",
+        "trendsCreated": "Created",
+        "trendsClosed": "Closed",
+        "auditLogTitle": "Audit log",
+        "auditAll": "All",
+        "auditEmpty": "No governance events yet.",
+        "auditLoadMore": "Load more",
+        "onLeaveBadge": "On leave",
+        "markOnLeave": "Mark on leave",
+        "markActive": "Mark active",
+        "redistributeTitle": "Redistribute their open cases",
+        "redistributeHelp": "This member is on leave. Reassign their open cases to keep work flowing."
     },
     "profile": {
         "initialsFallback": "FA",
