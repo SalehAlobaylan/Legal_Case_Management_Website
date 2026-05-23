@@ -57,7 +57,26 @@ import { TeamMomentumCard } from "@/components/features/admin/team-momentum/team
 
 type TabKey = "overview" | "team" | "analytics" | "audit";
 
+/**
+ * Default export wraps the real page in <Suspense>.
+ *
+ * Why: this page uses `useSearchParams()` (to keep the active tab in sync
+ * with the URL). Next.js 14/15 forces any `useSearchParams` call to live
+ * inside a Suspense boundary, otherwise prerender during `next build` errors
+ * out with "useSearchParams() should be wrapped in a suspense boundary".
+ *
+ * Keeping the whole page CSR-only would also work, but the Suspense wrapper
+ * is the smaller change and lets the surrounding shell prerender normally.
+ */
 export default function AdminDashboardPage() {
+  return (
+    <React.Suspense fallback={<FullPageLoader />}>
+      <AdminDashboardPageInner />
+    </React.Suspense>
+  );
+}
+
+function AdminDashboardPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
