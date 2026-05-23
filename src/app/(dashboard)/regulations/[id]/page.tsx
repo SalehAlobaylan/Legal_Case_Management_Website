@@ -48,6 +48,7 @@ import {
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { cn } from "@/lib/utils/cn";
 import { useToast } from "@/components/ui/use-toast";
+import { AIFailureHint } from "@/components/features/ai/ai-status-banner";
 import {
   LegalTextReader,
   type HighlightRange,
@@ -647,6 +648,7 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
                   {insights?.errorCode && (
                     <p className="text-xs text-rose-600">{insights.errorCode}</p>
                   )}
+                  <AIFailureHint />
                 </div>
               )}
 
@@ -978,9 +980,12 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
                   )}
 
                   {amendmentImpactStatus === "failed" && (
-                    <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-                      {t("regulations.ai.failedImpact") ||
-                        "Unable to generate amendment impact analysis."}
+                    <div className="space-y-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                      <p>
+                        {t("regulations.ai.failedImpact") ||
+                          "Unable to generate amendment impact analysis."}
+                      </p>
+                      <AIFailureHint />
                     </div>
                   )}
 

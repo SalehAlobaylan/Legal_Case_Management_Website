@@ -94,6 +94,7 @@ import { ProgressSteps } from "@/components/ui/progress-steps";
 import { useChatStore } from "@/lib/store/chat-store";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody } from "@/components/ui/sheet";
 import { useIsBelowLg } from "@/lib/hooks/use-media-query";
+import { AIFailureHint } from "@/components/features/ai/ai-status-banner";
 
 
 
@@ -1638,6 +1639,7 @@ function DocumentRow({
                       ))}
                     </ul>
                   ) : null}
+                  <AIFailureHint />
                 </div>
               )}
             </div>

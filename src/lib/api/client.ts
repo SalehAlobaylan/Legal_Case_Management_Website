@@ -1,11 +1,18 @@
 /*
  * File: src/lib/api/client.ts
- * Purpose: Create and configure a shared Axios HTTP client for talking to the Fastify backend API.
- * Used by: Data-fetching hooks and services that need authenticated requests with automatic 401 handling.
+ * Purpose: Shared Axios client for the Fastify backend.
+ *
+ * Responsibilities:
+ *  - Inject bearer token from useAuthStore on every request.
+ *  - Normalize every error rejection into an `ApiError` so downstream
+ *    callers (hooks, mutations, global query cache) can branch on
+ *    `error.code` rather than poking at the raw Axios shape.
+ *  - Special-case 401 to log out and redirect to /login (existing behaviour).
  */
 
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 import { useAuthStore } from "@/lib/store/auth-store";
+import { ApiError } from "./ApiError";
 
 class ApiClient {
   private client: AxiosInstance;
@@ -23,7 +30,7 @@ class ApiClient {
   }
 
   private setupInterceptors() {
-    // Request interceptor - add token
+    // Request interceptor - inject auth token
     this.client.interceptors.request.use(
       (config) => {
         const token = useAuthStore.getState().token;
@@ -36,18 +43,25 @@ class ApiClient {
       (error) => Promise.reject(error)
     );
 
-    // Response interceptor - handle errors
+    // Response interceptor - normalize errors into ApiError
     this.client.interceptors.response.use(
       (response) => response,
       async (error: AxiosError) => {
-        if (error.response?.status === 401) {
-          // Token expired - logout
+        const apiError = ApiError.fromAxiosError(error);
+
+        // Token-expired / invalid -> hard logout + redirect.
+        // Still throw the typed error so callers can branch on .code.
+        if (apiError.status === 401) {
           useAuthStore.getState().logout();
           if (typeof window !== "undefined") {
-            window.location.href = "/login";
+            // Avoid redirect loop if we're already on /login
+            if (!window.location.pathname.startsWith("/login")) {
+              window.location.href = "/login";
+            }
           }
         }
-        return Promise.reject(error);
+
+        return Promise.reject(apiError);
       }
     );
   }
