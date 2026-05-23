@@ -248,6 +248,9 @@ export const endpoints = {
     chatSession: (id: number) => `${API_BASE}/api/ai/chat/sessions/${id}`,
     analyzeCase: (caseId: number) => `${API_BASE}/api/ai/cases/${caseId}/analyze`,
     summarizeDocument: (docId: number) => `${API_BASE}/api/documents/${docId}/summarize`,
+    // Lightweight readiness probe — used by AIStatusBanner to show users when
+    // the assistant is warming up or running on the backup service.
+    health: `${API_BASE}/api/ai/health`,
   },
 
   // AI Evaluation (admin-only)

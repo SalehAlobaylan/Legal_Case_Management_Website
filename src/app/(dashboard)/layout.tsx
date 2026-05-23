@@ -39,6 +39,7 @@ import { ChatPanel } from "@/components/features/chat/chat-panel";
 import { ChatFAB } from "@/components/features/chat/chat-fab";
 import { ChatErrorBoundary } from "@/components/features/chat/chat-error-boundary";
 import { AnnouncementBanner } from "@/components/features/announcements/announcement-banner";
+import { AIStatusBanner } from "@/components/features/ai/ai-status-banner";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { data: unreadAlerts = 0 } = useUnreadAlertsCount();
@@ -51,6 +52,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
         {/* Org-wide announcement banner (admin-posted, user-dismissible) */}
         <AnnouncementBanner />
+
+        {/* AI assistant status — only renders when the backup model is
+            loading or actively serving, so the user knows their request
+            will still work and roughly when to expect a response. */}
+        <AIStatusBanner />
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-auto scroll-smooth">
