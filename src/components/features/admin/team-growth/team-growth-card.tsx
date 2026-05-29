@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { ConfirmDialog } from "@/components/ui/dialog";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import {
   useInviteTeamMember,
@@ -42,6 +43,11 @@ export function TeamGrowthCard() {
   const [email, setEmail] = React.useState("");
   const [role, setRole] = React.useState("lawyer");
   const [lastCode, setLastCode] = React.useState<string | null>(null);
+  const [confirmAction, setConfirmAction] = React.useState<{
+    type: "resend" | "revoke";
+    id: number;
+    email: string;
+  } | null>(null);
 
   // Show pending only (active growth surface) — accepted/revoked go in settings audit.
   const pending = (data?.invitations ?? []).filter((i) => i.status === "pending");
@@ -136,7 +142,7 @@ export function TeamGrowthCard() {
                     <div className="text-xs text-slate-500">
                       <Badge variant="outline">{inv.role}</Badge>
                       <span className="ms-2">
-                        exp {new Date(inv.expiresAt).toLocaleDateString()}
+                        {t("admin.expLabel")} {new Date(inv.expiresAt).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
@@ -145,7 +151,13 @@ export function TeamGrowthCard() {
                       size="sm"
                       variant="outline"
                       disabled={resend.isPending}
-                      onClick={() => resend.mutate(inv.id)}
+                      onClick={() =>
+                        setConfirmAction({
+                          type: "resend",
+                          id: inv.id,
+                          email: inv.email,
+                        })
+                      }
                       title={t("settings.invitationResent")}
                     >
                       <RefreshCw className="h-3.5 w-3.5" />
@@ -158,7 +170,13 @@ export function TeamGrowthCard() {
                       variant="outline"
                       className="text-red-600 border-red-200 hover:bg-red-50"
                       disabled={revoke.isPending}
-                      onClick={() => revoke.mutate(inv.id)}
+                      onClick={() =>
+                        setConfirmAction({
+                          type: "revoke",
+                          id: inv.id,
+                          email: inv.email,
+                        })
+                      }
                     >
                       <XCircle className="h-3.5 w-3.5" />
                       <span className="ms-1 hidden md:inline">
@@ -171,6 +189,32 @@ export function TeamGrowthCard() {
             </ul>
           )}
         </div>
+        <ConfirmDialog
+          open={confirmAction !== null}
+          onOpenChange={(open) => !open && setConfirmAction(null)}
+          title={
+            confirmAction?.type === "revoke"
+              ? t("admin.confirmRevokeInviteTitle")
+              : t("admin.confirmResendInviteTitle")
+          }
+          description={(confirmAction?.type === "revoke"
+            ? t("admin.confirmRevokeInviteDesc")
+            : t("admin.confirmResendInviteDesc")
+          ).replace("{{email}}", confirmAction?.email ?? "")}
+          confirmText={
+            confirmAction?.type === "revoke"
+              ? t("settings.revokeInvite")
+              : t("settings.resendInvite")
+          }
+          cancelText={t("common.cancel")}
+          variant={confirmAction?.type === "revoke" ? "danger" : "warning"}
+          onConfirm={() => {
+            if (!confirmAction) return;
+            if (confirmAction.type === "revoke") revoke.mutate(confirmAction.id);
+            else resend.mutate(confirmAction.id);
+            setConfirmAction(null);
+          }}
+        />
       </CardContent>
     </Card>
   );

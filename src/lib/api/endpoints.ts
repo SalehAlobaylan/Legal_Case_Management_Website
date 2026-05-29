@@ -49,10 +49,19 @@ export const endpoints = {
   // Admin dashboard
   admin: {
     stats: `${API_BASE}/api/admin/stats`,
+    commandCenter: `${API_BASE}/api/admin/command-center`,
+    dashboardSettings: `${API_BASE}/api/admin/dashboard-settings`,
     lawyer: (id: string) => `${API_BASE}/api/admin/lawyers/${id}`,
     pulse: `${API_BASE}/api/admin/pulse`,
     trends: `${API_BASE}/api/admin/trends`,
     auditLog: `${API_BASE}/api/admin/audit-log`,
+    aiIntelligence: {
+      summary: `${API_BASE}/api/admin/ai-intelligence/summary`,
+      refresh: `${API_BASE}/api/admin/ai-intelligence/refresh`,
+      caseRefresh: (id: number) =>
+        `${API_BASE}/api/admin/ai-intelligence/cases/${id}/refresh`,
+      evaluationRun: `${API_BASE}/api/admin/ai-intelligence/evaluation/run`,
+    },
   },
 
   // Org announcements (visible to all org members for /active; admin for the rest).

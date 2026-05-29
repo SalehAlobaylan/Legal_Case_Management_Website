@@ -22,6 +22,7 @@ export interface AdminWorkloadRow {
   role: string;
   totalCases: number;
   openCases: number;
+  highWorkload?: boolean;
 }
 
 export interface AdminUnassignedCase {
@@ -76,6 +77,17 @@ export interface AdminStatsResponse {
   recentActivity: AdminActivityRow[];
   lawyerCount: number;
   hearings?: AdminHearingsBlock;
+}
+
+export interface AdminDashboardSettings {
+  organizationId: number;
+  staleCaseDays: number;
+  hearingSoonDays: number;
+  workloadHighOpenCases: number;
+  aiReviewHighCount: number;
+  monitorStaleMinutes: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AdminLawyerProfile {
@@ -151,6 +163,65 @@ export interface AdminPulseResponse {
   regulationUpdates: { count: number; items: PulseRegulationUpdate[] };
 }
 
+export interface AdminRiskItem {
+  id: string;
+  type: "overdue_hearing" | "unassigned_case" | "ai_review" | string;
+  severity: "critical" | "warning" | "info" | string;
+  title: string;
+  subtitle: string;
+  href: string;
+}
+
+export interface AdminAIHealthSummary {
+  ready: boolean;
+  warmingUp: boolean;
+  fallbackActive: boolean;
+  message: string | null;
+}
+
+export interface AdminMonitorRun {
+  id: number;
+  startedAt: string;
+  finishedAt: string | null;
+  status: string;
+  triggerSource: string;
+  dryRun: boolean;
+  scanned: number;
+  changed: number;
+  versionsCreated: number;
+  failed: number;
+  errorMessage: string | null;
+}
+
+export interface AdminMonitorHealth {
+  hasRun: boolean;
+  lastRunAt: string | null;
+  lastStatus: string | null;
+  minutesSinceLastRun: number | null;
+  failedRuns24h: number;
+  successfulRuns24h: number;
+}
+
+export interface AdminMonitorSummary {
+  health: AdminMonitorHealth;
+  runs: AdminMonitorRun[];
+  failedRuns24h: number;
+  stale: boolean;
+}
+
+export interface AdminCommandCenterResponse {
+  settings: AdminDashboardSettings;
+  caseCounts: AdminCaseCounts;
+  workload: AdminWorkloadRow[];
+  unassignedCases: AdminUnassignedCase[];
+  recentActivity: AdminActivityRow[];
+  lawyerCount: number;
+  hearings: AdminHearingsBlock;
+  risk: AdminPulseResponse & { topActions: AdminRiskItem[] };
+  aiHealth: AdminAIHealthSummary;
+  monitor: AdminMonitorSummary;
+}
+
 // ── Trends ───────────────────────────────────────────────────────────────────
 
 export interface AdminTrendsResponse {
@@ -179,7 +250,126 @@ export interface AdminAuditLogResponse {
   actions: readonly string[];
 }
 
+// ── AI Intelligence ───────────────────────────────────────────────────────────
+
+export interface AdminAISignal {
+  signal: string;
+  label: string;
+  severity: string;
+  contribution: number;
+  detail?: string | null;
+}
+
+export interface AdminAIRecommendedAction {
+  action: string;
+  label: string;
+  target?: string | null;
+}
+
+export interface AdminAICaseProfile {
+  caseId: number;
+  caseNumber: string;
+  title: string;
+  caseType: string;
+  status: string;
+  score: number;
+  urgency: string;
+  confidence: string;
+  signals: string[];
+  evidence: AdminAISignal[];
+  recommendedActions: AdminAIRecommendedAction[];
+  rationale: string | null;
+  method: string | null;
+  generatedAt: string;
+  assignedLawyer: { id: string; fullName: string | null; email: string } | null;
+}
+
+export interface AdminAIReviewQueueItem {
+  caseId: number;
+  caseNumber: string;
+  title: string;
+  unverifiedLinks: number;
+  score: number;
+  urgency: string;
+}
+
+export interface AdminAICaseRef {
+  caseId: number;
+  caseNumber: string;
+  title: string;
+  detail: string | null;
+}
+
+export interface AdminAIQualitySummary {
+  hasRun: boolean;
+  latest: Record<string, unknown> | null;
+  previous: Record<string, unknown> | null;
+  trend: {
+    recallAt5: number | null;
+    precisionAt5: number | null;
+    ndcgAt5: number | null;
+  } | null;
+  generatedAt: string | null;
+}
+
+export interface AdminAIIntelligenceSummary {
+  generatedAt: string | null;
+  needsRefresh: boolean;
+  aiHealth: AdminAIHealthSummary;
+  summary: { headline: string; bullets: string[] };
+  aggregateRisk: {
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+    total: number;
+    averageScore: number;
+  };
+  workload: {
+    overloadedLawyers: number;
+    unassignedCases: number;
+    documentRiskCases: number;
+    regulationImpactCases: number;
+  };
+  riskCases: AdminAICaseProfile[];
+  reviewQueue: AdminAIReviewQueueItem[];
+  documentIntelligence: AdminAICaseRef[];
+  regulationImpact: AdminAICaseRef[];
+  quality: AdminAIQualitySummary | null;
+  method: string | null;
+  confidence: string;
+  warnings: string[];
+}
+
 export const adminApi = {
+  async getCommandCenter(): Promise<AdminCommandCenterResponse> {
+    const { data } = await apiClient.get<AdminCommandCenterResponse>(
+      endpoints.admin.commandCenter
+    );
+    return data;
+  },
+  async getDashboardSettings(): Promise<AdminDashboardSettings> {
+    const { data } = await apiClient.get<{ settings: AdminDashboardSettings }>(
+      endpoints.admin.dashboardSettings
+    );
+    return data.settings;
+  },
+  async updateDashboardSettings(
+    input: Pick<
+      AdminDashboardSettings,
+      | "staleCaseDays"
+      | "hearingSoonDays"
+      | "workloadHighOpenCases"
+      | "aiReviewHighCount"
+      | "monitorStaleMinutes"
+    >
+  ): Promise<AdminDashboardSettings> {
+    const { data } = await apiClient.put<{ settings: AdminDashboardSettings }>(
+      endpoints.admin.dashboardSettings,
+      input
+    );
+    return data.settings;
+  },
   async getStats(): Promise<AdminStatsResponse> {
     const { data } = await apiClient.get<AdminStatsResponse>(endpoints.admin.stats);
     return data;
@@ -207,6 +397,33 @@ export const adminApi = {
       ? `${endpoints.admin.auditLog}?${params.toString()}`
       : endpoints.admin.auditLog;
     const { data } = await apiClient.get<AdminAuditLogResponse>(url);
+    return data;
+  },
+  async getAIIntelligence(): Promise<AdminAIIntelligenceSummary> {
+    const { data } = await apiClient.get<AdminAIIntelligenceSummary>(
+      endpoints.admin.aiIntelligence.summary
+    );
+    return data;
+  },
+  async refreshAIIntelligence(): Promise<AdminAIIntelligenceSummary> {
+    const { data } = await apiClient.post<AdminAIIntelligenceSummary>(
+      endpoints.admin.aiIntelligence.refresh
+    );
+    return data;
+  },
+  async refreshAICaseProfile(caseId: number): Promise<{ profile: unknown }> {
+    const { data } = await apiClient.post<{ profile: unknown }>(
+      endpoints.admin.aiIntelligence.caseRefresh(caseId)
+    );
+    return data;
+  },
+  async runAIEvaluation(
+    input: { topK?: number; caseIds?: number[] } = {}
+  ): Promise<{ run: unknown }> {
+    const { data } = await apiClient.post<{ run: unknown }>(
+      endpoints.admin.aiIntelligence.evaluationRun,
+      input
+    );
     return data;
   },
 };

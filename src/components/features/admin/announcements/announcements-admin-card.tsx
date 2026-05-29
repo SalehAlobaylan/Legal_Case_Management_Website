@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { ConfirmDialog } from "@/components/ui/dialog";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import {
   useAdminAnnouncements,
@@ -42,6 +43,10 @@ export function AnnouncementsAdminCard() {
   const [title, setTitle] = React.useState("");
   const [body, setBody] = React.useState("");
   const [severity, setSeverity] = React.useState<AnnouncementSeverity>("info");
+  const [confirm, setConfirm] = React.useState<{
+    type: "delete" | "retire" | "activate";
+    announcement: OrgAnnouncement;
+  } | null>(null);
 
   const submit = () => {
     if (!title.trim() || !body.trim()) return;
@@ -117,7 +122,7 @@ export function AnnouncementsAdminCard() {
         {/* List */}
         <div>
           <div className="text-xs font-medium text-slate-500 mb-2">
-            {(announcements?.length ?? 0)} total
+            {(announcements?.length ?? 0)} {t("admin.totalLabel")}
           </div>
           {isLoading ? (
             <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
@@ -132,19 +137,58 @@ export function AnnouncementsAdminCard() {
                   key={a.id}
                   a={a}
                   toneClass={severityTone[a.severity]}
-                  onRetire={() =>
-                    update.mutate({ id: a.id, patch: { isActive: false } })
-                  }
-                  onActivate={() =>
-                    update.mutate({ id: a.id, patch: { isActive: true } })
-                  }
-                  onDelete={() => remove.mutate(a.id)}
+                  onRetire={() => setConfirm({ type: "retire", announcement: a })}
+                  onActivate={() => setConfirm({ type: "activate", announcement: a })}
+                  onDelete={() => setConfirm({ type: "delete", announcement: a })}
                   busy={update.isPending || remove.isPending}
                 />
               ))}
             </ul>
           )}
         </div>
+        <ConfirmDialog
+          open={confirm !== null}
+          onOpenChange={(open) => !open && setConfirm(null)}
+          title={
+            confirm?.type === "delete"
+              ? t("admin.confirmDeleteAnnouncementTitle")
+              : confirm?.type === "retire"
+                ? t("admin.confirmRetireAnnouncementTitle")
+                : t("admin.confirmActivateAnnouncementTitle")
+          }
+          description={(confirm?.type === "delete"
+            ? t("admin.confirmDeleteAnnouncementDesc")
+            : confirm?.type === "retire"
+              ? t("admin.confirmRetireAnnouncementDesc")
+              : t("admin.confirmActivateAnnouncementDesc")
+          ).replace("{{title}}", confirm?.announcement.title ?? "")}
+          confirmText={
+            confirm?.type === "delete"
+              ? t("common.delete")
+              : confirm?.type === "retire"
+                ? t("admin.announcementsRetire")
+                : t("admin.announcementsActive")
+          }
+          cancelText={t("common.cancel")}
+          variant={confirm?.type === "delete" ? "danger" : "warning"}
+          onConfirm={() => {
+            if (!confirm) return;
+            if (confirm.type === "delete") remove.mutate(confirm.announcement.id);
+            if (confirm.type === "retire") {
+              update.mutate({
+                id: confirm.announcement.id,
+                patch: { isActive: false },
+              });
+            }
+            if (confirm.type === "activate") {
+              update.mutate({
+                id: confirm.announcement.id,
+                patch: { isActive: true },
+              });
+            }
+            setConfirm(null);
+          }}
+        />
       </CardContent>
     </Card>
   );

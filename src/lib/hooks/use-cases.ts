@@ -129,6 +129,7 @@ export function useBulkAssignCases() {
     onSuccess: (updated) => {
       queryClient.invalidateQueries({ queryKey: ["cases"] });
       queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-command-center"] });
       queryClient.invalidateQueries({ queryKey: ["admin-pulse"] });
       queryClient.invalidateQueries({ queryKey: ["admin-trends"] });
       queryClient.invalidateQueries({ queryKey: ["admin-audit-log"] });
@@ -167,6 +168,10 @@ export function useAssignCase() {
       queryClient.invalidateQueries({ queryKey: ["cases"] });
       queryClient.invalidateQueries({ queryKey: ["case", updatedCase.id] });
       queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-command-center"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-pulse"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-trends"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-audit-log"] });
       toast({ title: "Case assignment updated" });
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

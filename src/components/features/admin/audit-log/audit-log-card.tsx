@@ -21,9 +21,10 @@ import { useI18n } from "@/lib/hooks/use-i18n";
 import { useAdminAuditLog } from "@/lib/hooks/use-admin-audit-log";
 import { formatDate } from "@/lib/utils/format";
 
-export function AuditLogCard() {
+export function AuditLogCard({ expandable = false }: { expandable?: boolean }) {
   const { t } = useI18n();
   const [action, setAction] = React.useState<string>("");
+  const [open, setOpen] = React.useState<number | null>(null);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useAdminAuditLog({ action: action || undefined });
 
@@ -64,30 +65,46 @@ export function AuditLogCard() {
         ) : (
           <>
             <ul className="space-y-2">
-              {entries.map((e) => (
-                <li
-                  key={e.id}
-                  className="text-sm flex items-center justify-between border-b border-slate-50 pb-2 last:border-0"
-                >
-                  <div className="min-w-0 flex-1">
-                    <span className="inline-block text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 me-2">
-                      {e.action}
-                    </span>
-                    <span className="text-[#0F2942] font-medium">
-                      {e.actorName || e.actorEmail || "—"}
-                    </span>
-                    {e.targetType && (
-                      <span className="text-slate-500 ms-1">
-                        → {e.targetType}
-                        {e.targetId ? `#${e.targetId}` : ""}
+              {entries.map((e) => {
+                const isOpen = open === e.id;
+                return (
+                  <li
+                    key={e.id}
+                    className="text-sm border-b border-slate-50 pb-2 last:border-0"
+                  >
+                    <button
+                      type="button"
+                      className="w-full flex items-center justify-between gap-3 text-start"
+                      onClick={() =>
+                        expandable && setOpen(isOpen ? null : e.id)
+                      }
+                    >
+                      <div className="min-w-0 flex-1">
+                        <span className="inline-block text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 me-2">
+                          {e.action}
+                        </span>
+                        <span className="text-[#0F2942] font-medium">
+                          {e.actorName || e.actorEmail || "—"}
+                        </span>
+                        {e.targetType && (
+                          <span className="text-slate-500 ms-1">
+                            {"->"} {e.targetType}
+                            {e.targetId ? `#${e.targetId}` : ""}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-slate-400 shrink-0">
+                        {formatDate(e.createdAt)}
                       </span>
+                    </button>
+                    {expandable && isOpen && (
+                      <pre className="mt-2 overflow-x-auto rounded bg-slate-50 p-3 text-[11px] text-slate-600">
+                        {JSON.stringify(e.payload ?? {}, null, 2)}
+                      </pre>
                     )}
-                  </div>
-                  <span className="text-xs text-slate-400 shrink-0">
-                    {formatDate(e.createdAt)}
-                  </span>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
             {hasNextPage && (
               <div className="mt-3 text-center">

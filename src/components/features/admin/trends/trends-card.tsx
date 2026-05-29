@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/card";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { useAdminTrends } from "@/lib/hooks/use-admin-trends";
+import type { AdminDashboardSettings } from "@/lib/api/admin";
 
 export const STATUS_COLORS: Record<string, string> = {
   open: "#10b981",
@@ -41,7 +42,7 @@ export const STATUS_COLORS: Record<string, string> = {
 };
 export const TYPE_COLOR = "#0F2942";
 
-export function TrendsCard() {
+export function TrendsCard({ settings }: { settings?: AdminDashboardSettings }) {
   const { t } = useI18n();
   const { data, isLoading } = useAdminTrends();
 
@@ -67,8 +68,13 @@ export function TrendsCard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Cases over time */}
           <div>
-            <div className="text-xs font-semibold text-slate-500 mb-2">
-              {t("admin.trendsCasesOverTime")}
+            <div className="text-xs font-semibold text-slate-500 mb-2 flex items-center justify-between gap-2">
+              <span>{t("admin.trendsCasesOverTime")}</span>
+              {settings && (
+                <span className="font-normal text-slate-400">
+                  {t("admin.settingWorkload")}: {settings.workloadHighOpenCases}
+                </span>
+              )}
             </div>
             <ResponsiveContainer width="100%" height={180}>
               <LineChart data={data.casesOverTime}>

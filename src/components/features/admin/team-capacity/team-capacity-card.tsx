@@ -20,8 +20,10 @@ import type { AdminWorkloadRow } from "@/lib/api/admin";
 
 export function TeamCapacityCard({
   workload,
+  highOpenCases,
 }: {
   workload: AdminWorkloadRow[];
+  highOpenCases?: number;
 }) {
   const { t } = useI18n();
 
@@ -87,10 +89,16 @@ export function TeamCapacityCard({
             <tbody>
               {workload.map((row) => {
                 const pct = Math.round((row.totalCases / maxTotal) * 100);
+                const isHigh =
+                  row.highWorkload ||
+                  (typeof highOpenCases === "number" &&
+                    row.openCases >= highOpenCases);
                 return (
                   <tr
                     key={row.lawyerId}
-                    className="border-t border-slate-100 hover:bg-slate-50 transition-colors"
+                    className={`border-t border-slate-100 hover:bg-slate-50 transition-colors ${
+                      isHigh ? "bg-amber-50/50" : ""
+                    }`}
                   >
                     <td className="py-2 pr-4">
                       <Link
@@ -106,7 +114,9 @@ export function TeamCapacityCard({
                       </Link>
                       <div className="mt-1 h-1.5 w-32 bg-slate-100 rounded">
                         <div
-                          className="h-full bg-orange-500 rounded"
+                          className={`h-full rounded ${
+                            isHigh ? "bg-amber-600" : "bg-orange-500"
+                          }`}
                           style={{ width: `${pct}%` }}
                         />
                       </div>

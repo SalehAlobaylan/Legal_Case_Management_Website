@@ -25,10 +25,16 @@ import {
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { useAdminPulse } from "@/lib/hooks/use-admin-pulse";
 import { formatDate } from "@/lib/utils/format";
+import type { AdminPulseResponse } from "@/lib/api/admin";
 
-export function OrgPulseCard() {
+export function OrgPulseCard({
+  dataOverride,
+}: {
+  dataOverride?: AdminPulseResponse;
+}) {
   const { t } = useI18n();
-  const { data, isLoading } = useAdminPulse();
+  const { data: queriedData, isLoading } = useAdminPulse(!dataOverride);
+  const data = dataOverride ?? queriedData;
 
   if (isLoading) {
     return (

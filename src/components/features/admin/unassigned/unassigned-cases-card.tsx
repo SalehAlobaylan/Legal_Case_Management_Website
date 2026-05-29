@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ConfirmDialog } from "@/components/ui/dialog";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { useAssignCase, useBulkAssignCases } from "@/lib/hooks/use-cases";
 import type { AdminUnassignedCase } from "@/lib/api/admin";
@@ -26,15 +27,18 @@ import { formatDate } from "@/lib/utils/format";
 export function UnassignedCasesCard({
   unassigned,
   teamMembers,
+  teamLoading = false,
 }: {
   unassigned: AdminUnassignedCase[];
   teamMembers: Array<{ id: string; fullName?: string | null; email: string }>;
+  teamLoading?: boolean;
 }) {
   const { t } = useI18n();
   const assignCase = useAssignCase();
   const bulkAssign = useBulkAssignCases();
   const [selected, setSelected] = React.useState<Set<number>>(new Set());
   const [bulkLawyer, setBulkLawyer] = React.useState<string>("");
+  const [confirmBulk, setConfirmBulk] = React.useState(false);
 
   const toggle = (id: number, checked: boolean) =>
     setSelected((prev) => {
@@ -52,6 +56,10 @@ export function UnassignedCasesCard({
 
   const submitBulk = () => {
     if (!bulkLawyer || selected.size === 0) return;
+    if (selected.size > 1 && !confirmBulk) {
+      setConfirmBulk(true);
+      return;
+    }
     bulkAssign.mutate(
       {
         caseIds: Array.from(selected),
@@ -61,6 +69,7 @@ export function UnassignedCasesCard({
         onSuccess: () => {
           setSelected(new Set());
           setBulkLawyer("");
+          setConfirmBulk(false);
         },
       }
     );
@@ -99,8 +108,11 @@ export function UnassignedCasesCard({
                     value={bulkLawyer}
                     onChange={(e) => setBulkLawyer(e.target.value)}
                     className="h-8 text-xs min-w-[10rem]"
+                    disabled={teamLoading}
                   >
-                    <option value="">{t("admin.bulkAssignTo")}</option>
+                    <option value="">
+                      {teamLoading ? t("common.loading") : t("admin.bulkAssignTo")}
+                    </option>
                     {teamMembers.map((m) => (
                       <option key={m.id} value={m.id}>
                         {m.fullName || m.email}
@@ -110,7 +122,7 @@ export function UnassignedCasesCard({
                   <Button
                     size="sm"
                     onClick={submitBulk}
-                    disabled={!bulkLawyer || bulkAssign.isPending}
+                    disabled={!bulkLawyer || bulkAssign.isPending || teamLoading}
                     className="bg-[#0F2942] hover:bg-[#1E3A56]"
                   >
                     {bulkAssign.isPending ? (
@@ -153,7 +165,7 @@ export function UnassignedCasesCard({
                         {c.caseNumber} — {c.title}
                       </Link>
                       <div className="text-xs text-slate-500 mt-0.5">
-                        {c.caseType} • {c.status} • created{" "}
+                        {c.caseType} • {c.status} • {t("admin.createdLabel")}{" "}
                         {formatDate(c.createdAt)}
                       </div>
                     </div>
@@ -169,8 +181,11 @@ export function UnassignedCasesCard({
                           });
                         }}
                         className="h-9 text-sm"
+                        disabled={assignCase.isPending || teamLoading}
                       >
-                        <option value="">{t("admin.assignTo")}</option>
+                        <option value="">
+                          {teamLoading ? t("common.loading") : t("admin.assignTo")}
+                        </option>
                         {teamMembers.map((m) => (
                           <option key={m.id} value={m.id}>
                             {m.fullName || m.email}
@@ -182,6 +197,19 @@ export function UnassignedCasesCard({
                 );
               })}
             </ul>
+            <ConfirmDialog
+              open={confirmBulk}
+              onOpenChange={setConfirmBulk}
+              title={t("admin.confirmBulkAssignTitle")}
+              description={t("admin.confirmBulkAssignDesc").replace(
+                "{{n}}",
+                String(selected.size)
+              )}
+              confirmText={t("admin.bulkAssign")}
+              cancelText={t("common.cancel")}
+              variant="warning"
+              onConfirm={submitBulk}
+            />
           </>
         )}
       </CardContent>
