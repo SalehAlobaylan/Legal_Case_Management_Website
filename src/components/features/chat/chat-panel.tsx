@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useI18n } from "@/lib/hooks/use-i18n";
+import { useMuseumMode } from "@/lib/hooks/use-museum-mode";
 import { useAiChat, useChatSessions, useDeleteChatSession } from "@/lib/hooks/use-ai";
 import { useChatStore } from "@/lib/store/chat-store";
 import { useToast } from "@/components/ui/use-toast";
@@ -49,6 +50,7 @@ function groupSessionsByDate<T extends { updatedAt: string }>(sessions: T[]) {
 
 export function ChatPanel() {
   const { t, isRTL } = useI18n();
+  const isMuseum = useMuseumMode();
   const store = useChatStore();
   const {
     sendMessage,
@@ -120,6 +122,8 @@ export function ChatPanel() {
   }, [store.isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSend = (message: string, caseId?: number) => {
+    // Read-only demo: never fire an AI request (also blocked by API + backend).
+    if (isMuseum) return;
     setView("chat");
     sendMessage(message, caseId);
   };
@@ -488,6 +492,7 @@ export function ChatPanel() {
                 onStop={stopStreaming}
                 isStreaming={isStreaming}
                 showQuickChips={messages.length === 0 && !isStreaming}
+                disabled={isMuseum}
               />
               <FooterBar
                 isRTL={isRTL}

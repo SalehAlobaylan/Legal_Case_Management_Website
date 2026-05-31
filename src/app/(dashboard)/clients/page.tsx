@@ -38,6 +38,7 @@ import { cn } from "@/lib/utils/cn";
 import { ClientKanbanBoard } from "@/components/features/clients/client-kanban-board";
 import { useClients, useCreateClient, useExportClients } from "@/lib/hooks/use-clients";
 import { useI18n } from "@/lib/hooks/use-i18n";
+import { MuseumGuard } from "@/components/common/museum-guard";
 import type { Client } from "@/lib/types/client";
 
 /* =============================================================================
@@ -185,15 +186,17 @@ export default function ClientsPage() {
             <Download className="h-4 w-4 shrink-0" />
             <span className="truncate">{isExporting ? t("common.exporting") : t("common.export")}</span>
           </Button>
-          <Button
-            onClick={() => router.push("/clients/new")}
-            className="bg-[#D97706] hover:bg-[#B45309] text-white px-4 md:px-6 py-2.5 h-auto rounded-xl shadow-lg hover:shadow-xl md:hover:-translate-y-0.5 font-bold flex items-center justify-center gap-2 transition-all text-sm"
-          >
-            <div className="bg-white/20 p-1 rounded-md shrink-0">
-              <Plus className="h-4 w-4" />
-            </div>
-            <span className="truncate">{t("clients.newClient")}</span>
-          </Button>
+          <MuseumGuard>
+            <Button
+              onClick={() => router.push("/clients/new")}
+              className="bg-[#D97706] hover:bg-[#B45309] text-white px-4 md:px-6 py-2.5 h-auto rounded-xl shadow-lg hover:shadow-xl md:hover:-translate-y-0.5 font-bold flex items-center justify-center gap-2 transition-all text-sm"
+            >
+              <div className="bg-white/20 p-1 rounded-md shrink-0">
+                <Plus className="h-4 w-4" />
+              </div>
+              <span className="truncate">{t("clients.newClient")}</span>
+            </Button>
+          </MuseumGuard>
         </div>
       </div>
 

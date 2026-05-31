@@ -39,6 +39,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { CaseActionsMenu } from "@/components/features/cases/case-actions-menu";
+import { MuseumGuard } from "@/components/common/museum-guard";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils/cn";
 import { type Case, CaseType, CaseStatus } from "@/lib/types/case";
@@ -323,13 +324,15 @@ export default function CasesPage() {
           </h1>
           <p className="text-slate-500 mt-1 text-sm">{t("cases.subtitle")}</p>
         </div>
-        <Button
-          onClick={() => router.push("/cases/new")}
-          className="bg-[#D97706] hover:bg-[#B45309] text-white px-5 py-2.5 h-auto rounded-xl shadow-lg shadow-amber-500/20 hover:shadow-xl hover:shadow-amber-500/30 hover:-translate-y-0.5 font-bold flex items-center gap-2 transition-all text-sm"
-        >
-          <Plus className="h-4 w-4" />
-          {t("cases.newCase")}
-        </Button>
+        <MuseumGuard>
+          <Button
+            onClick={() => router.push("/cases/new")}
+            className="bg-[#D97706] hover:bg-[#B45309] text-white px-5 py-2.5 h-auto rounded-xl shadow-lg shadow-amber-500/20 hover:shadow-xl hover:shadow-amber-500/30 hover:-translate-y-0.5 font-bold flex items-center gap-2 transition-all text-sm"
+          >
+            <Plus className="h-4 w-4" />
+            {t("cases.newCase")}
+          </Button>
+        </MuseumGuard>
       </div>
 
       {/* ── Status Pipeline ──

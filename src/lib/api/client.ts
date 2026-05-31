@@ -30,14 +30,32 @@ class ApiClient {
   }
 
   private setupInterceptors() {
-    // Request interceptor - inject auth token
+    // Request interceptor - inject auth token + enforce museum (read-only) mode
     this.client.interceptors.request.use(
       (config) => {
-        const token = useAuthStore.getState().token;
+        const { token, museum } = useAuthStore.getState();
         if (token) {
           config.headers = config.headers ?? {};
           config.headers.Authorization = `Bearer ${token}`;
         }
+
+        // Museum mode: block writes before they leave the browser so demo users
+        // get an instant, friendly failure (the backend enforces this too).
+        // Auth routes (login/logout/museum) are always allowed.
+        const method = (config.method ?? "get").toLowerCase();
+        const isWrite = ["post", "put", "patch", "delete"].includes(method);
+        const url = config.url ?? "";
+        const isAuthRoute = url.includes("/api/auth");
+        if (museum && isWrite && !isAuthRoute) {
+          return Promise.reject(
+            new ApiError(
+              "AUTHZ_FORBIDDEN",
+              403,
+              "This is a read-only demo. Sign up to create or change data and use AI features."
+            )
+          );
+        }
+
         return config;
       },
       (error) => Promise.reject(error)

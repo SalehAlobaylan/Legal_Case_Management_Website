@@ -20,6 +20,7 @@ import { useVerifyLink, useDismissLink } from "@/lib/hooks/use-ai-links";
 import type { CaseRegulationLink } from "@/lib/types/case";
 import { Sparkles, Check, Loader2, ThumbsUp, X } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { MuseumGuard } from "@/components/common/museum-guard";
 
 interface AISuggestionsPanelProps {
   caseId: number;
@@ -60,10 +61,12 @@ export function AISuggestionsPanel({
           <p className="mb-6 text-sm text-muted-foreground">
             Generate AI-powered regulation suggestions for this case.
           </p>
-          <Button onClick={onGenerate}>
-            <Sparkles className="mr-2 h-4 w-4" />
-            Generate Suggestions
-          </Button>
+          <MuseumGuard>
+            <Button onClick={onGenerate}>
+              <Sparkles className="mr-2 h-4 w-4" />
+              Generate Suggestions
+            </Button>
+          </MuseumGuard>
         </CardContent>
       </Card>
     );
@@ -75,9 +78,11 @@ export function AISuggestionsPanel({
         <p className="text-sm text-muted-foreground">
           {links.length} AI-suggested regulations
         </p>
-        <Button variant="outline" size="sm" onClick={onGenerate}>
-          Refresh
-        </Button>
+        <MuseumGuard>
+          <Button variant="outline" size="sm" onClick={onGenerate}>
+            Refresh
+          </Button>
+        </MuseumGuard>
       </div>
 
       <div className="space-y-3">
@@ -128,27 +133,31 @@ export function AISuggestionsPanel({
 
                   <div className="flex shrink-0 gap-1">
                     {!link.verified && (
+                      <MuseumGuard>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={isVerifying}
+                          onClick={() => verifyLink(link.id)}
+                          className="text-xs"
+                        >
+                          <ThumbsUp className="mr-1 h-4 w-4" />
+                          Verify
+                        </Button>
+                      </MuseumGuard>
+                    )}
+                    <MuseumGuard>
                       <Button
                         size="sm"
                         variant="ghost"
-                        disabled={isVerifying}
-                        onClick={() => verifyLink(link.id)}
-                        className="text-xs"
+                        disabled={isDismissing}
+                        onClick={() => dismissLink(link.id)}
+                        className="text-xs text-muted-foreground hover:text-destructive"
                       >
-                        <ThumbsUp className="mr-1 h-4 w-4" />
-                        Verify
+                        <X className="mr-1 h-4 w-4" />
+                        Dismiss
                       </Button>
-                    )}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      disabled={isDismissing}
-                      onClick={() => dismissLink(link.id)}
-                      className="text-xs text-muted-foreground hover:text-destructive"
-                    >
-                      <X className="mr-1 h-4 w-4" />
-                      Dismiss
-                    </Button>
+                    </MuseumGuard>
                   </div>
                 </div>
               </CardContent>

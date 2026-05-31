@@ -20,6 +20,7 @@ import {
   Languages,
 } from "lucide-react";
 import { useI18n } from "@/lib/hooks/use-i18n";
+import { useMuseumLogin } from "@/lib/hooks/use-auth";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 
 // --- Helper Components ---
@@ -49,6 +50,7 @@ type HeroExample = {
 
 export default function LandingPage() {
   const { t, isRTL } = useI18n();
+  const museumLogin = useMuseumLogin();
   const [activeExample, setActiveExample] = useState(0);
   const [isPreviewPaused, setIsPreviewPaused] = useState(false);
 
@@ -252,11 +254,13 @@ export default function LandingPage() {
             >
               {t("auth.signIn")}
             </Link>
-            <Link href="/register">
-              <Button className="bg-[#D97706] hover:bg-[#B45309] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-orange-900/20">
-                {t("landing.getStarted")}
-              </Button>
-            </Link>
+            <Button
+              onClick={() => museumLogin.mutate()}
+              disabled={museumLogin.isPending}
+              className="bg-[#D97706] hover:bg-[#B45309] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-orange-900/20 disabled:opacity-70"
+            >
+              {t("landing.getStarted")}
+            </Button>
           </div>
         </nav>
 
@@ -278,15 +282,17 @@ export default function LandingPage() {
                 {t("landing.heroDescription")}
               </p>
             <div className={`flex flex-col sm:flex-row gap-4 ${isRTL ? "sm:flex-row-reverse" : ""}`}>
-              <Link href="/register">
-                <Button className="bg-[#D97706] hover:bg-[#B45309] text-white px-8 py-3.5 h-auto rounded-2xl font-bold text-base shadow-xl shadow-orange-900/20 transition-all hover:scale-105 flex items-center justify-center gap-2 group w-full sm:w-auto">
-                  {t("landing.startFreeTrial")}{" "}
-                  <ChevronRight
-                    size={18}
-                    className={`group-hover:translate-x-1 transition-transform ${isRTL ? "rotate-180 group-hover:-translate-x-1" : ""}`}
-                  />
-                </Button>
-              </Link>
+              <Button
+                onClick={() => museumLogin.mutate()}
+                disabled={museumLogin.isPending}
+                className="bg-[#D97706] hover:bg-[#B45309] text-white px-8 py-3.5 h-auto rounded-2xl font-bold text-base shadow-xl shadow-orange-900/20 transition-all hover:scale-105 flex items-center justify-center gap-2 group w-full sm:w-auto disabled:opacity-70 disabled:hover:scale-100"
+              >
+                {t("landing.getStarted")}{" "}
+                <ChevronRight
+                  size={18}
+                  className={`group-hover:translate-x-1 transition-transform ${isRTL ? "rotate-180 group-hover:-translate-x-1" : ""}`}
+                />
+              </Button>
               <button
                 onClick={() => scrollToSection("how-it-works")}
                 className="px-6 py-3.5 rounded-2xl font-bold text-sm text-white border border-white/20 hover:border-white/40 hover:bg-white/10 transition-all"
@@ -507,11 +513,13 @@ export default function LandingPage() {
           <p className="text-white/70 text-base md:text-lg mb-8 max-w-xl mx-auto leading-relaxed">
             {t("landing.ctaDescription")}
           </p>
-          <Link href="/register">
-            <Button className="bg-[#D97706] hover:bg-[#B45309] text-white px-10 py-4 h-auto rounded-2xl font-bold text-lg shadow-xl shadow-orange-900/40 transition-all hover:scale-105">
-              {t("landing.createFreeAccount")}
-            </Button>
-          </Link>
+          <Button
+            onClick={() => museumLogin.mutate()}
+            disabled={museumLogin.isPending}
+            className="bg-[#D97706] hover:bg-[#B45309] text-white px-10 py-4 h-auto rounded-2xl font-bold text-lg shadow-xl shadow-orange-900/40 transition-all hover:scale-105 disabled:opacity-70 disabled:hover:scale-100"
+          >
+            {t("landing.getStarted")}
+          </Button>
           {/* [HIDDEN FOR GRADUATION PRESENTATION] No credit card line
           <p className="text-white/40 text-sm mt-5">
             {t("landing.noCreditCard")}

@@ -75,6 +75,34 @@ export function useLogin() {
   });
 }
 
+export function useMuseumLogin() {
+  const router = useRouter();
+  const setUser = useAuthStore((state) => state.setUser);
+
+  return useMutation({
+    mutationFn: async () => {
+      // No credentials: the backend resolves the demo account server-side and
+      // returns a JWT flagged `museum: true` (read-only).
+      const { data } = await apiClient.post<AuthResponse>("/api/auth/museum");
+      return data;
+    },
+    onSuccess: (data) => {
+      setUser(
+        data.user as {
+          id: string;
+          email: string;
+          fullName: string;
+          role: string;
+          organizationId: number;
+        },
+        data.token,
+        { museum: true }
+      );
+      router.push("/dashboard");
+    },
+  });
+}
+
 export function useRegister() {
   const router = useRouter();
   const setUser = useAuthStore((state) => state.setUser);

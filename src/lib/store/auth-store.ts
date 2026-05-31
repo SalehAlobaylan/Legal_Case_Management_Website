@@ -30,8 +30,12 @@ interface AuthState {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
+  // True for read-only "museum mode" demo sessions. When set, the API client
+  // blocks write requests client-side and the UI disables mutating actions.
+  // The backend independently enforces this via the JWT `museum` flag.
+  museum: boolean;
 
-  setUser: (user: User, token: string) => void;
+  setUser: (user: User, token: string, opts?: { museum?: boolean }) => void;
   updateUser: (user: User) => void;
   logout: () => void;
 }
@@ -42,15 +46,23 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       token: null,
       isAuthenticated: false,
+      museum: false,
 
-      setUser: (user, token) => {
+      setUser: (user, token, opts) => {
+        const museum = opts?.museum === true;
         // Update in-memory + persisted state
-        set({ user, token, isAuthenticated: true });
+        set({ user, token, isAuthenticated: true, museum });
         // Also set a lightweight cookie so Next.js middleware can detect auth
         if (typeof document !== "undefined") {
           const maxAgeSeconds = 7 * 24 * 60 * 60; // 7 days
           document.cookie = `auth-storage=1; Path=/; Max-Age=${maxAgeSeconds}`;
           document.cookie = `auth-role=${encodeURIComponent(user.role)}; Path=/; Max-Age=${maxAgeSeconds}`;
+          if (museum) {
+            document.cookie = `auth-museum=1; Path=/; Max-Age=${maxAgeSeconds}`;
+          } else {
+            document.cookie =
+              "auth-museum=; Path=/; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+          }
         }
       },
 
@@ -63,13 +75,15 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        set({ user: null, token: null, isAuthenticated: false });
+        set({ user: null, token: null, isAuthenticated: false, museum: false });
         // Clear the auth cookie used by middleware
         if (typeof document !== "undefined") {
           document.cookie =
             "auth-storage=; Path=/; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
           document.cookie =
             "auth-role=; Path=/; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+          document.cookie =
+            "auth-museum=; Path=/; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
         }
       },
     }),
@@ -79,6 +93,7 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         token: state.token,
         isAuthenticated: state.isAuthenticated,
+        museum: state.museum,
       }),
     }
   )

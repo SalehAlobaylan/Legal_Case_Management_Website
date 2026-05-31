@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useI18n } from "@/lib/hooks/use-i18n";
+import { MuseumGuard } from "@/components/common/museum-guard";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   useCaseAnalysis,
@@ -121,6 +122,7 @@ export function CaseAIPanel({
           />
         </button>
         {!analysis && !isGenerating && !hasError && (
+          <MuseumGuard>
           <button
             type="button"
             onClick={(e) => {
@@ -134,8 +136,10 @@ export function CaseAIPanel({
             <Sparkles className="h-3.5 w-3.5" />
             {t("cases.aiPanel.empty.cta")}
           </button>
+          </MuseumGuard>
         )}
         {analysis && (
+          <MuseumGuard>
           <button
             type="button"
             onClick={(e) => {
@@ -151,6 +155,7 @@ export function CaseAIPanel({
               className={cn("h-4 w-4", isGenerating && "animate-spin")}
             />
           </button>
+          </MuseumGuard>
         )}
       </div>
 

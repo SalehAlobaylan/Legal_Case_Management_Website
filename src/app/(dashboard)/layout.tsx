@@ -39,6 +39,7 @@ import { ChatPanel } from "@/components/features/chat/chat-panel";
 import { ChatFAB } from "@/components/features/chat/chat-fab";
 import { ChatErrorBoundary } from "@/components/features/chat/chat-error-boundary";
 import { AnnouncementBanner } from "@/components/features/announcements/announcement-banner";
+import { MuseumBanner } from "@/components/common/museum-banner";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { data: unreadAlerts = 0 } = useUnreadAlertsCount();
@@ -46,6 +47,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <WebSocketProvider>
       <div className="flex min-h-screen flex-col bg-[#f9fafb] font-sans text-slate-900 selection:bg-[#D97706] selection:text-white">
+        {/* Read-only demo banner (museum mode only) */}
+        <MuseumBanner />
+
         {/* Header - Dark navy with Silah branding */}
         <Header unreadCount={unreadAlerts} />
 
