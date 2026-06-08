@@ -32,6 +32,7 @@ import { useI18n } from "@/lib/hooks/use-i18n";
 import { useIsBelowLg } from "@/lib/hooks/use-media-query";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { Button } from "@/components/ui/button";
+import { MuseumGuard } from "@/components/common/museum-guard";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils/cn";
 import { useToast } from "@/components/ui/use-toast";
@@ -215,7 +216,7 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
         aiLinks?.filter((l: CaseRegulationLink) => l.verified)?.length || 0;
 
     return (
-        <div className="h-[calc(100vh-80px)] overflow-hidden flex flex-col -mx-4 sm:-mx-6 lg:-mx-8 -my-8">
+        <div data-tour-id="case-linking-studio" className="h-[calc(100vh-80px)] overflow-hidden flex flex-col -mx-4 sm:-mx-6 lg:-mx-8 -my-8">
             {/* ── Top Header ── */}
             <div className="bg-white border-b border-slate-200 px-3 md:px-6 py-3 md:py-4 shrink-0 shadow-sm z-10">
                 <div className="flex items-center justify-between gap-2">
@@ -296,28 +297,30 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
                             </div>
                         )}
 
-                        <Button
-                            size="sm"
-                            onClick={handleGenerate}
-                            disabled={isGenerating}
-                            aria-label={
-                                isGenerating
-                                    ? t("ai.generatingStudio")
-                                    : t("ai.generateSuggestionsStudio")
-                            }
-                            className="bg-[#D97706] hover:bg-[#B45309] text-white text-xs font-bold"
-                        >
-                            {isGenerating ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin sm:mr-1.5" />
-                            ) : (
-                                <RefreshCw className="h-3.5 w-3.5 sm:mr-1.5" />
-                            )}
-                            <span className="hidden sm:inline">
-                                {isGenerating
-                                    ? t("ai.generatingStudio")
-                                    : t("ai.generateSuggestionsStudio")}
-                            </span>
-                        </Button>
+                        <MuseumGuard>
+                            <Button
+                                size="sm"
+                                onClick={handleGenerate}
+                                disabled={isGenerating}
+                                aria-label={
+                                    isGenerating
+                                        ? t("ai.generatingStudio")
+                                        : t("ai.generateSuggestionsStudio")
+                                }
+                                className="bg-[#D97706] hover:bg-[#B45309] text-white text-xs font-bold"
+                            >
+                                {isGenerating ? (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin sm:mr-1.5" />
+                                ) : (
+                                    <RefreshCw className="h-3.5 w-3.5 sm:mr-1.5" />
+                                )}
+                                <span className="hidden sm:inline">
+                                    {isGenerating
+                                        ? t("ai.generatingStudio")
+                                        : t("ai.generateSuggestionsStudio")}
+                                </span>
+                            </Button>
+                        </MuseumGuard>
                     </div>
                 </div>
             </div>
@@ -370,14 +373,16 @@ export default function LinkingStudioPage({ params }: LinkingStudioPageProps) {
                                 <p className="text-sm text-slate-500 mb-6 leading-relaxed">
                                     {t("ai.noRegulationLinksDesc")}
                                 </p>
-                                <Button
-                                    onClick={handleGenerate}
-                                    disabled={isGenerating}
-                                    className="bg-[#D97706] hover:bg-[#B45309] text-white font-bold"
-                                >
-                                    <Sparkles className="h-4 w-4 mr-2" />
-                                    {t("ai.generateSuggestionsStudio")}
-                                </Button>
+                                <MuseumGuard>
+                                    <Button
+                                        onClick={handleGenerate}
+                                        disabled={isGenerating}
+                                        className="bg-[#D97706] hover:bg-[#B45309] text-white font-bold"
+                                    >
+                                        <Sparkles className="h-4 w-4 mr-2" />
+                                        {t("ai.generateSuggestionsStudio")}
+                                    </Button>
+                                </MuseumGuard>
                             </div>
                         )}
                     </div>

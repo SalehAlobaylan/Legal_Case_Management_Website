@@ -134,7 +134,7 @@ export default function DashboardPage() {
   );
 
   return (
-    <div className="space-y-8 pb-12 animate-in fade-in zoom-in-95 duration-500">
+    <div data-tour-id="dashboard-command-center" className="space-y-8 pb-12 animate-in fade-in zoom-in-95 duration-500">
       
       {/* ── Header ── */}
       <div className="rounded-2xl bg-white border border-slate-200 p-6 md:p-7 shadow-sm">
@@ -169,7 +169,7 @@ export default function DashboardPage() {
       </NajizLockOverlay>
 
       {/* ── System Overview (3 Columns) ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div data-tour-id="dashboard-overview" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Column 1: Recent Clients */}
         {clientsLoading ? <ColumnSkeleton /> : (

@@ -693,6 +693,8 @@
             "refreshQueued": "AI analysis has been queued.",
             "processing": "AI analysis is being prepared. Please wait...",
             "failed": "AI analysis failed",
+            "emptyTitle": "No AI analysis yet",
+            "emptyBody": "No structured summary, obligations, risk flags, or evidence snippets exist for this regulation yet. Generate one to inspect the AI output.",
             "executiveSummary": "Executive Summary",
             "obligations": "Compliance Obligations",
             "riskFlags": "Risk Flags",
@@ -1776,6 +1778,111 @@
                 "draft": "Draft a {{docType}}{{casePart}}. Key points:\n{{keyPoints}}",
                 "draftCase": " related to case \"{{title}}\" (#{{caseNumber}})",
                 "explain": "Explain the legal term \"{{term}}\" in a {{depth}} way."
+            }
+        }
+    },
+    "museumTour": {
+        "launcher": "Explore features",
+        "mapTitle": "Explore Silah features",
+        "mapSubtitle": "Jump through the platform without changing data or running live AI.",
+        "readOnlyNote": "Museum mode is read-only. You can inspect the experience, but live AI generation and edits unlock after sign-up.",
+        "previewNote": "Museum preview: cached examples can be inspected here. Running fresh AI analysis is disabled in demo mode.",
+        "anchorFallback": "This feature usually appears inside a case or regulation record. We opened the closest workspace so you can still understand the workflow.",
+        "back": "Back",
+        "next": "Next",
+        "done": "Done",
+        "skip": "Skip tour",
+        "keyboardHint": "←  →  Esc",
+        "categories": {
+            "core": "Core",
+            "ai": "AI",
+            "admin": "Admin",
+            "workflow": "Workflow"
+        },
+        "items": {
+            "dashboard": {
+                "title": "Command center",
+                "body": "Start with the daily legal workspace: open cases, clients, hearing preparation, regulation updates, and document review priorities."
+            },
+            "searchAi": {
+                "title": "Unified search and Ask AI",
+                "body": "Search cases, clients, and regulations from one bar. Question-shaped searches can open the AI assistant for legal drafting and analysis."
+            },
+            "askAi": {
+                "title": "Ask AI",
+                "body": "Open the legal AI assistant directly from the header to ask case questions, draft language, or summarize material in context."
+            },
+            "dashboardOverview": {
+                "title": "Daily system overview",
+                "body": "Open cases, hearings, clients, regulation updates, and review priorities are surfaced side-by-side so the team can triage the day at a glance."
+            },
+            "cases": {
+                "title": "Cases workspace",
+                "body": "Track matter status, clients, deadlines, documents, assigned lawyers, and AI-discovered legal connections from the case workspace."
+            },
+            "caseLinking": {
+                "title": "Case linking",
+                "body": "Silah links each case to relevant regulations with confidence scores, evidence, and a verification workflow lawyers can trust."
+            },
+            "linkingStudio": {
+                "title": "Case Linking Studio",
+                "body": "Review suggested links in depth with score breakdowns, matched passages, regulation previews, verification, dismissal, and subscription actions."
+            },
+            "caseAnalysis": {
+                "title": "Case summarization and analysis",
+                "body": "AI can summarize the case, identify strengths, weaknesses, risks, recommendations, and jump the lawyer back to the supporting text."
+            },
+            "findRelated": {
+                "title": "Find related sources",
+                "body": "Multi-source discovery searches regulations, judicial precedents, government documents, and optional web research with clear citability labels."
+            },
+            "regulations": {
+                "title": "Regulations library",
+                "body": "Browse official legal texts, metadata, publication status, source documents, and update history in a reader built for Saudi legal work."
+            },
+            "regulationAi": {
+                "title": "Regulation AI analysis",
+                "body": "Generate structured summaries of obligations, risk flags, key dates, and evidence snippets so teams understand a regulation faster."
+            },
+            "regVersions": {
+                "title": "Regulation versions and impact",
+                "body": "Compare regulation versions, inspect changes, and analyze amendment impact on cases and affected parties."
+            },
+            "regCompare": {
+                "title": "Side-by-side regulation compare",
+                "body": "Place two versions of a regulation next to each other, highlight every change, and review the language lawyers need to act on."
+            },
+            "clients": {
+                "title": "Clients, intake, and automations",
+                "body": "Manage clients, intake forms, communication workflows, exported lists, and the client relationship around every matter."
+            },
+            "alerts": {
+                "title": "Real-time alerts",
+                "body": "Stay informed when cases, AI suggestions, regulations, documents, and team activity need attention."
+            },
+            "adminAi": {
+                "title": "Admin AI Intelligence",
+                "body": "Admins get risk-ranked cases, review queues, workload guidance, model health, evaluation metrics, and human-approved AI action drafts."
+            },
+            "adminOps": {
+                "title": "Admin operations",
+                "body": "Monitor hearings, unassigned cases, team capacity, audit logs, announcements, thresholds, and operational health."
+            },
+            "bilingual": {
+                "title": "Arabic and English",
+                "body": "Silah is bilingual with RTL-aware layouts so Saudi legal teams can move naturally between Arabic and English."
+            },
+            "chatPanelHeader": {
+                "title": "Chat header & actions",
+                "body": "Every action lives in the header: start a new conversation, browse history, expand the panel to 640px for long messages, or close it without losing the active session."
+            },
+            "chatPanelInput": {
+                "title": "Ask your question",
+                "body": "Type in the textarea and press Enter to send (Shift+Enter for a new line). The quick action chips let you summarize the active case or find related regulations with one click."
+            },
+            "chatPanelHistory": {
+                "title": "Conversation history",
+                "body": "Every past conversation is saved here. Search by title, browse by recency, click to reopen, or hover and trash to delete."
             }
         }
     },

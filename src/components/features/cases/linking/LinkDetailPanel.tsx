@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { Button } from "@/components/ui/button";
+import { MuseumGuard } from "@/components/common/museum-guard";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { ScoreBreakdownChart } from "./ScoreBreakdownChart";
 import { MatchEvidenceExplorer } from "./MatchEvidenceExplorer";
@@ -141,6 +142,7 @@ export function LinkDetailPanel({
                         <span className="truncate">{t("ai.linkedToEvidence")}</span>
                     </span>
                     {!isSubscribed && onSubscribe && regulationId && (
+                        <MuseumGuard>
                         <Button
                             size="sm"
                             variant="outline"
@@ -151,7 +153,9 @@ export function LinkDetailPanel({
                             <Bell className={cn("h-3.5 w-3.5", !isMobile && "mr-1")} />
                             {!isMobile && t("ai.subscribeToUpdates")}
                         </Button>
+                        </MuseumGuard>
                     )}
+                    <MuseumGuard>
                     <Button
                         size="sm"
                         variant="outline"
@@ -172,11 +176,13 @@ export function LinkDetailPanel({
                             </>
                         )}
                     </Button>
+                    </MuseumGuard>
                 </div>
             );
         }
         return (
             <div className={cn("flex items-center gap-2", isMobile && "w-full")}>
+                <MuseumGuard>
                 <Button
                     size="sm"
                     onClick={() => onVerify(link.id)}
@@ -193,6 +199,8 @@ export function LinkDetailPanel({
                     )}
                     <span className="truncate">{t("ai.verifyAndLink")}</span>
                 </Button>
+                </MuseumGuard>
+                <MuseumGuard>
                 <Button
                     size="sm"
                     variant="outline"
@@ -213,7 +221,9 @@ export function LinkDetailPanel({
                         </>
                     )}
                 </Button>
+                </MuseumGuard>
                 {!isSubscribed && onSubscribe && regulationId && (
+                    <MuseumGuard>
                     <Button
                         size="sm"
                         variant="outline"
@@ -224,6 +234,7 @@ export function LinkDetailPanel({
                         <Bell className={cn("h-3.5 w-3.5", !isMobile && "mr-1")} />
                         {!isMobile && t("ai.subscribe")}
                     </Button>
+                    </MuseumGuard>
                 )}
             </div>
         );

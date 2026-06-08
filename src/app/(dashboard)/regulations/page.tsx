@@ -206,7 +206,7 @@ export default function RegulationsPage() {
   const amendedCount = filteredRegulations.filter((r) => r.status?.toLowerCase() === "amended").length;
 
   return (
-    <div className="space-y-6">
+    <div data-tour-id="regulations-library" className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-stretch md:items-end gap-4">
         <div>

@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { MuseumGuard } from "@/components/common/museum-guard";
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { formatDate } from "@/lib/utils/format";
@@ -86,7 +87,7 @@ export function AIIntelligencePanel({ enabled = true }: { enabled?: boolean }) {
     data.method === "backend_fallback" || (data.warnings ?? []).includes("ai_unavailable");
 
   return (
-    <div className="space-y-6">
+    <div data-tour-id="admin-ai-intelligence" className="space-y-6">
       {/* Header + actions */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
@@ -112,21 +113,23 @@ export function AIIntelligencePanel({ enabled = true }: { enabled?: boolean }) {
             ) : null}
           </div>
         </div>
-        <Button
-          size="sm"
-          disabled={refresh.isPending}
-          onClick={() => setConfirm("refresh")}
-          className="bg-[#0F2942] hover:bg-[#1E3A56]"
-        >
-          {refresh.isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <RefreshCw className="h-4 w-4" />
-          )}
-          <span className="ms-2">
-            {refresh.isPending ? t("admin.aiIntel.refreshing") : t("admin.aiIntel.refresh")}
-          </span>
-        </Button>
+        <MuseumGuard>
+          <Button
+            size="sm"
+            disabled={refresh.isPending}
+            onClick={() => setConfirm("refresh")}
+            className="bg-[#0F2942] hover:bg-[#1E3A56]"
+          >
+            {refresh.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            <span className="ms-2">
+              {refresh.isPending ? t("admin.aiIntel.refreshing") : t("admin.aiIntel.refresh")}
+            </span>
+          </Button>
+        </MuseumGuard>
       </div>
 
       {degraded ? (
@@ -143,15 +146,17 @@ export function AIIntelligencePanel({ enabled = true }: { enabled?: boolean }) {
               {t("admin.aiIntel.needsRefresh")}
             </div>
             <p className="text-sm text-slate-500">{t("admin.aiIntel.needsRefreshHelp")}</p>
-            <Button
-              size="sm"
-              disabled={refresh.isPending}
-              onClick={() => setConfirm("refresh")}
-              className="bg-[#0F2942] hover:bg-[#1E3A56]"
-            >
-              <RefreshCw className="h-4 w-4" />
-              <span className="ms-2">{t("admin.aiIntel.refresh")}</span>
-            </Button>
+            <MuseumGuard>
+              <Button
+                size="sm"
+                disabled={refresh.isPending}
+                onClick={() => setConfirm("refresh")}
+                className="bg-[#0F2942] hover:bg-[#1E3A56]"
+              >
+                <RefreshCw className="h-4 w-4" />
+                <span className="ms-2">{t("admin.aiIntel.refresh")}</span>
+              </Button>
+            </MuseumGuard>
           </CardContent>
         </Card>
       ) : (
@@ -290,19 +295,21 @@ export function AIIntelligencePanel({ enabled = true }: { enabled?: boolean }) {
                   <span className="flex items-center gap-2">
                     <Activity className="h-4 w-4" /> {t("admin.aiIntel.quality")}
                   </span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={runEval.isPending}
-                    onClick={() => setConfirm("eval")}
-                  >
-                    {runEval.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4" />
-                    )}
-                    <span className="ms-2">{t("admin.aiIntel.runEvaluation")}</span>
-                  </Button>
+                  <MuseumGuard>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={runEval.isPending}
+                      onClick={() => setConfirm("eval")}
+                    >
+                      {runEval.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-4 w-4" />
+                      )}
+                      <span className="ms-2">{t("admin.aiIntel.runEvaluation")}</span>
+                    </Button>
+                  </MuseumGuard>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -455,9 +462,11 @@ function RiskRow({
         >
           {t("admin.aiIntel.openCase")} <ArrowUpRight className="h-3 w-3" />
         </Link>
-        <Button size="sm" variant="ghost" disabled={refreshing} onClick={onRefresh}>
-          <RefreshCw className="h-3.5 w-3.5" />
-        </Button>
+        <MuseumGuard>
+          <Button size="sm" variant="ghost" disabled={refreshing} onClick={onRefresh}>
+            <RefreshCw className="h-3.5 w-3.5" />
+          </Button>
+        </MuseumGuard>
       </div>
     </div>
   );

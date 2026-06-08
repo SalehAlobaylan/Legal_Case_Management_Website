@@ -36,6 +36,10 @@ export interface ChatSession {
 interface ChatState {
   // Panel visibility
   isOpen: boolean;
+  /** Which view the panel is showing. Moved into the store so external
+   *  actors (e.g. the museum tour) can switch the view without having to
+   *  reach into ChatPanel's local component state. */
+  view: "chat" | "history";
   // Active session
   activeSessionId: number | null;
   // Messages in current session
@@ -49,8 +53,9 @@ interface ChatState {
   pendingMessage: string | null;
 
   // Actions
-  openChat: (initialMessage?: string, caseId?: number) => void;
+  openChat: (initialMessage?: string, caseId?: number, view?: "chat" | "history") => void;
   closeChat: () => void;
+  setView: (view: "chat" | "history") => void;
   setActiveSession: (id: number, messages?: ChatMessage[]) => void;
   setSessionId: (id: number) => void;
   clearSession: () => void;
@@ -66,6 +71,7 @@ interface ChatState {
 
 export const useChatStore = create<ChatState>((set, get) => ({
   isOpen: false,
+  view: "chat",
   activeSessionId: null,
   messages: [],
   isStreaming: false,
@@ -74,16 +80,21 @@ export const useChatStore = create<ChatState>((set, get) => ({
   pendingCaseId: null,
   pendingMessage: null,
 
-  openChat: (initialMessage?: string, caseId?: number) => {
+  openChat: (initialMessage?: string, caseId?: number, view?: "chat" | "history") => {
     set({
       isOpen: true,
       pendingMessage: initialMessage || null,
       pendingCaseId: caseId ?? null,
+      view: view ?? "chat",
     });
   },
 
   closeChat: () => {
     set({ isOpen: false });
+  },
+
+  setView: (view) => {
+    set({ view });
   },
 
   setActiveSession: (id: number, messages?: ChatMessage[]) => {

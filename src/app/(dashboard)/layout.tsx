@@ -36,16 +36,17 @@ import { NavigationDock } from "@/components/layout/navigation-dock";
 import { WebSocketProvider } from "@/components/providers/websocket-provider";
 import { useUnreadAlertsCount } from "@/lib/hooks/use-alerts";
 import { ChatPanel } from "@/components/features/chat/chat-panel";
-import { ChatFAB } from "@/components/features/chat/chat-fab";
 import { ChatErrorBoundary } from "@/components/features/chat/chat-error-boundary";
 import { AnnouncementBanner } from "@/components/features/announcements/announcement-banner";
 import { MuseumBanner } from "@/components/common/museum-banner";
+import { MuseumWalkthroughProvider } from "@/components/common/museum-walkthrough";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { data: unreadAlerts = 0 } = useUnreadAlertsCount();
 
   return (
     <WebSocketProvider>
+      <MuseumWalkthroughProvider>
       <div className="flex min-h-screen flex-col bg-[#f9fafb] font-sans text-slate-900 selection:bg-[#D97706] selection:text-white">
         {/* Read-only demo banner (museum mode only) */}
         <MuseumBanner />
@@ -73,6 +74,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <ChatPanel />
         </ChatErrorBoundary>
       </div>
+      </MuseumWalkthroughProvider>
     </WebSocketProvider>
   );
 }

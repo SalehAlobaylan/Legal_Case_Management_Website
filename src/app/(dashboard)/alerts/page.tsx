@@ -159,7 +159,7 @@ export default function AlertsPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto animate-in fade-in duration-500">
+    <div data-tour-id="alerts-realtime" className="space-y-8 max-w-5xl mx-auto animate-in fade-in duration-500">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>

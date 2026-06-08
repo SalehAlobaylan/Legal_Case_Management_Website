@@ -36,7 +36,10 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { MuseumGuard } from "@/components/common/museum-guard";
 import { cn } from "@/lib/utils/cn";
+import { useI18n } from "@/lib/hooks/use-i18n";
+import { useMuseumMode } from "@/lib/hooks/use-museum-mode";
 import {
   useCaseSources,
   useDismissCaseSourceLink,
@@ -203,27 +206,31 @@ function SourceItemRow({
           </a>
         )}
         <div className="ml-auto flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={item.verified}
-            onClick={() => onVerify(item.linkId)}
-            title={item.verified ? "Verified" : "Mark as verified"}
-          >
-            {item.verified ? (
-              <Check className="h-3 w-3 text-emerald-600" />
-            ) : (
-              <ThumbsUp className="h-3 w-3" />
-            )}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onDismiss(item.linkId)}
-            title="Dismiss"
-          >
-            <X className="h-3 w-3 text-rose-600" />
-          </Button>
+          <MuseumGuard>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={item.verified}
+              onClick={() => onVerify(item.linkId)}
+              title={item.verified ? "Verified" : "Mark as verified"}
+            >
+              {item.verified ? (
+                <Check className="h-3 w-3 text-emerald-600" />
+              ) : (
+                <ThumbsUp className="h-3 w-3" />
+              )}
+            </Button>
+          </MuseumGuard>
+          <MuseumGuard>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDismiss(item.linkId)}
+              title="Dismiss"
+            >
+              <X className="h-3 w-3 text-rose-600" />
+            </Button>
+          </MuseumGuard>
         </div>
       </div>
     </div>
@@ -322,6 +329,8 @@ export function MultiSourceSuggestions({
   caseId,
   className,
 }: MultiSourceSuggestionsProps) {
+  const { t } = useI18n();
+  const isMuseum = useMuseumMode();
   const { data, isLoading, error } = useCaseSources(caseId);
   const findRelated = useFindRelatedCaseSources(caseId);
   const verify = useVerifyCaseSourceLink(caseId);
@@ -344,7 +353,7 @@ export function MultiSourceSuggestions({
   }
 
   return (
-    <Card className={className}>
+    <Card data-tour-id="find-related" className={className}>
       <CardHeader className="flex flex-row items-start justify-between gap-3">
         <div>
           <CardTitle className="flex items-center gap-2 text-base">
@@ -366,22 +375,29 @@ export function MultiSourceSuggestions({
             />
             Include web research
           </label>
-          <Button
-            size="sm"
-            onClick={handleRunFindRelated}
-            disabled={findRelated.isPending}
-          >
-            {findRelated.isPending ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : (
-              <Search className="h-3 w-3" />
-            )}
-            <span className="ml-1">Find related</span>
-          </Button>
+          <MuseumGuard>
+            <Button
+              size="sm"
+              onClick={handleRunFindRelated}
+              disabled={findRelated.isPending}
+            >
+              {findRelated.isPending ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Search className="h-3 w-3" />
+              )}
+              <span className="ml-1">Find related</span>
+            </Button>
+          </MuseumGuard>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-3">
+        {isMuseum && (
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+            {t("museumTour.previewNote")}
+          </div>
+        )}
         {isLoading && (
           <div className="flex items-center gap-2 text-sm text-slate-600">
             <Loader2 className="h-4 w-4 animate-spin" />

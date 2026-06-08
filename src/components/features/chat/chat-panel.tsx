@@ -62,7 +62,11 @@ export function ChatPanel() {
 
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
-  const [view, setView] = React.useState<"chat" | "history">("chat");
+  // The panel's view is kept in the chat store so the museum tour (and any
+  // other external actor) can switch it without reaching into this
+  // component's local state.
+  const view = store.view;
+  const setView = store.setView;
   const [isExpanded, setIsExpanded] = React.useState(false);
   const [historyQuery, setHistoryQuery] = React.useState("");
   const [showScrollBtn, setShowScrollBtn] = React.useState(false);
@@ -221,6 +225,7 @@ export function ChatPanel() {
       >
         {/* Header — cleaner, lighter */}
         <div
+          data-tour-id="chat-panel-header"
           className={cn(
             "relative flex items-center justify-between px-3.5 py-2.5",
             "bg-gradient-to-br from-[#0F2942] via-[#14365A] to-[#1E3A56] text-white",
@@ -283,7 +288,7 @@ export function ChatPanel() {
         {/* Content area */}
         {view === "history" ? (
           /* ========== HISTORY VIEW ========== */
-          <div className="flex-1 overflow-hidden flex flex-col bg-slate-50/50">
+          <div data-tour-id="chat-panel-history" className="flex-1 overflow-hidden flex flex-col bg-slate-50/50">
             {/* Back + Search */}
             <div className="px-3 pt-3 pb-2 space-y-2 flex-shrink-0 bg-white border-b border-slate-200/70">
               <button
@@ -486,7 +491,7 @@ export function ChatPanel() {
             )}
 
             {/* Input + footer */}
-            <div className="flex-shrink-0 border-t border-slate-200 bg-white">
+            <div data-tour-id="chat-panel-input" className="flex-shrink-0 border-t border-slate-200 bg-white">
               <ChatInput
                 onSend={handleSend}
                 onStop={stopStreaming}

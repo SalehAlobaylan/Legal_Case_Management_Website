@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   CalendarClock,
@@ -24,6 +24,7 @@ import {
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MuseumGuard } from "@/components/common/museum-guard";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -112,11 +113,63 @@ function getStatusStyle(status: string) {
 }
 
 export default function RegulationDetailPage({ params }: RegulationDetailPageProps) {
+  return (
+    <React.Suspense fallback={<RegulationDetailLoader />}>
+      <RegulationDetailPageInner params={params} />
+    </React.Suspense>
+  );
+}
+
+function RegulationDetailLoader() {
+  return (
+    <div className="flex h-64 items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-[#D97706]" />
+    </div>
+  );
+}
+
+const ALLOWED_TABS = ["content", "insights", "versions", "compare"] as const;
+type AllowedTab = (typeof ALLOWED_TABS)[number];
+function isAllowedTab(value: string | null | undefined): value is AllowedTab {
+  return typeof value === "string" && (ALLOWED_TABS as readonly string[]).includes(value);
+}
+
+function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
   const resolvedParams = React.use(params);
   const regulationId = Number(resolvedParams.id);
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { t, isRTL } = useI18n();
   const { toast } = useToast();
+  const tabFromUrl = searchParams?.get("tab") ?? null;
+  const initialTab: AllowedTab = isAllowedTab(tabFromUrl) ? tabFromUrl : "content";
+  const [activeTab, setActiveTab] = React.useState<AllowedTab>(initialTab);
+  // Sync the active tab when the URL's ?tab= changes (e.g. the museum tour
+  // pushes a new ?tab= to highlight a different anchor). Tab click handlers
+  // also update the URL (see handleTabChange below) so this effect only
+  // needs to depend on `tabFromUrl` — depending on `activeTab` too would
+  // re-fire after a local state update and snap the tab back to the URL
+  // value, fighting the user's click.
+  React.useEffect(() => {
+    if (isAllowedTab(tabFromUrl) && tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabFromUrl]);
+
+  const handleTabChange = React.useCallback(
+    (value: AllowedTab) => {
+      setActiveTab(value);
+      const sp = new URLSearchParams(searchParams?.toString() ?? "");
+      sp.set("tab", value);
+      router.replace(
+        `${pathname}?${sp.toString()}`,
+        { scroll: false }
+      );
+    },
+    [pathname, router, searchParams]
+  );
 
   const { data: regulation, isLoading: isLoadingRegulation } = useRegulation(regulationId);
   const { data: versions, isLoading: isLoadingVersions } = useRegulationVersions(regulationId);
@@ -525,7 +578,16 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
       {/* Main Tabs Section — tighter padding on mobile so the reader has
           more horizontal room; tab list stays horizontally scrollable. */}
       <div className="rounded-2xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm">
-        <Tabs defaultValue="content" className="w-full">
+        <Tabs
+          defaultValue="content"
+          value={activeTab}
+          onValueChange={(value) => {
+            if (isAllowedTab(value)) {
+              handleTabChange(value);
+            }
+          }}
+          className="w-full"
+        >
           {/* Mobile: flex-wrap so all four tabs are visible without horizontal
               scrolling — tabs wrap onto two rows, bottom border sits under the
               whole block. Desktop (md+): single flex row with gap-8, matching
@@ -540,6 +602,7 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
             </TabsTrigger>
             <TabsTrigger
               value="insights"
+              data-tour-id="regulation-ai-analysis"
               className="justify-center md:justify-start gap-2 px-3 md:px-5 py-2 md:py-0 text-xs md:text-sm leading-tight whitespace-nowrap"
             >
               <Sparkles className="h-4 w-4 shrink-0" />
@@ -547,6 +610,7 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
             </TabsTrigger>
             <TabsTrigger
               value="versions"
+              data-tour-id="regulation-versions"
               className="justify-center md:justify-start gap-2 px-3 md:px-5 py-2 md:py-0 text-xs md:text-sm leading-tight whitespace-nowrap"
             >
               <Clock3 className="h-4 w-4 shrink-0" />
@@ -559,6 +623,7 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
             </TabsTrigger>
             <TabsTrigger
               value="compare"
+              data-tour-id="regulation-compare"
               className="justify-center md:justify-start gap-2 px-3 md:px-5 py-2 md:py-0 text-xs md:text-sm leading-tight whitespace-nowrap"
             >
               <GitCompare className="h-4 w-4 shrink-0" />
@@ -590,45 +655,63 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
                 <p className="text-xs text-slate-600">
                   {t("regulations.ai.arabicOnly") || "Generated content appears in Arabic only."}
                 </p>
-                <Button
-                  onClick={() =>
-                    refreshInsights.mutate(
-                      { force: true },
-                      {
-                        onSuccess: () => {
-                          toast({
-                            title: t("common.success"),
-                            description:
-                              t("regulations.ai.refreshQueued") ||
-                              "AI analysis has been queued.",
-                          });
-                        },
-                        onError: (error) => {
-                          toast({
-                            title: t("common.error"),
-                            description:
-                              error instanceof Error
-                                ? error.message
-                                : t("regulations.syncFailed"),
-                            variant: "destructive",
-                          });
-                        },
-                      }
-                    )
-                  }
-                  disabled={refreshInsights.isPending}
-                  className="gap-2"
-                >
-                  {refreshInsights.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-4 w-4" />
-                  )}
-                  {insightsStatus === "not_generated"
-                    ? t("regulations.ai.generate") || "Generate AI Analysis"
-                    : t("regulations.ai.regenerate") || "Regenerate"}
-                </Button>
+                <MuseumGuard>
+                  <Button
+                    onClick={() =>
+                      refreshInsights.mutate(
+                        { force: true },
+                        {
+                          onSuccess: () => {
+                            toast({
+                              title: t("common.success"),
+                              description:
+                                t("regulations.ai.refreshQueued") ||
+                                "AI analysis has been queued.",
+                            });
+                          },
+                          onError: (error) => {
+                            toast({
+                              title: t("common.error"),
+                              description:
+                                error instanceof Error
+                                  ? error.message
+                                  : t("regulations.syncFailed"),
+                              variant: "destructive",
+                            });
+                          },
+                        }
+                      )
+                    }
+                    disabled={refreshInsights.isPending}
+                    className="gap-2"
+                  >
+                    {refreshInsights.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4" />
+                    )}
+                    {insightsStatus === "not_generated"
+                      ? t("regulations.ai.generate") || "Generate AI Analysis"
+                      : t("regulations.ai.regenerate") || "Regenerate"}
+                  </Button>
+                </MuseumGuard>
               </div>
+
+              {insightsStatus === "not_generated" && (
+                <div
+                  data-testid="regulation-ai-empty"
+                  className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50/50 px-6 py-10 text-center"
+                >
+                  <Sparkles className="h-7 w-7 text-slate-300" aria-hidden="true" />
+                  <p className="text-sm font-semibold text-slate-700">
+                    {t("regulations.ai.emptyTitle") || "No AI analysis yet"}
+                  </p>
+                  <p className="max-w-md text-xs leading-5 text-slate-500">
+                    {t("regulations.ai.emptyBody") ||
+                      "No structured summary, obligations, risk flags, or evidence snippets exist for this regulation yet. Generate one to inspect the AI output."}
+                  </p>
+                </div>
+              )}
 
               {(insightsStatus === "pending" || insightsStatus === "processing") && (
                 <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-700">
@@ -923,51 +1006,53 @@ export default function RegulationDetailPage({ params }: RegulationDetailPagePro
                     <h3 className="text-sm font-bold text-[#0F2942]">
                       {t("regulations.ai.amendmentImpact") || "Amendment Impact Analyzer"}
                     </h3>
-                    <Button
-                      onClick={() => {
-                        if (!canTriggerAmendmentImpact) {
-                          return;
-                        }
-                        refreshAmendmentImpact.mutate(
-                          {
-                            fromVersion: Number(leftVersion),
-                            toVersion: Number(rightVersion),
-                            force: true,
-                          },
-                          {
-                            onSuccess: () => {
-                              toast({
-                                title: t("common.success"),
-                                description:
-                                  t("regulations.ai.impactQueued") ||
-                                  "Amendment impact analysis has been queued.",
-                              });
-                            },
-                            onError: (error) => {
-                              toast({
-                                title: t("common.error"),
-                                description:
-                                  error instanceof Error
-                                    ? error.message
-                                    : t("regulations.syncFailed"),
-                                variant: "destructive",
-                              });
-                            },
+                    <MuseumGuard>
+                      <Button
+                        onClick={() => {
+                          if (!canTriggerAmendmentImpact) {
+                            return;
                           }
-                        );
-                      }}
-                      disabled={!canTriggerAmendmentImpact || refreshAmendmentImpact.isPending}
-                      className="gap-2"
-                    >
-                      {refreshAmendmentImpact.isPending ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Sparkles className="h-4 w-4" />
-                      )}
-                      {amendmentImpactStatus === "not_generated"
-                        ? t("regulations.ai.generateImpact") || "Generate Impact"
-                        : t("regulations.ai.regenerate") || "Regenerate"}
-                    </Button>
+                          refreshAmendmentImpact.mutate(
+                            {
+                              fromVersion: Number(leftVersion),
+                              toVersion: Number(rightVersion),
+                              force: true,
+                            },
+                            {
+                              onSuccess: () => {
+                                toast({
+                                  title: t("common.success"),
+                                  description:
+                                    t("regulations.ai.impactQueued") ||
+                                    "Amendment impact analysis has been queued.",
+                                });
+                              },
+                              onError: (error) => {
+                                toast({
+                                  title: t("common.error"),
+                                  description:
+                                    error instanceof Error
+                                      ? error.message
+                                      : t("regulations.syncFailed"),
+                                  variant: "destructive",
+                                });
+                              },
+                            }
+                          );
+                        }}
+                        disabled={!canTriggerAmendmentImpact || refreshAmendmentImpact.isPending}
+                        className="gap-2"
+                      >
+                        {refreshAmendmentImpact.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-4 w-4" />
+                        )}
+                        {amendmentImpactStatus === "not_generated"
+                          ? t("regulations.ai.generateImpact") || "Generate Impact"
+                          : t("regulations.ai.regenerate") || "Regenerate"}
+                      </Button>
+                    </MuseumGuard>
                   </div>
 
                   {(amendmentImpactStatus === "pending" ||

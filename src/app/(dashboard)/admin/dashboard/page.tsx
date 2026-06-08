@@ -24,6 +24,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { MuseumGuard } from "@/components/common/museum-guard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ConfirmDialog } from "@/components/ui/dialog";
@@ -121,7 +122,7 @@ function AdminDashboardPageInner() {
   if (!isAuthenticated || !isAdmin()) return <FullPageLoader />;
 
   return (
-    <div className="space-y-6">
+    <div data-tour-id="admin-command-center" className="space-y-6">
       <CommandHeader
         t={t}
         isRTL={isRTL}
@@ -203,7 +204,7 @@ function AdminDashboardPageInner() {
             <TrendsCard settings={data.settings} />
           </TabsContent>
 
-          <TabsContent value="ai-intelligence" className="space-y-6">
+          <TabsContent value="ai-intelligence" data-tour-id="admin-ai-intelligence" className="space-y-6">
             <AIIntelligencePanel enabled={tab === "ai-intelligence"} />
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               <MonitorCard monitor={data.monitor} />
@@ -427,23 +428,27 @@ function MonitorCard({ monitor }: { monitor: AdminMonitorSummary }) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            disabled={running}
-            onClick={() => setConfirm("run")}
-            className="bg-[#0F2942] hover:bg-[#1E3A56]"
-          >
-            {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-            <span className="ms-2">{t("admin.monitorRunNow")}</span>
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={running}
-            onClick={() => setConfirm("dry")}
-          >
-            {t("admin.monitorDryRun")}
-          </Button>
+          <MuseumGuard>
+            <Button
+              size="sm"
+              disabled={running}
+              onClick={() => setConfirm("run")}
+              className="bg-[#0F2942] hover:bg-[#1E3A56]"
+            >
+              {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              <span className="ms-2">{t("admin.monitorRunNow")}</span>
+            </Button>
+          </MuseumGuard>
+          <MuseumGuard>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={running}
+              onClick={() => setConfirm("dry")}
+            >
+              {t("admin.monitorDryRun")}
+            </Button>
+          </MuseumGuard>
         </div>
         <ul className="divide-y divide-slate-100">
           {monitor.runs.slice(0, 5).map((run) => (
@@ -534,13 +539,15 @@ function SettingsCard({ settings }: { settings: AdminDashboardSettings }) {
           {field("aiReviewHighCount", t("admin.settingAiReview"))}
           {field("monitorStaleMinutes", t("admin.settingMonitorMinutes"))}
         </div>
-        <Button
-          onClick={() => update.mutate(draft)}
-          disabled={update.isPending}
-          className="bg-[#0F2942] hover:bg-[#1E3A56]"
-        >
-          {update.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t("settings.saveChanges")}
-        </Button>
+        <MuseumGuard>
+          <Button
+            onClick={() => update.mutate(draft)}
+            disabled={update.isPending}
+            className="bg-[#0F2942] hover:bg-[#1E3A56]"
+          >
+            {update.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t("settings.saveChanges")}
+          </Button>
+        </MuseumGuard>
       </CardContent>
     </Card>
   );

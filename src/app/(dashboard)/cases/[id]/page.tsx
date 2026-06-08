@@ -10,7 +10,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   ChevronRight,
   ChevronDown,
@@ -52,6 +52,7 @@ import { documentsApi } from "@/lib/api/documents";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { MuseumGuard } from "@/components/common/museum-guard";
 import { CaseActionsMenu } from "@/components/features/cases/case-actions-menu";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
@@ -74,7 +75,6 @@ import { CaseAIPanel } from "@/components/features/cases/case-ai-panel";
 import { MultiSourceSuggestions, SourceGroupSection } from "@/components/features/cases/multi-source-suggestions";
 import {
   useCaseSources,
-  useFindRelatedCaseSources,
   useVerifyCaseSourceLink,
   useDismissCaseSourceLink,
 } from "@/lib/hooks/use-case-sources";
@@ -123,11 +123,70 @@ const TRUSTED_SOURCE_DOMAINS = [
   "moj.gov.sa",
 ];
 
+const ALLOWED_CASE_TABS = ["details", "documents", "linking"] as const;
+type AllowedCaseTab = (typeof ALLOWED_CASE_TABS)[number];
+function isAllowedCaseTab(value: string | null | undefined): value is AllowedCaseTab {
+  return (
+    typeof value === "string" &&
+    (ALLOWED_CASE_TABS as readonly string[]).includes(value)
+  );
+}
+
+function CaseDetailLoader() {
+  return (
+    <div className="flex h-64 items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-[#D97706]" />
+    </div>
+  );
+}
+
 export default function CaseDetailPage({ params }: CaseDetailPageProps) {
+  return (
+    <React.Suspense fallback={<CaseDetailLoader />}>
+      <CaseDetailPageInner params={params} />
+    </React.Suspense>
+  );
+}
+
+function CaseDetailPageInner({ params }: CaseDetailPageProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const resolvedParams = React.use(params);
   const caseId = Number(resolvedParams.id);
-  const [activeTab, setActiveTab] = React.useState<"details" | "documents" | "linking">("details");
+  const searchParams = useSearchParams();
+  const { t } = useI18n();
+  const { toast } = useToast();
+  const tabFromUrl = searchParams?.get("tab") ?? null;
+  const initialTab: AllowedCaseTab = isAllowedCaseTab(tabFromUrl)
+    ? tabFromUrl
+    : "details";
+  const [activeTab, setActiveTab] =
+    React.useState<AllowedCaseTab>(initialTab);
+  // Sync the active tab when the URL's ?tab= changes (e.g. the museum tour
+  // pushes a new ?tab= to highlight a different anchor). Tab click handlers
+  // also update the URL (see handleCaseTabChange below) so this effect
+  // only needs to depend on `tabFromUrl` — depending on `activeTab` too
+  // would re-fire after a local state update and snap the tab back to the
+  // URL value, fighting the user's click.
+  React.useEffect(() => {
+    if (isAllowedCaseTab(tabFromUrl) && tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabFromUrl]);
+
+  const handleCaseTabChange = React.useCallback(
+    (value: AllowedCaseTab) => {
+      setActiveTab(value);
+      const sp = new URLSearchParams(searchParams?.toString() ?? "");
+      sp.set("tab", value);
+      router.replace(
+        `${pathname}?${sp.toString()}`,
+        { scroll: false }
+      );
+    },
+    [pathname, router, searchParams]
+  );
   const [showSubscribeDialog, setShowSubscribeDialog] = React.useState(false);
   const [subscriptionCandidates, setSubscriptionCandidates] = React.useState<
     SubscriptionCandidate[]
@@ -148,8 +207,6 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
   const [aiSheetOpen, setAiSheetOpen] = React.useState(false);
   const isBelowLg = useIsBelowLg();
   const shownCandidateBatchKeysRef = React.useRef<Set<string>>(new Set());
-  const { toast } = useToast();
-  const { t } = useI18n();
   const patchCase = usePatchCase();
   const deleteCase = useDeleteCase();
   const [showDeleteCaseDialog, setShowDeleteCaseDialog] = React.useState(false);
@@ -183,8 +240,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
   const { data: aiLinks, isLoading: isLoadingAILinks } = useAILinks(caseId);
 
   // Multi-source hooks for the AI sidebar rail
-  const { data: multiSourceData, isLoading: isLoadingMultiSource } = useCaseSources(caseId);
-  const findRelatedMulti = useFindRelatedCaseSources(caseId);
+  const { data: multiSourceData } = useCaseSources(caseId);
   const verifySourceLink = useVerifyCaseSourceLink(caseId);
   const dismissSourceLink = useDismissCaseSourceLink(caseId);
 
@@ -469,7 +525,10 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
 
   // Non-regulation source groups for the sidebar (judicial, gov, web).
   // Must be above early returns so hook order is stable.
-  const NON_REGULATION_TYPES: SourceType[] = ["judicial_decision", "gov_data", "web_source"];
+  const NON_REGULATION_TYPES = React.useMemo<SourceType[]>(
+    () => ["judicial_decision", "gov_data", "web_source"],
+    []
+  );
   const sidebarNonRegGroups = React.useMemo(() => {
     const map = new Map<SourceType, CaseSourceItem[]>();
     for (const st of NON_REGULATION_TYPES) map.set(st, []);
@@ -482,7 +541,7 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
       }
     }
     return map;
-  }, [multiSourceData]);
+  }, [multiSourceData, NON_REGULATION_TYPES]);
 
   if (isLoading) {
     return (
@@ -530,15 +589,17 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
           <span className="text-xs bg-[#D97706] text-white px-3 py-1.5 rounded-lg font-bold shadow-sm shadow-orange-900/20">
             {pendingCount} {t("cases.suggestions")}
           </span>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleGenerateSuggestions}
-            disabled={isGenerating}
-            className="text-xs"
-          >
-            {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : t("common.refresh")}
-          </Button>
+          <MuseumGuard>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleGenerateSuggestions}
+              disabled={isGenerating}
+              className="text-xs"
+            >
+              {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : t("common.refresh")}
+            </Button>
+          </MuseumGuard>
         </div>
       </div>
       <button
@@ -588,14 +649,16 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
           <p className="text-xs text-slate-400 mb-4">
             {t("cases.noAiSuggestionsDesc")}
           </p>
-          <Button
-            size="sm"
-            onClick={handleGenerateSuggestions}
-            disabled={isGenerating}
-            className="bg-[#D97706] hover:bg-[#B45309] text-white"
-          >
-            {isGenerating ? t("cases.generating") : t("cases.generateSuggestions")}
-          </Button>
+          <MuseumGuard>
+            <Button
+              size="sm"
+              onClick={handleGenerateSuggestions}
+              disabled={isGenerating}
+              className="bg-[#D97706] hover:bg-[#B45309] text-white"
+            >
+              {isGenerating ? t("cases.generating") : t("cases.generateSuggestions")}
+            </Button>
+          </MuseumGuard>
         </div>
       ) : (
         <>
@@ -843,20 +906,20 @@ export default function CaseDetailPage({ params }: CaseDetailPageProps) {
           >
             <TabButton
               active={activeTab === "details"}
-              onClick={() => setActiveTab("details")}
+              onClick={() => handleCaseTabChange("details")}
             >
               {t("cases.caseDetails")}
             </TabButton>
             <TabButton
               active={activeTab === "documents"}
-              onClick={() => setActiveTab("documents")}
+              onClick={() => handleCaseTabChange("documents")}
               count={documents?.length}
             >
               {t("cases.documents")}
             </TabButton>
             <TabButton
               active={activeTab === "linking"}
-              onClick={() => setActiveTab("linking")}
+              onClick={() => handleCaseTabChange("linking")}
               count={aiLinks?.length}
             >
               {t("ai.caseLinking")}
@@ -1281,9 +1344,10 @@ function CaseLinkingTab({
       : 0;
 
   return (
-    <div className="space-y-6">
+    <div data-tour-id="case-linking" className="space-y-6">
       {/* Open Studio CTA */}
       <button
+        data-tour-id="case-linking-studio"
         onClick={onNavigateToStudio}
         className="w-full flex items-center justify-between p-5 rounded-2xl bg-gradient-to-r from-[#0F2942] to-[#1a3a5c] text-white group hover:shadow-lg transition-all"
       >

@@ -297,7 +297,7 @@ export function Header({
       </Link>
 
       {/* Center: Search Bar — visible on all screen sizes */}
-      <div ref={searchRef} className="flex-1 mx-3 sm:mx-4 md:flex-none md:mx-0 relative md:w-[460px]">
+      <div ref={searchRef} data-tour-id="header-search-ai" className="flex-1 mx-3 sm:mx-4 md:flex-none md:mx-0 relative md:w-[460px]">
         <form onSubmit={handleSearchSubmit} className="relative">
           <div
             className={cn(
@@ -357,6 +357,7 @@ export function Header({
               <button
                 type="button"
                 onClick={handleAskAI}
+                data-tour-id="header-ask-ai"
                 className={cn(
                   "flex items-center gap-1.5 px-2.5 py-1 rounded-xl",
                   "text-[11px] font-semibold transition-all duration-200",
@@ -848,7 +849,9 @@ export function Header({
           </div>
 
           {/* Language Toggle */}
-          <LanguageToggle variant="icon" />
+          <span data-tour-id="language-toggle" className="inline-flex">
+            <LanguageToggle variant="icon" />
+          </span>
 
           {/* Notifications */}
           <button

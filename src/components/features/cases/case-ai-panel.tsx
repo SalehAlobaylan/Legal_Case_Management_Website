@@ -83,6 +83,7 @@ export function CaseAIPanel({
 
   return (
     <aside
+      data-tour-id="case-ai-analysis"
       className={cn(
         "rounded-2xl border border-slate-100 bg-gradient-to-br from-white to-[#0F2942]/[0.02] shadow-sm",
         className
