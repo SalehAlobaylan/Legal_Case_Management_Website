@@ -5,6 +5,7 @@
  */
 
 import { create } from "zustand";
+import type { Socket } from "socket.io-client";
 
 export type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
 
@@ -26,8 +27,8 @@ interface WebSocketState {
   lastEventAt: Date | null;
   setLastEventAt: (date: Date) => void;
 
-  socket: any | null;
-  setSocket: (socket: any | null) => void;
+  socket: Socket | null;
+  setSocket: (socket: Socket | null) => void;
 }
 
 export const useWebSocketStore = create<WebSocketState>((set) => ({

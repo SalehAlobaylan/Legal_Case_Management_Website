@@ -4,9 +4,8 @@
  *          strengths, weaknesses, risks, recommendations) and lets the
  *          lawyer jump into the reader at the matched passage.
  *
- * Backend: calls POST /api/ai/cases/:id/analyze (aiApi.analyzeCase) which
- * already returns { summary, strengths, weaknesses, risks, recommendations,
- * relevantRegulations, suggestedStrategy }.
+ * Backend: reads GET /api/ai/cases/:id/analysis and regenerates through
+ * POST /api/ai/cases/:id/analyze. Results are persisted per case.
  */
 
 "use client";
@@ -26,13 +25,73 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useI18n } from "@/lib/hooks/use-i18n";
+import { useMuseumMode } from "@/lib/hooks/use-museum-mode";
 import { MuseumGuard } from "@/components/common/museum-guard";
+import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   useCaseAnalysis,
   useGenerateCaseAnalysis,
 } from "@/lib/hooks/use-case-analysis";
 import type { HighlightRange } from "../legal-text/legal-text-reader";
+
+type CasePanelAnalysis = NonNullable<import("@/lib/api/ai").CaseAnalysisResponse["analysis"]>;
+
+function getMuseumCaseAnalysis(isRTL: boolean): CasePanelAnalysis {
+  if (isRTL) {
+    return {
+      summary:
+        "توضح هذه المعاينة كيف يظهر تحليل القضية بعد حفظه: يختصر الوقائع، يحدد نقاط القوة والضعف، ويربط المخاطر بخطوات عملية للمحامي قبل الجلسة أو مراجعة الملف.",
+      strengths: [
+        "وصف الوقائع يحتوي على تسلسل واضح للأحداث والأطراف الرئيسية.",
+        "وجود مستندات ومواعيد مرتبطة يساعد على بناء ملف منظم للمراجعة.",
+        "نوع القضية وحالتها يتيحان ربطها بأنظمة ذات صلة بسرعة.",
+      ],
+      weaknesses: [
+        "بعض الوقائع تحتاج إلى تواريخ أو مستندات داعمة أكثر تحديداً.",
+        "ينبغي توضيح طلبات العميل والنتيجة القانونية المطلوبة قبل الاعتماد على التحليل.",
+      ],
+      risks: [
+        "قد تتغير الأولوية إذا ظهرت مواعيد جلسات أو مهل نظامية قريبة.",
+        "أي نقص في المستندات الجوهرية قد يضعف موقف القضية عند المراجعة.",
+      ],
+      recommendations: [
+        "راجع الوقائع وأضف المستندات الأساسية قبل توليد تحليل نهائي.",
+        "استخدم روابط الأنظمة المقترحة للتحقق من المواد ذات الصلة.",
+        "حوّل المخاطر العالية إلى مهام متابعة للفريق.",
+      ],
+      relevantRegulations: [],
+      suggestedStrategy:
+        "ابدأ بتثبيت الوقائع والمستندات، ثم راجع الأنظمة المرتبطة وحدد نقاط الإثبات التي تحتاج إلى متابعة.",
+    };
+  }
+
+  return {
+    summary:
+      "This preview shows how a saved AI case analysis appears: it summarizes the facts, highlights strengths and weaknesses, and turns risks into practical next steps for counsel.",
+    strengths: [
+      "The case description includes a clear sequence of events and key parties.",
+      "Linked documents and dates give the matter a structured review trail.",
+      "The case type and status make it easier to connect the file to relevant legal sources.",
+    ],
+    weaknesses: [
+      "Some facts need more specific dates or supporting documents.",
+      "The client’s requested outcome should be clarified before relying on the analysis.",
+    ],
+    risks: [
+      "Priority may change if upcoming hearings or statutory deadlines are added.",
+      "Missing core documents could weaken the file during legal review.",
+    ],
+    recommendations: [
+      "Review the facts and add core documents before generating a final analysis.",
+      "Use suggested legal-source links to verify relevant provisions.",
+      "Convert high risks into follow-up tasks for the team.",
+    ],
+    relevantRegulations: [],
+    suggestedStrategy:
+      "Stabilize the factual record first, then review linked sources and identify evidence gaps that need follow-up.",
+  };
+}
 
 export interface CaseAIPanelProps {
   caseId: number;
@@ -49,13 +108,21 @@ export function CaseAIPanel({
   onJumpTo,
   className,
 }: CaseAIPanelProps) {
-  const { t, formatDate } = useI18n();
-  const { data: cached } = useCaseAnalysis(caseId);
+  const { t, formatDate, isRTL } = useI18n();
+  const isMuseum = useMuseumMode();
+  const { toast } = useToast();
+  const { data: cached, isLoading: isLoadingSaved } = useCaseAnalysis(caseId);
   const generate = useGenerateCaseAnalysis(caseId);
 
-  const analysis = cached?.analysis;
+  const museumAnalysis = React.useMemo(() => getMuseumCaseAnalysis(isRTL), [isRTL]);
+  const analysis = cached?.analysis ?? (isMuseum ? museumAnalysis : null);
+  const generatedAt = cached?.generatedAt ?? (isMuseum ? "2026-06-01T09:00:00.000Z" : null);
+  const confidence = cached?.confidence ?? (isMuseum ? 0.84 : null);
   const isGenerating = generate.isPending;
-  const hasError = generate.isError;
+  const isPersistedProcessing =
+    cached?.status === "pending" || cached?.status === "processing";
+  const hasError = generate.isError || cached?.status === "failed";
+  const isPreparing = isLoadingSaved || isGenerating || isPersistedProcessing;
 
   // Collapsible: default collapsed to keep the reader front-and-center.
   // Auto-expand when analysis arrives or when generating / errored so the
@@ -106,10 +173,10 @@ export function CaseAIPanel({
             </h3>
             <p className="text-[11px] text-slate-500 line-clamp-2 sm:truncate">
               {analysis
-                ? cached?.generatedAt
-                  ? `${t("cases.aiPanel.generatedAt")}: ${formatDate(cached.generatedAt, { dateStyle: "medium", timeStyle: "short" })}`
+                ? generatedAt
+                  ? `${t("cases.aiPanel.generatedAt")}: ${formatDate(generatedAt, { dateStyle: "medium", timeStyle: "short" })}`
                   : t("cases.aiPanel.empty.title")
-                : isGenerating
+                : isPreparing
                   ? t("cases.aiPanel.generating")
                   : t("cases.aiPanel.empty.body")}
             </p>
@@ -122,14 +189,14 @@ export function CaseAIPanel({
             aria-hidden="true"
           />
         </button>
-        {!analysis && !isGenerating && !hasError && (
+        {!analysis && !isPreparing && !hasError && (
           <MuseumGuard>
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation();
               setOpen(true);
-              generate.mutate();
+              generate.mutate({});
             }}
             disabled={!description.trim()}
             className="inline-flex w-full sm:w-auto shrink-0 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-[#D97706] to-[#b45309] px-3 py-2 sm:py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
@@ -145,7 +212,7 @@ export function CaseAIPanel({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              generate.mutate();
+              generate.mutate({ force: true });
             }}
             disabled={isGenerating}
             className="hidden sm:flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-[#0F2942] disabled:opacity-50"
@@ -163,18 +230,25 @@ export function CaseAIPanel({
       {/* Body — only when expanded */}
       {open && (
         <div className="border-t border-slate-100 p-3 sm:p-5">
-          {isGenerating && !analysis && <LoadingState />}
+          {isPreparing && !analysis && <LoadingState />}
 
           {hasError && !analysis && (
-            <ErrorState onRetry={() => generate.mutate()} />
+            <ErrorState onRetry={() => generate.mutate({})} />
           )}
 
           {analysis && (
+            <>
+            {isMuseum && !cached?.analysis && (
+              <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-900">
+                {t("museumTour.previewNote")}
+              </div>
+            )}
             <AnalysisTabs
               analysis={analysis}
-              confidence={cached?.confidence}
+              confidence={confidence ?? undefined}
               onJump={handleJump}
             />
+            </>
           )}
         </div>
       )}
@@ -192,8 +266,10 @@ export function CaseAIPanel({
             type="button"
             className="mt-2 inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#0F2942]"
             onClick={() => {
-              // Stub — real endpoint wired in later phase.
-              window.alert(t("cases.aiPanel.reportInaccuracy"));
+              toast({
+                title: t("cases.aiPanel.reportInaccuracy"),
+                description: t("cases.aiPanel.reportInaccuracyQueued"),
+              });
             }}
           >
             <Flag className="h-3 w-3" />

@@ -31,7 +31,7 @@ export interface ClientActivity {
   clientId: number;
   type: "call" | "email" | "meeting" | "system" | "note";
   description: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   userId?: string;
   user?: {
     id: string;
@@ -102,7 +102,7 @@ export interface CreateClientInput {
 export interface CreateClientActivityInput {
   type: "call" | "email" | "meeting" | "system" | "note";
   description: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // UI-specific types

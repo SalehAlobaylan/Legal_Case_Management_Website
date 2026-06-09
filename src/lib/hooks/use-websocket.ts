@@ -283,7 +283,7 @@ export function useWebSocket() {
 
     socketRef.current = socket;
     setSocket(socket);
-  }, [token, setStatus, setError, resetReconnectAttempts, setupEventHandlers]);
+  }, [token, setStatus, setError, resetReconnectAttempts, setupEventHandlers, setSocket]);
 
   // Schedule reconnection with exponential backoff
   const scheduleReconnect = useCallback(() => {

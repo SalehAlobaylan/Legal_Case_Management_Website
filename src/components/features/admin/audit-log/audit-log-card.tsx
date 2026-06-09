@@ -20,6 +20,10 @@ import { Select } from "@/components/ui/select";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { useAdminAuditLog } from "@/lib/hooks/use-admin-audit-log";
 import { formatDate } from "@/lib/utils/format";
+import {
+  formatAdminAuditAction,
+  formatAdminTargetType,
+} from "@/lib/utils/admin-labels";
 
 export function AuditLogCard({ expandable = false }: { expandable?: boolean }) {
   const { t } = useI18n();
@@ -48,7 +52,7 @@ export function AuditLogCard({ expandable = false }: { expandable?: boolean }) {
               <option value="">{t("admin.auditAll")}</option>
               {actions.map((a) => (
                 <option key={a} value={a}>
-                  {a}
+                  {formatAdminAuditAction(a, t)}
                 </option>
               ))}
             </Select>
@@ -81,14 +85,15 @@ export function AuditLogCard({ expandable = false }: { expandable?: boolean }) {
                     >
                       <div className="min-w-0 flex-1">
                         <span className="inline-block text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 me-2">
-                          {e.action}
+                          {formatAdminAuditAction(e.action, t)}
                         </span>
                         <span className="text-[#0F2942] font-medium">
                           {e.actorName || e.actorEmail || "—"}
                         </span>
                         {e.targetType && (
                           <span className="text-slate-500 ms-1">
-                            {"->"} {e.targetType}
+                            {t("admin.auditTargetPrefix")}{" "}
+                            {formatAdminTargetType(e.targetType, t)}
                             {e.targetId ? `#${e.targetId}` : ""}
                           </span>
                         )}

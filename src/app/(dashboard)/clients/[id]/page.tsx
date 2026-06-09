@@ -25,37 +25,49 @@ import {
   Users,
   Briefcase,
   Loader2,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
-import { useClient, useClientCases } from "@/lib/hooks/use-clients";
+import { useClient, useClientCases, useDeleteClient } from "@/lib/hooks/use-clients";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ConfirmDialog } from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/use-toast";
 import { ClientActivityTimeline } from "@/components/features/clients/client-activity-timeline";
 import { ClientDocuments } from "@/components/features/clients/client-documents";
 import { ClientFinancials } from "@/components/features/clients/client-financials";
 import { ClientMessagingCenter } from "@/components/features/clients/client-messaging-center";
 
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error) return error.message;
+  return fallback;
+}
+
 /* =============================================================================
    CLIENT TYPE ICON MAPPING
    ============================================================================= */
 
-const getTypeIcon = (type: string) => {
+function ClientTypeIcon({
+  type,
+  className,
+}: {
+  type: string;
+  className?: string;
+}) {
   switch (type?.toLowerCase()) {
-    case "individual":
-      return User;
     case "company":
     case "corporate":
-      return Building2;
+      return <Building2 className={className} />;
     case "sme":
-      return Briefcase;
+      return <Briefcase className={className} />;
     case "group":
-      return Users;
+      return <Users className={className} />;
     default:
-      return User;
+      return <User className={className} />;
   }
-};
+}
 
 const getTypeColor = (type: string) => {
   switch (type?.toLowerCase()) {
@@ -73,7 +85,7 @@ const getTypeColor = (type: string) => {
   }
 };
 
-const getStatusColor = (clientType: string) => {
+const getStatusColor = () => {
   // Active clients have associated cases
   return "bg-green-100 text-green-700";
 };
@@ -86,6 +98,9 @@ export default function ClientDetailPage() {
   const router = useRouter();
   const params = useParams();
   const { t, isRTL } = useI18n();
+  const { toast } = useToast();
+  const deleteClient = useDeleteClient();
+  const [confirmDelete, setConfirmDelete] = React.useState(false);
   const clientId = Number(params.id as string);
 
   // Fetch client and their cases from API
@@ -120,7 +135,6 @@ export default function ClientDetailPage() {
     );
   }
 
-  const TypeIcon = getTypeIcon(client.type);
   const displayType =
     client.type === "individual"
       ? t("clients.types.individual")
@@ -131,6 +145,26 @@ export default function ClientDetailPage() {
           : t("clients.types.corporate");
   const displayPhone = client.contactPhone || client.phone;
   const displayEmail = client.contactEmail || client.email;
+
+  const handleDeleteClient = () => {
+    deleteClient.mutate(client.id, {
+      onSuccess: () => {
+        toast({
+          title: t("common.success"),
+          description: t("clients.deleteSuccess"),
+          variant: "success",
+        });
+        router.push("/clients");
+      },
+      onError: (error) => {
+        toast({
+          title: t("common.error"),
+          description: getErrorMessage(error, t("clients.deleteFailed")),
+          variant: "destructive",
+        });
+      },
+    });
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -167,7 +201,7 @@ export default function ClientDetailPage() {
                     getTypeColor(client.type)
                   )}
                 >
-                  <TypeIcon className="h-3.5 w-3.5" />
+                  <ClientTypeIcon type={client.type} className="h-3.5 w-3.5" />
                   {displayType}
                 </span>
               </div>
@@ -177,7 +211,7 @@ export default function ClientDetailPage() {
             <span
               className={cn(
                 "px-4 py-2 rounded-full text-sm font-bold",
-                getStatusColor(client.type)
+                getStatusColor()
               )}
             >
 {t("common.active")}
@@ -185,9 +219,23 @@ export default function ClientDetailPage() {
             <Button
               variant="outline"
               className="px-4 py-2 rounded-xl font-bold flex items-center gap-2"
+              onClick={() => router.push(`/clients/${client.id}/edit`)}
             >
               <Edit2 className="h-4 w-4" />
               {t("common.edit")}
+            </Button>
+            <Button
+              variant="outline"
+              className="px-4 py-2 rounded-xl font-bold flex items-center gap-2 border-red-200 text-red-600 hover:bg-red-50"
+              disabled={deleteClient.isPending}
+              onClick={() => setConfirmDelete(true)}
+            >
+              {deleteClient.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
+              {t("common.delete")}
             </Button>
           </div>
         </div>
@@ -384,7 +432,16 @@ export default function ClientDetailPage() {
               </TabsContent>
             </Tabs>
         </div>
-
+      <ConfirmDialog
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        title={t("clients.confirmDeleteTitle")}
+        description={t("clients.confirmDeleteDesc").replace("{{name}}", client.name)}
+        confirmText={t("common.delete")}
+        cancelText={t("common.cancel")}
+        variant="danger"
+        onConfirm={handleDeleteClient}
+      />
     </div>
   );
 }

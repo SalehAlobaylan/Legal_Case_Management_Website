@@ -3,8 +3,8 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
-  FileText, BookOpen, Users, ArrowUpRight, Briefcase, Bell,
-  CalendarDays, FileSignature, Check, Plus
+  BookOpen, Users, ArrowUpRight, Briefcase, Bell,
+  Check, Plus
 } from "lucide-react";
 import { useCases } from "@/lib/hooks/use-cases";
 import { useClients } from "@/lib/hooks/use-clients";
@@ -13,15 +13,22 @@ import {
   useDailyOperations,
   useCreateDailyTask,
   useUpdateDailyTask,
-  useUpdateDocumentReviewStatus,
 } from "@/lib/hooks/use-dashboard";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { formatDate } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
-import { NajizLockOverlay } from "@/components/features/dashboard/najiz-lock-overlay";
-import { NajizPlaceholders } from "@/components/features/dashboard/najiz-placeholders";
-import { PrepareHearingCard } from "@/components/features/dashboard/prepare-hearing-card";
+
+function ColumnSkeleton() {
+  return (
+    <div className="bg-white rounded-3xl border border-slate-100 p-4 animate-pulse space-y-3">
+      <div className="h-10 w-2/3 bg-slate-100 rounded" />
+      {[...Array(4)].map((_, i) => (
+        <div key={i} className="h-14 bg-slate-100 rounded-2xl" />
+      ))}
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -32,7 +39,6 @@ export default function DashboardPage() {
   const { data: dailyOps, isLoading: dailyOpsLoading } = useDailyOperations();
   const createTask = useCreateDailyTask();
   const updateTask = useUpdateDailyTask();
-  const updateReview = useUpdateDocumentReviewStatus();
   const { isRTL } = useI18n();
 
   const [newTaskText, setNewTaskText] = React.useState('');
@@ -41,7 +47,6 @@ export default function DashboardPage() {
   
   const displayCases = React.useMemo(() => cases || [], [cases]);
   const displayClients = React.useMemo(() => clientsData?.clients || [], [clientsData]);
-  const existingCaseIds = React.useMemo(() => new Set(displayCases.map((c) => c.id)), [displayCases]);
   const regulationUpdates = React.useMemo(
     () =>
       activityData?.recentUpdates?.filter((u) => u.type === "regulation_amendment") || [
@@ -65,46 +70,6 @@ export default function DashboardPage() {
     [activityData, isRTL]
   );
 
-  const upcomingHearings = (dailyOps?.upcomingHearings || []).slice(0, 6);
-
-  const formatDateTime = (d: string | Date) => formatDate(d, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-
-  const pendingDocuments = React.useMemo(() => dailyOps?.documentsForReview || [], [dailyOps]);
-  const sortedDocuments = React.useMemo(
-    () => [...pendingDocuments].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
-    [pendingDocuments]
-  );
-  const actionableDocuments = React.useMemo(
-    () => sortedDocuments.filter((doc) => Number.isFinite(doc.caseId) && doc.caseId > 0 && existingCaseIds.has(doc.caseId)),
-    [existingCaseIds, sortedDocuments]
-  );
-  const orphanDocumentsCount = sortedDocuments.length - actionableDocuments.length;
-  const [showNormalReviewItems, setShowNormalReviewItems] = React.useState(false);
-  const criticalReviewItems = React.useMemo(
-    () => actionableDocuments.filter((doc) => doc.priorityLevel === "critical"),
-    [actionableDocuments]
-  );
-  const highReviewItems = React.useMemo(
-    () => actionableDocuments.filter((doc) => doc.priorityLevel === "high"),
-    [actionableDocuments]
-  );
-  const normalReviewItems = React.useMemo(
-    () => actionableDocuments.filter((doc) => doc.priorityLevel === "normal"),
-    [actionableDocuments]
-  );
-  const visibleReviewItems = React.useMemo(() => {
-    const urgent = [...criticalReviewItems, ...highReviewItems];
-    return showNormalReviewItems ? [...urgent, ...normalReviewItems] : urgent;
-  }, [criticalReviewItems, highReviewItems, normalReviewItems, showNormalReviewItems]);
-
-  const getReviewReasonLabel = (reason: string) => {
-    if (reason === "regulation_changed") return isRTL ? "تحديث نظام مرتبط" : "Linked regulation changed";
-    if (reason === "hearing_soon") return isRTL ? "جلسة قريبة" : "Hearing soon";
-    if (reason === "pending_over_48h") return isRTL ? "معلّق أكثر من 48 ساعة" : "Pending over 48h";
-    if (reason === "active_case_status") return isRTL ? "قضية نشطة" : "Active case";
-    return reason;
-  };
-
   const tasks = dailyOps?.dailyTasks || [];
 
   const toggleTask = (id: number, completed: boolean) => {
@@ -118,20 +83,6 @@ export default function DashboardPage() {
       onSuccess: () => setNewTaskText(''),
     });
   };
-
-  // NOTE: we intentionally do NOT block the whole page on a combined
-  // `isLoading` of all four queries. Each panel renders its own skeleton
-  // so the header + fast-returning panels can paint while slower endpoints
-  // (notably /dashboard/daily-operations, which aggregates hearings,
-  // document-review priorities and tasks) are still in flight.
-  const ColumnSkeleton = () => (
-    <div className="bg-white rounded-3xl border border-slate-100 p-4 animate-pulse space-y-3">
-      <div className="h-10 w-2/3 bg-slate-100 rounded" />
-      {[...Array(4)].map((_, i) => (
-        <div key={i} className="h-14 bg-slate-100 rounded-2xl" />
-      ))}
-    </div>
-  );
 
   return (
     <div data-tour-id="dashboard-command-center" className="space-y-8 pb-12 animate-in fade-in zoom-in-95 duration-500">
@@ -162,11 +113,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-
-      {/* ── Prepare for the Hearing (primary feature — Najiz-gated, teased) ── */}
-      <NajizLockOverlay variant="tease-hero">
-        <PrepareHearingCard />
-      </NajizLockOverlay>
 
       {/* ── System Overview (3 Columns) ── */}
       <div data-tour-id="dashboard-overview" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -278,163 +224,12 @@ export default function DashboardPage() {
       <h2 className="text-2xl font-bold font-serif text-[#0F2942] pt-4 border-t border-slate-200">{isRTL ? "لوحة العمليات اليومية" : "Daily Operations"}</h2>
       {dailyOpsLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(3)].map((_, i) => (<ColumnSkeleton key={i} />))}
+          <ColumnSkeleton />
         </div>
       ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-        {/* 1. Upcoming Hearings */}
-        <NajizLockOverlay variant="tease">
-        <div className="bg-white rounded-3xl border border-[#D97706]/20 shadow-sm shadow-[#D97706]/5 overflow-hidden flex flex-col h-full">
-          <div className="bg-[#D97706]/5 p-5 border-b border-[#D97706]/10 flex items-center gap-3">
-            <div className="bg-[#D97706]/20 p-2 rounded-lg text-[#D97706]">
-              <CalendarDays className="h-5 w-5" />
-            </div>
-            <h3 className="font-bold text-[#0F2942]">{isRTL ? "المواعيد والجلسات" : "Hearings & Deadlines"}</h3>
-          </div>
-          <div className="p-4 space-y-3 flex-1 overflow-y-auto">
-            {upcomingHearings.length > 0 ? upcomingHearings.map(c => (
-              <div key={c.id} onClick={() => router.push(`/cases/${c.id}`)} className="p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer hover:border-[#D97706] hover:bg-orange-50/50 transition-colors group">
-                <time className="text-xs font-bold text-[#D97706] block mb-1">
-                  {formatDateTime(c.nextHearing!)}
-                </time>
-                <div className="text-sm font-bold text-[#0F2942] mb-1 truncate">{c.title}</div>
-                <div className="text-[10px] text-slate-500 font-medium flex justify-between items-center">
-                  <span className="truncate">{c.courtJurisdiction || (isRTL ? "المحكمة العامة" : "General Court")}</span>
-                  <ArrowUpRight className={cn("h-3 w-3 text-slate-300 group-hover:text-[#D97706]", isRTL && "rotate-180")} />
-                </div>
-              </div>
-            )) : (
-              <div className="py-6 text-center text-slate-400">
-                <p className="text-xs">{isRTL ? "لا يوجد جلسات قريبة" : "No upcoming hearings"}</p>
-              </div>
-            )}
-          </div>
-        </div>
-        </NajizLockOverlay>
-
-        {/* 2. Required Document Reviews */}
-        <NajizLockOverlay variant="tease">
-        <div className="bg-white rounded-3xl border border-red-200 shadow-sm shadow-red-100/50 overflow-hidden flex flex-col h-full">
-          <div className="bg-red-50 p-5 border-b border-red-100 flex items-center gap-3">
-            <div className="bg-red-200/50 p-2 rounded-lg text-red-600">
-              <FileSignature className="h-5 w-5" />
-            </div>
-            <h3 className="font-bold text-[#0F2942]">{isRTL ? "مستندات للمراجعة" : "Required Reviews"}</h3>
-          </div>
-          <div className="p-4 space-y-3 flex-1 overflow-y-auto">
-            <div className="flex items-center gap-2 text-[10px] font-bold">
-              <span className="px-2 py-1 rounded-md bg-red-100 text-red-700">
-                {isRTL ? `${criticalReviewItems.length} حرجة` : `${criticalReviewItems.length} critical`}
-              </span>
-              <span className="px-2 py-1 rounded-md bg-amber-100 text-amber-700">
-                {isRTL ? `${highReviewItems.length} عالية` : `${highReviewItems.length} high`}
-              </span>
-              {normalReviewItems.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setShowNormalReviewItems((prev) => !prev)}
-                  className="px-2 py-1 rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200"
-                >
-                  {showNormalReviewItems
-                    ? isRTL
-                      ? "إخفاء العادية"
-                      : "Hide normal"
-                    : isRTL
-                      ? `إظهار العادية (${normalReviewItems.length})`
-                      : `Show normal (${normalReviewItems.length})`}
-                </button>
-              )}
-              {orphanDocumentsCount > 0 && (
-                <span className="px-2 py-1 rounded-md bg-amber-100 text-amber-700">
-                  {isRTL
-                    ? `${orphanDocumentsCount} بدون قضية مرتبطة`
-                    : `${orphanDocumentsCount} missing case link`}
-                </span>
-              )}
-            </div>
-
-            {visibleReviewItems.length > 0 ? visibleReviewItems.map((doc) => (
-              <div key={doc.id} className="p-3 bg-white rounded-xl border border-slate-200 shadow-sm flex gap-3 hover:border-red-300 transition-colors">
-                <div className="mt-0.5 shrink-0">
-                  <FileText className="h-5 w-5 text-red-400" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-bold text-[#0F2942] truncate">{doc.documentName}</div>
-                  <div className="text-[10px] text-slate-500 mt-1">
-                    {isRTL ? `القضية: ${doc.caseTitle}` : `Case: ${doc.caseTitle}`} • {formatDate(doc.createdAt)}
-                  </div>
-                  <div className="mt-1 flex items-center gap-1.5 flex-wrap">
-                    <span
-                      className={cn(
-                        "text-[10px] px-2 py-0.5 rounded-md font-bold",
-                        doc.priorityLevel === "critical"
-                          ? "bg-red-100 text-red-700"
-                          : doc.priorityLevel === "high"
-                            ? "bg-amber-100 text-amber-700"
-                            : "bg-slate-100 text-slate-600"
-                      )}
-                    >
-                      {doc.priorityLevel === "critical"
-                        ? isRTL
-                          ? "أولوية حرجة"
-                          : "Critical"
-                        : doc.priorityLevel === "high"
-                          ? isRTL
-                            ? "أولوية عالية"
-                            : "High"
-                          : isRTL
-                            ? "أولوية عادية"
-                            : "Normal"}
-                    </span>
-                    {doc.reasons.slice(0, 2).map((reason) => (
-                      <span key={`${doc.id}-${reason}`} className="text-[10px] px-2 py-0.5 rounded-md bg-blue-50 text-blue-700">
-                        {getReviewReasonLabel(reason)}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="text-[10px] text-slate-400 mt-0.5">
-                    {isRTL ? `رُفع بواسطة: ${doc.uploadedBy}` : `Uploaded by: ${doc.uploadedBy}`}
-                  </div>
-                  <div className="mt-2 flex gap-2 flex-wrap">
-                    <button
-                      onClick={() => router.push(`/cases/${doc.caseId}`)}
-                      className="text-[10px] px-2 py-1 rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200"
-                    >
-                      {isRTL ? "فتح القضية" : "Open Case"}
-                    </button>
-                    <button
-                      onClick={() => updateReview.mutate({ id: doc.id, status: "in_review" })}
-                      className={cn(
-                        "text-[10px] px-2 py-1 rounded-md",
-                        doc.reviewStatus === "in_review"
-                          ? "bg-amber-200 text-amber-800"
-                          : "bg-amber-100 text-amber-700 hover:bg-amber-200"
-                      )}
-                    >
-                      {isRTL ? "قيد المراجعة" : "In Review"}
-                    </button>
-                    <button
-                      onClick={() => updateReview.mutate({ id: doc.id, status: "approved" })}
-                      className="text-[10px] px-2 py-1 rounded-md bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                    >
-                      {isRTL ? "اعتماد" : "Approve"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )) : (
-              <div className="py-6 text-center text-slate-400">
-                <p className="text-xs">
-                  {isRTL ? "لا توجد عناصر عاجلة للمراجعة حالياً" : "No urgent review actions right now"}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-        </NajizLockOverlay>
-
-        {/* 3. Interactive To-Do List */}
+        {/* Interactive To-Do List */}
         <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
           <div className="bg-[#0F2942] p-5 flex items-center justify-between text-white">
             <div className="flex items-center gap-3">
@@ -483,8 +278,6 @@ export default function DashboardPage() {
 
       </div>
       )}
-
-      <NajizPlaceholders />
 
     </div>
   );

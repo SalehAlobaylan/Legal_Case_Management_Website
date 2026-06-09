@@ -80,8 +80,10 @@ export function useDeleteClient() {
 
   return useMutation({
     mutationFn: (id: number) => clientsApi.deleteClient(id),
-    onSuccess: () => {
+    onSuccess: (_result, id) => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.removeQueries({ queryKey: ["client", id] });
+      queryClient.removeQueries({ queryKey: ["client-cases", id] });
     },
   });
 }

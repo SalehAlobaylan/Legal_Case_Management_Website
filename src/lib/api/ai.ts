@@ -70,9 +70,14 @@ export interface StreamChatRequest {
 
 export interface CaseAnalysisRequest {
     analysisType?: "full" | "strengths" | "weaknesses" | "strategy" | "risks";
+    force?: boolean;
 }
 
 export interface CaseAnalysisResponse {
+    caseId?: number;
+    organizationId?: number;
+    languageCode?: string;
+    status?: "not_generated" | "pending" | "processing" | "ready" | "failed";
     analysis: {
         summary: string;
         strengths: string[];
@@ -85,9 +90,13 @@ export interface CaseAnalysisResponse {
             relevance: string;
         }[];
         suggestedStrategy?: string;
-    };
-    confidence: number;
-    generatedAt: string;
+    } | null;
+    confidence: number | null;
+    generatedAt: string | null;
+    updatedAt?: string | null;
+    method?: string | null;
+    errorCode?: string | null;
+    warnings?: string[];
 }
 
 export interface DocumentSummaryRequest {
@@ -202,8 +211,8 @@ export function streamChat(
 
             // Stream ended without [DONE]
             callbacks.onDone();
-        } catch (err: any) {
-            if (err.name === "AbortError") {
+        } catch (err: unknown) {
+            if (err instanceof DOMException && err.name === "AbortError") {
                 if (userAborted) {
                     // User clicked stop — silently finish
                     return;
@@ -212,7 +221,7 @@ export function streamChat(
                 callbacks.onError("Request timed out. Please try again.");
                 return;
             }
-            callbacks.onError(err.message || "Connection failed");
+            callbacks.onError(err instanceof Error ? err.message : "Connection failed");
         } finally {
             clearTimeout(timeoutId);
         }
@@ -264,6 +273,13 @@ export const aiApi = {
             request || {},
             // LLM-bound: needs more than the default 30s axios budget.
             { timeout: 60000 }
+        );
+        return response.data;
+    },
+
+    getCaseAnalysis: async (caseId: number): Promise<CaseAnalysisResponse> => {
+        const response = await apiClient.get<CaseAnalysisResponse>(
+            endpoints.ai.caseAnalysis(caseId)
         );
         return response.data;
     },

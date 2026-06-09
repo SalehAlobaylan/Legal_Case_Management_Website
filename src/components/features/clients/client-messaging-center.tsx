@@ -14,6 +14,14 @@ import { Button } from "@/components/ui/button";
 import { useWebSocketStore } from "@/lib/store/websocket-store";
 import type { ClientMessage } from "@/lib/types/client";
 
+type MessageChannel = "in_app" | "email" | "sms" | "whatsapp";
+type MessageType =
+  | "case_update"
+  | "hearing_reminder"
+  | "document_request"
+  | "invoice_notice"
+  | "general";
+
 const templates = [
   {
     id: "hearing",
@@ -43,10 +51,8 @@ export function ClientMessagingCenter({ clientId }: { clientId: number }) {
   const retryMessage = useRetryClientMessage(clientId);
   const socket = useWebSocketStore((s) => s.socket);
 
-  const [channel, setChannel] = React.useState<"in_app" | "email" | "sms" | "whatsapp">("in_app");
-  const [type, setType] = React.useState<
-    "case_update" | "hearing_reminder" | "document_request" | "invoice_notice" | "general"
-  >("general");
+  const [channel, setChannel] = React.useState<MessageChannel>("in_app");
+  const [type, setType] = React.useState<MessageType>("general");
   const [subject, setSubject] = React.useState("");
   const [body, setBody] = React.useState("");
   const [liveMessages, setLiveMessages] = React.useState<ClientMessage[]>([]);
@@ -108,7 +114,7 @@ export function ClientMessagingCenter({ clientId }: { clientId: number }) {
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <select
             value={channel}
-            onChange={(e) => setChannel(e.target.value as any)}
+            onChange={(e) => setChannel(e.target.value as MessageChannel)}
             className="h-11 rounded-xl border border-slate-200 px-3 text-sm"
           >
             <option value="in_app">{t("clients.channelInApp")}</option>
@@ -119,7 +125,7 @@ export function ClientMessagingCenter({ clientId }: { clientId: number }) {
 
           <select
             value={type}
-            onChange={(e) => setType(e.target.value as any)}
+            onChange={(e) => setType(e.target.value as MessageType)}
             className="h-11 rounded-xl border border-slate-200 px-3 text-sm"
           >
             <option value="general">{t("clients.messageTypeGeneral")}</option>

@@ -59,8 +59,9 @@ export function ProgressSteps({
     const footerTip = i18nTexts?.footerTip || "This may take a minute or two. Please don\u0027t close this page.";
     const [currentStepIndex, setCurrentStepIndex] = React.useState(0);
     const [stepProgress, setStepProgress] = React.useState(0);
+    const [overallProgress, setOverallProgress] = React.useState(0);
     const [allDone, setAllDone] = React.useState(false);
-    const startTimeRef = React.useRef<number>(Date.now());
+    const startTimeRef = React.useRef<number>(0);
     const animFrameRef = React.useRef<number>(0);
 
     // Reset when operation starts
@@ -68,6 +69,7 @@ export function ProgressSteps({
         if (isActive) {
             setCurrentStepIndex(0);
             setStepProgress(0);
+            setOverallProgress(0);
             setAllDone(false);
             startTimeRef.current = Date.now();
         }
@@ -81,6 +83,7 @@ export function ProgressSteps({
 
         const tick = () => {
             const elapsed = Date.now() - startTimeRef.current;
+            setOverallProgress(Math.min(1, elapsed / totalMs));
 
             // Find which step we're on
             let accum = 0;
@@ -122,10 +125,6 @@ export function ProgressSteps({
     }, [isActive, allDone, steps, onStepsComplete]);
 
     if (!isActive) return null;
-
-    const totalEstimated = steps.reduce((sum, s) => sum + s.estimatedMs, 0);
-    const elapsed = Date.now() - startTimeRef.current;
-    const overallProgress = Math.min(1, elapsed / totalEstimated);
 
     if (variant === "compact") {
         return (
@@ -205,8 +204,6 @@ export function ProgressSteps({
                 {steps.map((step, i) => {
                     const isCompleted = i < currentStepIndex || (allDone && isActive);
                     const isCurrent = i === currentStepIndex && !allDone;
-                    const isPending = i > currentStepIndex;
-
                     return (
                         <div
                             key={i}

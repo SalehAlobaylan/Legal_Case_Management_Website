@@ -83,13 +83,13 @@ export function AnnouncementsAdminCard() {
           </Label>
           <Input
             id="ann-title"
-            placeholder={t("admin.announcementsTitlePlaceholder") || "Title"}
+            placeholder={t("admin.announcementsTitlePlaceholder")}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={200}
           />
           <Textarea
-            placeholder={t("admin.announcementsBodyPlaceholder") || "Message"}
+            placeholder={t("admin.announcementsBodyPlaceholder")}
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={2}
@@ -114,7 +114,7 @@ export function AnnouncementsAdminCard() {
               ) : (
                 <Send className="h-4 w-4" />
               )}
-              <span className="ms-2">{t("settings.saveChanges") || "Post"}</span>
+              <span className="ms-2">{t("admin.announcementsPost")}</span>
             </Button>
           </div>
         </div>

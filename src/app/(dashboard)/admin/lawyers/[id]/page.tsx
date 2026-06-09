@@ -44,6 +44,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { formatDate } from "@/lib/utils/format";
 import { bucketByDeadline, daysUntil } from "@/lib/utils/date-buckets";
+import {
+  formatAdminActivityAction,
+  formatAdminActivityType,
+  formatAdminCaseStatus,
+  formatAdminRole,
+} from "@/lib/utils/admin-labels";
 
 export default function AdminLawyerDetailPage() {
   const router = useRouter();
@@ -65,7 +71,6 @@ export default function AdminLawyerDetailPage() {
   const { data: teamData } = useTeamMembers();
   const teamMembers = teamData?.members ?? [];
   const assignCase = useAssignCase();
-  const bulkAssign = useBulkAssignCases();
   const setOnLeave = useSetMemberOnLeave();
   const queryClient = useQueryClient();
 
@@ -120,7 +125,7 @@ export default function AdminLawyerDetailPage() {
               <h1 className="text-xl md:text-2xl font-bold text-[#0F2942]">
                 {lawyer.fullName || lawyer.email}
               </h1>
-              <Badge variant="outline">{lawyer.role}</Badge>
+              <Badge variant="outline">{formatAdminRole(lawyer.role, t)}</Badge>
               {lawyer.isOnLeave && (
                 <span className="text-[10px] uppercase tracking-wide font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200">
                   {t("admin.onLeaveBadge")}
@@ -221,22 +226,22 @@ export default function AdminLawyerDetailPage() {
                 <thead className="text-slate-500">
                   <tr>
                     <th className="text-start py-2 pr-4 font-medium">
-                      {t("admin.caseNumber") || "Case #"}
+                      {t("admin.caseNumber")}
                     </th>
                     <th className="text-start py-2 pr-4 font-medium">
-                      {t("admin.caseTitle") || "Title"}
+                      {t("admin.caseTitle")}
                     </th>
                     <th className="text-start py-2 pr-4 font-medium">
-                      {t("table.status") || "Status"}
+                      {t("table.status")}
                     </th>
                     <th className="text-start py-2 pr-4 font-medium">
-                      {t("admin.lawyerNextHearing") || "Next hearing"}
+                      {t("admin.lawyerNextHearing")}
                     </th>
                     <th className="text-start py-2 pr-4 font-medium">
-                      {t("admin.caseUpdated") || "Updated"}
+                      {t("admin.caseUpdated")}
                     </th>
                     <th className="text-end py-2 font-medium">
-                      <div>{t("cases.assignment") || "Assignment"}</div>
+                      <div>{t("cases.assignment")}</div>
                       <div className="text-[10px] font-normal text-slate-400 mt-0.5">
                         {t("admin.assignmentHelp")}
                       </div>
@@ -269,7 +274,9 @@ export default function AdminLawyerDetailPage() {
                           </Link>
                         </td>
                         <td className="py-2 pr-4">
-                          <Badge variant="outline">{c.status}</Badge>
+                          <Badge variant="outline">
+                            {formatAdminCaseStatus(c.status, t)}
+                          </Badge>
                         </td>
                         <td className={`py-2 pr-4 text-xs ${tone}`}>
                           {c.nextHearing ? (
@@ -353,7 +360,8 @@ export default function AdminLawyerDetailPage() {
                 >
                   <span className="text-[#0F2942]">
                     <span className="text-slate-500">
-                      {a.action} {a.type}
+                      {formatAdminActivityAction(a.action, t)}{" "}
+                      {formatAdminActivityType(a.type, t)}
                     </span>{" "}
                     {a.title && (
                       <span className="text-slate-600">— {a.title}</span>
@@ -397,7 +405,7 @@ function RedistributeCard({
   React.useEffect(() => {
     // When the case list refreshes (after a bulk assign), default-select all again.
     setSelected(new Set(openCases.map((c) => c.id)));
-  }, [openCases.length]);
+  }, [openCases]);
 
   const toggle = (id: number, checked: boolean) =>
     setSelected((prev) => {
@@ -446,8 +454,7 @@ function RedistributeCard({
           <>
             <div className="flex items-center justify-between mb-3">
               <div className="text-xs text-slate-500">
-                {selected.size} {t("admin.bulkSelected").replace("{{n}}", "").trim() ||
-                  "selected"}
+                {t("admin.bulkSelected").replace("{{n}}", String(selected.size))}
               </div>
               <div className="flex items-center gap-2">
                 <Select
@@ -496,7 +503,7 @@ function RedistributeCard({
                     {c.title}
                   </div>
                   <Badge variant="outline" className="text-[10px]">
-                    {c.status}
+                    {formatAdminCaseStatus(c.status, t)}
                   </Badge>
                 </li>
               ))}

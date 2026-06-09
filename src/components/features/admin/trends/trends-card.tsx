@@ -32,6 +32,10 @@ import {
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { useAdminTrends } from "@/lib/hooks/use-admin-trends";
 import type { AdminDashboardSettings } from "@/lib/api/admin";
+import {
+  formatAdminCaseStatus,
+  formatAdminCaseType,
+} from "@/lib/utils/admin-labels";
 
 export const STATUS_COLORS: Record<string, string> = {
   open: "#10b981",
@@ -56,6 +60,15 @@ export function TrendsCard({ settings }: { settings?: AdminDashboardSettings }) 
     );
   }
   if (!data) return null;
+
+  const statusBreakdown = data.statusBreakdown.map((row) => ({
+    ...row,
+    label: formatAdminCaseStatus(row.status, t),
+  }));
+  const caseTypeBreakdown = data.caseTypeBreakdown.map((row) => ({
+    ...row,
+    label: formatAdminCaseType(row.caseType, t),
+  }));
 
   return (
     <Card>
@@ -112,9 +125,9 @@ export function TrendsCard({ settings }: { settings?: AdminDashboardSettings }) 
             <ResponsiveContainer width="100%" height={180}>
               <PieChart>
                 <Pie
-                  data={data.statusBreakdown}
+                  data={statusBreakdown}
                   dataKey="count"
-                  nameKey="status"
+                  nameKey="label"
                   cx="50%"
                   cy="50%"
                   outerRadius={60}
@@ -123,7 +136,7 @@ export function TrendsCard({ settings }: { settings?: AdminDashboardSettings }) 
                   labelLine={false}
                   fontSize={10}
                 >
-                  {data.statusBreakdown.map((row) => (
+                  {statusBreakdown.map((row) => (
                     <Cell
                       key={row.status}
                       fill={STATUS_COLORS[row.status] ?? "#94a3b8"}
@@ -141,8 +154,8 @@ export function TrendsCard({ settings }: { settings?: AdminDashboardSettings }) 
               {t("admin.trendsCaseType")}
             </div>
             <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={data.caseTypeBreakdown}>
-                <XAxis dataKey="caseType" fontSize={9} interval={0} />
+              <BarChart data={caseTypeBreakdown}>
+                <XAxis dataKey="label" fontSize={9} interval={0} />
                 <YAxis fontSize={10} allowDecimals={false} />
                 <ReTooltip />
                 <Bar dataKey="count" fill={TYPE_COLOR} radius={[4, 4, 0, 0]} />

@@ -38,6 +38,19 @@ export function CasePicker({ value, onChange, maxRows = 6 }: CasePickerProps) {
     [cases, value]
   );
 
+  const filtered = React.useMemo(() => {
+    if (!cases) return [];
+    const q = query.trim().toLowerCase();
+    if (!q) return cases.slice(0, 200);
+    return cases
+      .filter(
+        (c) =>
+          c.title?.toLowerCase().includes(q) ||
+          c.case_number?.toLowerCase().includes(q)
+      )
+      .slice(0, 200);
+  }, [cases, query]);
+
   // When a case is selected, show a chip instead of the list
   if (selectedCase) {
     return (
@@ -69,19 +82,6 @@ export function CasePicker({ value, onChange, maxRows = 6 }: CasePickerProps) {
       </div>
     );
   }
-
-  const filtered = React.useMemo(() => {
-    if (!cases) return [];
-    const q = query.trim().toLowerCase();
-    if (!q) return cases.slice(0, 200);
-    return cases
-      .filter(
-        (c) =>
-          c.title?.toLowerCase().includes(q) ||
-          c.case_number?.toLowerCase().includes(q)
-      )
-      .slice(0, 200);
-  }, [cases, query]);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">

@@ -290,7 +290,7 @@ export function StepReview({ data, mode }: StepReviewProps) {
                                             : "text-blue-800"
                                 )}
                             >
-                                {t(item.labelKey as any)}
+                                {t(item.labelKey)}
                             </p>
                             <p
                                 className={cn(
@@ -302,7 +302,7 @@ export function StepReview({ data, mode }: StepReviewProps) {
                                             : "text-blue-700"
                                 )}
                             >
-                                {t(item.messageKey as any)}
+                                {t(item.messageKey)}
                             </p>
                         </div>
                     </div>
@@ -325,7 +325,7 @@ export function StepReview({ data, mode }: StepReviewProps) {
                             </p>
                             <p className="text-sm font-bold text-[#0F2942]">
                                 {TYPE_LABEL_KEYS[data.caseType]
-                                    ? t(TYPE_LABEL_KEYS[data.caseType] as any)
+                                    ? t(TYPE_LABEL_KEYS[data.caseType])
                                     : t("cases.wizard.notSelected")}
                             </p>
                         </div>

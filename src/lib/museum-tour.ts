@@ -307,20 +307,34 @@ export const museumTourItems: MuseumTourItem[] = [
   },
 ];
 
+// Ordered as ONE coherent, page-by-page narrative. Each contiguous block
+// stays on a single page/route before moving on, so the tour never
+// backtracks (the old order ping-ponged cases→linking→details→linking and
+// jumped back to /dashboard for the chat steps). Steps flagged adminOnly are
+// auto-filtered for non-admins, so a non-admin sees this list minus the admin
+// step (~12 steps); an admin sees ~13.
 export const museumGuidedTourIds = [
+  // Dashboard — where you are + the daily snapshot
   "dashboard-command-center",
+  "dashboard-overview",
+  // Header tools (still on the dashboard, no navigation)
   "header-search-ai",
+  "bilingual",
+  // Cases — the core workspace, then dive into the AI features on one case
   "cases-workspace",
   "case-linking",
   "case-ai-analysis",
-  "find-related",
+  // Regulations — library, then its AI insights and version history
   "regulations-library",
   "regulation-ai-analysis",
   "regulation-versions",
-  "admin-ai-intelligence",
+  // Workflow surfaces
   "clients-workflow",
+  "alerts-realtime",
+  // Admin oversight (admin-only; auto-hidden otherwise)
+  "admin-ai-intelligence",
+  // Finale — the AI assistant, opened once and walked through in place
   "header-ask-ai",
   "chat-panel-header",
   "chat-panel-input",
-  "chat-panel-history",
 ];

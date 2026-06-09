@@ -4,7 +4,7 @@
  * Silah — creative marketing landing page.
  * Adapted from the Claude Design handoff bundle ("connected geometry" motif):
  * getignore.com's floating-decoration energy translated into Silah's navy +
- * orange brand. Arabic-first / RTL with an EN/LTR mirror, scroll-reveal,
+ * orange brand. Saudi legal workflow focus, scroll-reveal,
  * parallax, product mockups, and a geometric "skyline" footer.
  */
 
@@ -43,7 +43,6 @@ const SLATE_200 = "#e5e7eb";
 const SLATE_600 = "#4b5563";
 const SHADOW_XS = "0 1px 2px 0 rgb(0 0 0 / 0.05)";
 const SHADOW_MD = "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)";
-const SHADOW_SM = "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)";
 
 /* ──────────────────────────── icon map ──────────────────────────── */
 const ICONS: Record<string, LucideIcon> = {
@@ -83,7 +82,6 @@ function Icon({
 type Finding = { t: string; d: string; m: string };
 type AlertItem = { icon: string; name: string; meta: string; desc: string; tag: string; tone: BadgeTone };
 type TaskItem = { name: string; meta: string; tag: string; tone: string; who: string; urgent?: boolean };
-type Plan = { name: string; price: string; unit: string; desc: string; cta: string; featured: boolean; feats: string[] };
 
 type Copy = {
   dir: "rtl" | "ltr";
@@ -99,9 +97,7 @@ type Copy = {
   };
   regs: { eyebrow: string; title: string[]; body: string; panelTitle: string; panelTime: string; items: AlertItem[] };
   priority: { eyebrow: string; title: string[]; body: string; panelTitle: string; panelTime: string; items: TaskItem[] };
-  bilingual: { eyebrow: string; title: string[]; body: string; terms: string[]; termsEn: string[] };
   privacy: { eyebrow: string; title: string[]; body: string; bullets: { icon: string; t: string }[]; seal: string };
-  pricing: { eyebrow: string; title: string[]; body: string; perMo: string; save: string; plans: Plan[] };
   beta: {
     eyebrow: string; title: string[]; body: string; placeholder: string; button: string;
     success: string; successSub: string; fine: string;
@@ -122,7 +118,6 @@ const COPY: Record<"ar" | "en", Copy> = {
         { id: "regs", t: "التتبّع" },
         { id: "priority", t: "الأولوية" },
         { id: "privacy", t: "الخصوصية" },
-        { id: "pricing", t: "الأسعار" },
       ],
       cta: "ابدأ الآن",
     },
@@ -131,7 +126,7 @@ const COPY: Record<"ar" | "en", Copy> = {
       title: ["كلّ قضية،", "متصلة بنظامها"],
       sub: "صلة تربط قضاياك بالأنظمة السعودية التي تحكمها، وتنبّهك في اللحظة التي تتغيّر فيها.",
       cta1: "ابدأ الآن", cta2: "شاهد كيف تعمل",
-      trust: "تعمل بالعربية أولًا · متوافقة مع أنظمة المملكة",
+      trust: "مصممة لسير العمل القانوني في المملكة",
     },
     analysis: {
       eyebrow: "تحليل القضايا بالذكاء الاصطناعي",
@@ -176,13 +171,6 @@ const COPY: Record<"ar" | "en", Copy> = {
         { name: "أرشيف ٢٠٢٤ · قضايا مغلقة", meta: "لا إجراء مطلوب", tag: "مؤرشف", tone: "muted", who: "أرشيف" },
       ],
     },
-    bilingual: {
-      eyebrow: "عربية أولًا",
-      title: ["بلسانك،", "وبالإنجليزية حين تحتاج"],
-      body: "واجهة عربية كاملة من اليمين إلى اليسار، بأرقام عربية ومصطلحات قانونية دقيقة — وإنجليزية جاهزة لفريقك ومراسلاتك الدولية.",
-      terms: ["قضية", "نظام", "جلسة", "موكّل", "محكمة", "نجيز", "لائحة", "مذكرة", "اختصاص", "حكم", "توكيل", "مرافعة"],
-      termsEn: ["Case", "Regulation", "Hearing", "Client", "Court", "Najiz", "Bylaw", "Brief", "Jurisdiction", "Verdict", "Mandate", "Pleading"],
-    },
     privacy: {
       eyebrow: "الخصوصية بالتصميم",
       title: ["بياناتك", "ملكك وحدك"],
@@ -194,18 +182,6 @@ const COPY: Record<"ar" | "en", Copy> = {
         { icon: "history", t: "سجلّ تدقيق كامل" },
       ],
       seal: "محفوظ ومشفّر",
-    },
-    pricing: {
-      eyebrow: "الأسعار",
-      title: ["اشتراك واحد،", "بلا تعقيد"],
-      body: "ابدأ مجانًا، ووسّع حين ينمو مكتبك.",
-      perMo: "/ شهريًا", save: "وفّر ٢٠٪",
-      plans: [
-        { name: "للمحامي الفرد", price: "٢٩٩", unit: "ر.س", desc: "لكل مستخدم، يُدفع شهريًا", cta: "ابدأ الآن", featured: false,
-          feats: ["قضايا غير محدودة", "تحليل ذكي للقضايا", "تتبّع تغيّر الأنظمة", "واجهة عربية كاملة"] },
-        { name: "لمكتب المحاماة", price: "٢٤٩", unit: "ر.س", desc: "لكل مستخدم، يُدفع سنويًا", cta: "تواصل معنا", featured: true,
-          feats: ["كل ما في خطة الفرد", "صلاحيات وأدوار للفريق", "سجلّ تدقيق وتقارير", "دعم مخصّص وتهيئة"] },
-      ],
     },
     beta: {
       eyebrow: "نسخة تجريبية خاصة",
@@ -220,7 +196,7 @@ const COPY: Record<"ar" | "en", Copy> = {
     footer: {
       tagline: "تربط القضايا بالأنظمة، والمحامين بما يهم.",
       cols: [
-        { h: "المنتج", links: ["التحليل", "التتبّع", "الأولوية", "الأسعار"] },
+        { h: "المنتج", links: ["التحليل", "التتبّع", "الأولوية"] },
         { h: "الشركة", links: ["من نحن", "المدوّنة", "الوظائف"] },
         { h: "قانوني", links: ["الخصوصية", "الشروط", "الامتثال"] },
       ],
@@ -243,7 +219,6 @@ const COPY: Record<"ar" | "en", Copy> = {
         { id: "regs", t: "Tracking" },
         { id: "priority", t: "Priority" },
         { id: "privacy", t: "Privacy" },
-        { id: "pricing", t: "Pricing" },
       ],
       cta: "Get Started",
     },
@@ -252,7 +227,7 @@ const COPY: Record<"ar" | "en", Copy> = {
       title: ["Every case,", "linked to its law"],
       sub: "Silah connects your cases to the Saudi regulations that govern them — and alerts you the moment they change.",
       cta1: "Get Started", cta2: "See how it works",
-      trust: "Arabic-first · Built for Saudi regulation",
+      trust: "Built for Saudi legal workflows",
     },
     analysis: {
       eyebrow: "AI Case Analysis",
@@ -297,13 +272,6 @@ const COPY: Record<"ar" | "en", Copy> = {
         { name: "Archive 2024 · Closed cases", meta: "No action needed", tag: "Archived", tone: "muted", who: "Arch" },
       ],
     },
-    bilingual: {
-      eyebrow: "Arabic-first",
-      title: ["In your tongue,", "English when you need it"],
-      body: "A full right-to-left Arabic interface with Arabic numerals and precise legal terms — and English ready for your team and international correspondence.",
-      terms: ["Case", "Regulation", "Hearing", "Client", "Court", "Najiz", "Bylaw", "Brief", "Jurisdiction", "Verdict", "Mandate", "Pleading"],
-      termsEn: ["قضية", "نظام", "جلسة", "موكّل", "محكمة", "نجيز", "لائحة", "مذكرة", "اختصاص", "حكم", "توكيل", "مرافعة"],
-    },
     privacy: {
       eyebrow: "Private by design",
       title: ["Your data", "is yours alone"],
@@ -315,18 +283,6 @@ const COPY: Record<"ar" | "en", Copy> = {
         { icon: "history", t: "Full audit trail" },
       ],
       seal: "Sealed & encrypted",
-    },
-    pricing: {
-      eyebrow: "Pricing",
-      title: ["One subscription,", "no complexity"],
-      body: "Start free, scale as your practice grows.",
-      perMo: "/ month", save: "Save 20%",
-      plans: [
-        { name: "Solo Practitioner", price: "299", unit: "SAR", desc: "per user, billed monthly", cta: "Get Started", featured: false,
-          feats: ["Unlimited cases", "AI case analysis", "Regulation-change tracking", "Full Arabic interface"] },
-        { name: "Law Firm", price: "249", unit: "SAR", desc: "per user, billed yearly", cta: "Contact us", featured: true,
-          feats: ["Everything in Solo", "Team roles & permissions", "Audit log & reports", "Dedicated support & setup"] },
-      ],
     },
     beta: {
       eyebrow: "Private beta",
@@ -341,7 +297,7 @@ const COPY: Record<"ar" | "en", Copy> = {
     footer: {
       tagline: "Linking cases to laws, and lawyers to what matters.",
       cols: [
-        { h: "Product", links: ["Analysis", "Tracking", "Priority", "Pricing"] },
+        { h: "Product", links: ["Analysis", "Tracking", "Priority"] },
         { h: "Company", links: ["About", "Blog", "Careers"] },
         { h: "Legal", links: ["Privacy", "Terms", "Compliance"] },
       ],
@@ -839,40 +795,6 @@ function PrioritySection({ D }: { D: Copy }) {
   );
 }
 
-function MarqueeRow({ terms, reverse = false, faded = false }: { terms: string[]; reverse?: boolean; faded?: boolean }) {
-  const items = [...terms, ...terms];
-  return (
-    <div className="marquee-mask overflow-hidden">
-      <div className="flex gap-3 w-max" style={{ animation: `${reverse ? "silah-marqueeR" : "silah-marquee"} calc(34s / var(--mspeed,1)) linear infinite` }}>
-        {items.map((t, i) => (
-          <span key={i} className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white border border-gray-100 shrink-0"
-            style={{ boxShadow: SHADOW_XS, opacity: faded ? 0.7 : 1 }}>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]" />
-            <span className="text-[17px] font-bold text-[#0F2942]">{t}</span>
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function BilingualSection({ D }: { D: Copy }) {
-  const c = D.bilingual;
-  return (
-    <section className={SECTION} style={{ paddingBlock: 110 }}>
-      <div className={`${WRAP} text-center`}>
-        <div className="reveal flex justify-center"><Pill>{c.eyebrow}</Pill></div>
-        <div className="reveal reveal-d1 mt-5 flex justify-center"><Title lines={c.title} D={D} /></div>
-        <div className="reveal reveal-d2 mt-6 flex justify-center"><Lead className="text-center">{c.body}</Lead></div>
-      </div>
-      <div className="reveal reveal-d2 mt-12 flex flex-col gap-4">
-        <MarqueeRow terms={c.terms} />
-        <MarqueeRow terms={c.termsEn} reverse faded />
-      </div>
-    </section>
-  );
-}
-
 function PrivacySection({ D }: { D: Copy }) {
   const c = D.privacy;
   return (
@@ -915,55 +837,6 @@ function PrivacySection({ D }: { D: Copy }) {
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function PricingSection({ D, onCta }: { D: Copy; onCta: () => void }) {
-  const c = D.pricing;
-  return (
-    <section id="pricing" className={SECTION} style={{ paddingBlock: 110 }}>
-      <div className="absolute inset-0 z-0" aria-hidden="true">
-        <Deco x={{ insetInlineStart: "10%" }} y={{ top: 80 }} anim="floatA" par={0.26}><DotPair s={13} /></Deco>
-        <Deco x={{ insetInlineEnd: "9%" }} y={{ bottom: 90 }} anim="floatC" par={0.3}><Squircle s={48} stroke="rgba(15,41,66,0.16)" radius={16} rot={-14} /></Deco>
-      </div>
-      <div className={`${WRAP} text-center`}>
-        <div className="reveal flex justify-center"><Pill>{c.eyebrow}</Pill></div>
-        <div className="reveal reveal-d1 mt-5 flex justify-center"><Title lines={c.title} D={D} /></div>
-        <div className="reveal reveal-d2 mt-6 flex justify-center"><Lead className="text-center">{c.body}</Lead></div>
-
-        <div className="reveal reveal-d2 mt-12 grid sm:grid-cols-2 gap-5 max-w-3xl mx-auto text-start">
-          {c.plans.map((p, i) => {
-            const f = p.featured;
-            return (
-              <div key={i} className={`${D.ui} relative rounded-[28px] p-7 transition-all hover:-translate-y-1`}
-                style={f
-                  ? { background: "linear-gradient(165deg,#0F2942,#0a1c2e)", boxShadow: "0 30px 60px -20px rgba(15,41,66,0.45)" }
-                  : { background: "#fff", border: `1px solid ${SLATE_200}`, boxShadow: SHADOW_SM }}>
-                {f && <span className="absolute top-5 text-[9px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-md bg-[#D97706] text-white" style={{ insetInlineEnd: 20 }}>{c.save}</span>}
-                <div className="text-[14px] font-bold" style={{ color: f ? "rgba(255,255,255,0.8)" : "#6b7280" }}>{p.name}</div>
-                <div className="mt-3 flex items-end gap-1.5">
-                  <span className="font-serif font-bold leading-none" style={{ fontSize: 46, color: f ? "#fff" : "#0F2942" }}>{p.price}</span>
-                  <span className="text-[14px] font-bold mb-1.5" style={{ color: f ? "#fb923c" : "#D97706" }}>{p.unit}</span>
-                  <span className="text-[12px] font-medium mb-2" style={{ color: f ? "rgba(255,255,255,0.5)" : "#9ca3af" }}>{c.perMo}</span>
-                </div>
-                <div className="text-[12px] font-medium mt-1" style={{ color: f ? "rgba(255,255,255,0.55)" : "#9ca3af" }}>{p.desc}</div>
-                <div className="h-px my-5" style={{ background: f ? "rgba(255,255,255,0.12)" : SLATE_200 }} />
-                <ul className="m-0 p-0 list-none flex flex-col gap-3">
-                  {p.feats.map((ft, j) => (
-                    <li key={j} className="flex items-center gap-2.5">
-                      <span className="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style={{ background: f ? "rgba(217,119,6,0.2)" : "#fef3c7", color: "#D97706" }}><Icon name="check" size={13} stroke={2.6} /></span>
-                      <span className="text-[13px] font-semibold" style={{ color: f ? "rgba(255,255,255,0.88)" : "#374151" }}>{ft}</span>
-                    </li>
-                  ))}
-                </ul>
-                <button onClick={onCta} className="mt-7 w-full h-12 rounded-xl text-[14px] font-bold transition-all hover:-translate-y-0.5"
-                  style={f ? { background: "#D97706", color: "#fff", boxShadow: "0 10px 25px -5px rgba(146,64,14,0.5)" } : { background: "#0F2942", color: "#fff" }}>{p.cta}</button>
-              </div>
-            );
-          })}
         </div>
       </div>
     </section>
@@ -1191,9 +1064,7 @@ export default function LandingPage() {
         <AnalysisSection D={D} />
         <RegsSection D={D} />
         <PrioritySection D={D} />
-        <BilingualSection D={D} />
         <PrivacySection D={D} />
-        <PricingSection D={D} onCta={enterApp} />
         <BetaSection D={D} />
       </main>
       <Footer D={D} />

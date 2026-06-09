@@ -140,46 +140,121 @@ export function MuseumWalkthroughProvider({ children }: { children: React.ReactN
   React.useEffect(() => {
     if (!activeItem) return;
 
-    const captureRect = () => {
-      const anchor = getAnchor(activeItem);
-      if (!anchor) {
-        setRect(null);
-        setAnchorMissing(true);
-        return;
+    // `cancelled` flips to true in cleanup so any in-flight polling loop or
+    // scheduled frame from THIS step is abandoned the moment the user
+    // advances (Next/Back) or the route changes. This is what kills the old
+    // race: a late capture from a previous step can no longer fire after the
+    // user has already moved on.
+    let cancelled = false;
+    let pollTimer: number | undefined;
+
+    // Many tour anchors sit on a whole-page wrapper `<div>` (e.g. the entire
+    // dashboard, the cases list, the regulations library). Highlighting the
+    // raw wrapper draws a ring around the ENTIRE page and floats the panel in
+    // the middle pointing at nothing — which is what made the tour look
+    // broken. When the matched element is taller than most of the viewport we
+    // drill into its first child (usually the page header / hero card, which
+    // is a sensible focal point); if that's still too tall we clamp the
+    // highlighted band to the top of the section so the ring frames real
+    // content instead of the whole screen.
+    const MAX_HIGHLIGHT_VIEWPORT_RATIO = 0.7;
+
+    const resolveHighlightEl = (anchor: HTMLElement): HTMLElement => {
+      const vh = window.innerHeight;
+      const box = anchor.getBoundingClientRect();
+      if (box.height <= vh * MAX_HIGHLIGHT_VIEWPORT_RATIO) return anchor;
+      const child = anchor.firstElementChild as HTMLElement | null;
+      if (child) {
+        const cb = child.getBoundingClientRect();
+        if (cb.height > 0 && cb.height <= vh * MAX_HIGHLIGHT_VIEWPORT_RATIO) {
+          return child;
+        }
       }
-      const next = anchor.getBoundingClientRect();
+      return anchor;
+    };
+
+    const measure = (anchor: HTMLElement) => {
+      const target = resolveHighlightEl(anchor);
+      // Instant (not smooth) scroll: measuring immediately after a SMOOTH
+      // scroll captured the rect mid-animation, so the ring landed in the
+      // wrong place. An instant scroll means getBoundingClientRect() below is
+      // already the final position.
+      target.scrollIntoView({ behavior: "auto", block: "center", inline: "center" });
+      const box = target.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const height =
+        box.height > vh * MAX_HIGHLIGHT_VIEWPORT_RATIO
+          ? Math.round(vh * 0.5)
+          : box.height;
       setRect({
-        top: next.top,
-        left: next.left,
-        width: next.width,
-        height: next.height,
+        top: box.top,
+        left: box.left,
+        width: box.width,
+        height,
       });
       setAnchorMissing(false);
     };
 
-    // 1. Initial capture so the highlight renders on the first paint.
-    captureRect();
+    // An anchor is only "ready" when it exists AND has a real laid-out box.
+    // A zero-size rect means the element is in the DOM but not actually
+    // rendered yet — e.g. inside an inactive tab panel, a collapsed section,
+    // a not-yet-open chat panel, or a `hidden md:block` element. Measuring
+    // it then would place the highlight at 0,0 with no size.
+    const findReadyAnchor = (): HTMLElement | null => {
+      const anchor = getAnchor(activeItem);
+      if (!anchor) return null;
+      const box = anchor.getBoundingClientRect();
+      if (box.width <= 0 || box.height <= 0) return null;
+      return anchor;
+    };
 
-    // 2. Re-capture after a smooth scroll lands. We re-scroll first, then
-    //    schedule the capture on the next animation frame plus a small delay
-    //    to let the smooth scroll animation settle. This is the only time
-    //    we re-measure mid-step — the rect is NOT re-captured on user
-    //    scroll because that made the panel jitter as the anchor slid
-    //    through the viewport.
-    const anchor = getAnchor(activeItem);
-    if (anchor) {
-      anchor.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
-      window.setTimeout(captureRect, 500);
-    }
+    // Poll on a fixed interval until the anchor is ready or the budget is
+    // exhausted. Replaces the old single `setTimeout(captureRect, 500)` guess:
+    // fast pages resolve on the first tick, slow pages (data fetch, hydration,
+    // tab/panel mount) are waited out up to ANCHOR_WAIT_BUDGET_MS.
+    // Count ticks rather than wall-clock time so the budget elapses reliably
+    // under both real and fake timers (whether or not Date is mocked).
+    const ANCHOR_POLL_INTERVAL_MS = 100;
+    const ANCHOR_MAX_TICKS = 30; // ~3s at 100ms/tick
+    let ticks = 0;
 
-    // 3. Re-measure on resize so the panel repositions when the window
-    //    size changes (e.g. device rotation, browser resize). The scroll
-    //    listener that used to live here was removed: capturing on every
-    //    scroll event re-positioned the panel on every wheel tick, which
-    //    looked broken.
-    window.addEventListener("resize", captureRect);
+    const poll = () => {
+      if (cancelled) return;
+      const anchor = findReadyAnchor();
+      if (anchor) {
+        // `measure` scrolls the (possibly drilled-down) target into view
+        // instantly and captures its final rect — no animation race.
+        measure(anchor);
+        return;
+      }
+      if (ticks >= ANCHOR_MAX_TICKS) {
+        // Gave up waiting — show the centered fallback panel + a gentle
+        // notice instead of a broken/blank highlight. The tour never hard-
+        // breaks on a missing anchor.
+        setRect(null);
+        setAnchorMissing(true);
+        return;
+      }
+      ticks += 1;
+      pollTimer = window.setTimeout(poll, ANCHOR_POLL_INTERVAL_MS);
+    };
+
+    poll();
+
+    // Re-measure on resize so the panel repositions when the window size
+    // changes (device rotation, browser resize). Only re-measures when the
+    // anchor is currently ready; otherwise it's a no-op until the next step.
+    const onResize = () => {
+      if (cancelled) return;
+      const anchor = findReadyAnchor();
+      if (anchor) measure(anchor);
+    };
+    window.addEventListener("resize", onResize);
+
     return () => {
-      window.removeEventListener("resize", captureRect);
+      cancelled = true;
+      if (pollTimer !== undefined) window.clearTimeout(pollTimer);
+      window.removeEventListener("resize", onResize);
     };
   }, [activeItem, pathname]);
 

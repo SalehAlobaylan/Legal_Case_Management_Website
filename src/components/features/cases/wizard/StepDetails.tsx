@@ -222,7 +222,7 @@ export function StepDetails({
                                 <div key={q.id} className="space-y-1.5">
                                     <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                                         <ChevronRight className="h-3 w-3 text-[#D97706]" />
-                                        {t(q.questionKey as any)}
+                                        {t(q.questionKey)}
                                     </label>
                                     <textarea
                                         value={aiAnswers[q.id] || ""}
@@ -232,7 +232,7 @@ export function StepDetails({
                                                 [q.id]: e.target.value,
                                             }))
                                         }
-                                        placeholder={t(q.placeholderKey as any)}
+                                        placeholder={t(q.placeholderKey)}
                                         rows={2}
                                         className="w-full text-xs rounded-lg border border-slate-200 bg-white p-2.5 focus:border-[#D97706] focus:ring-1 focus:ring-[#D97706]/20 outline-none resize-none transition-colors"
                                     />

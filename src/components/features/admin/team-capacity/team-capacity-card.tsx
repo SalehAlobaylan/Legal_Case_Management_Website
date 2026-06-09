@@ -17,6 +17,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import type { AdminWorkloadRow } from "@/lib/api/admin";
+import { formatAdminRole } from "@/lib/utils/admin-labels";
 
 export function TeamCapacityCard({
   workload,
@@ -122,7 +123,7 @@ export function TeamCapacityCard({
                       </div>
                     </td>
                     <td className="py-2 pr-4">
-                      <Badge variant="outline">{row.role}</Badge>
+                      <Badge variant="outline">{formatAdminRole(row.role, t)}</Badge>
                     </td>
                     <td className="py-2 pr-4 text-end">{row.openCases}</td>
                     <td className="py-2 text-end">{row.totalCases}</td>

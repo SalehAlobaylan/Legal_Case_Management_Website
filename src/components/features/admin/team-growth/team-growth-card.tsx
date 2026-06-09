@@ -32,6 +32,7 @@ import {
   useRevokeInvitation,
   useTeamInvitations,
 } from "@/lib/hooks/use-team";
+import { formatAdminRole } from "@/lib/utils/admin-labels";
 
 export function TeamGrowthCard() {
   const { t } = useI18n();
@@ -78,7 +79,7 @@ export function TeamGrowthCard() {
           <div className="flex flex-col md:flex-row gap-2">
             <Input
               type="email"
-              placeholder={t("settings.emailPlaceholder") || "user@email.com"}
+              placeholder={t("settings.emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="flex-1"
@@ -104,12 +105,12 @@ export function TeamGrowthCard() {
               ) : (
                 <Send className="h-4 w-4" />
               )}
-              <span className="ms-2">{t("settings.inviteMember") || "Invite"}</span>
+              <span className="ms-2">{t("settings.inviteMember")}</span>
             </Button>
           </div>
           {lastCode && (
             <p className="text-xs text-slate-600">
-              {t("settings.invitationCodeLabel") || "Code:"}{" "}
+              {t("settings.invitationCodeLabel")}{" "}
               <code className="bg-slate-100 px-1.5 py-0.5 rounded select-all">
                 {lastCode}
               </code>
@@ -140,7 +141,9 @@ export function TeamGrowthCard() {
                       {inv.email}
                     </div>
                     <div className="text-xs text-slate-500">
-                      <Badge variant="outline">{inv.role}</Badge>
+                      <Badge variant="outline">
+                        {formatAdminRole(inv.role, t)}
+                      </Badge>
                       <span className="ms-2">
                         {t("admin.expLabel")} {new Date(inv.expiresAt).toLocaleDateString()}
                       </span>

@@ -36,7 +36,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils/cn";
 import { ClientKanbanBoard } from "@/components/features/clients/client-kanban-board";
-import { useClients, useCreateClient, useExportClients } from "@/lib/hooks/use-clients";
+import { useClients, useExportClients } from "@/lib/hooks/use-clients";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { MuseumGuard } from "@/components/common/museum-guard";
 import type { Client } from "@/lib/types/client";
@@ -45,19 +45,23 @@ import type { Client } from "@/lib/types/client";
    TYPE HELPERS
    ============================================================================= */
 
-const getTypeIcon = (type: string) => {
+function ClientTypeIcon({
+  type,
+  className,
+}: {
+  type: string;
+  className?: string;
+}) {
   switch (type) {
-    case "individual":
-      return User;
     case "corporate":
     case "company":
     case "sme":
     case "group":
-      return Building2;
+      return <Building2 className={className} />;
     default:
-      return User;
+      return <User className={className} />;
   }
-};
+}
 
 const getTypeColor = (type: string) => {
   switch (type) {
@@ -111,7 +115,7 @@ export default function ClientsPage() {
 
   const { mutate: exportClients, isPending: isExporting } = useExportClients();
 
-  const clients = clientsData?.clients || [];
+  const clients = React.useMemo(() => clientsData?.clients || [], [clientsData?.clients]);
 
   // Stats from real data
   const stats = React.useMemo(() => ({
@@ -398,7 +402,6 @@ interface ClientRowProps {
 function ClientRow({ client, onView, index, t, isRTL }: ClientRowProps) {
   const { name, id, type, contactPhone, contactEmail, phone, email, casesCount } = client;
   const initial = name.charAt(0).toUpperCase();
-  const TypeIcon = getTypeIcon(type);
   const displayPhone = contactPhone || phone;
   const displayEmail = contactEmail || email;
 
@@ -441,7 +444,7 @@ function ClientRow({ client, onView, index, t, isRTL }: ClientRowProps) {
             getTypeColor(type)
           )}
         >
-          <TypeIcon className="h-3.5 w-3.5" />
+          <ClientTypeIcon type={type} className="h-3.5 w-3.5" />
           {type === "individual"
             ? t("clients.types.individual")
             : type === "sme"
@@ -501,7 +504,6 @@ function ClientRow({ client, onView, index, t, isRTL }: ClientRowProps) {
 function ClientCard({ client, onView, index, t, isRTL }: ClientRowProps) {
   const { name, id, type, contactPhone, contactEmail, phone, email, casesCount } = client;
   const initial = name.charAt(0).toUpperCase();
-  const TypeIcon = getTypeIcon(type);
   const displayPhone = contactPhone || phone;
   const displayEmail = contactEmail || email;
   const typeLabel =
@@ -544,7 +546,7 @@ function ClientCard({ client, onView, index, t, isRTL }: ClientRowProps) {
               getTypeColor(type)
             )}
           >
-            <TypeIcon className="h-3 w-3" />
+            <ClientTypeIcon type={type} className="h-3 w-3" />
             {typeLabel}
           </span>
         </div>

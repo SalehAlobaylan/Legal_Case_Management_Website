@@ -39,6 +39,7 @@ import { useTeamMembers } from "@/lib/hooks/use-team";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { regulationsApi } from "@/lib/api/regulations";
 import { formatDate } from "@/lib/utils/format";
+import { formatAdminMonitorStatus } from "@/lib/utils/admin-labels";
 import { StatCard } from "@/components/features/admin/stat-card";
 import { HearingsCard } from "@/components/features/admin/hearings/hearings-card";
 import { TeamGrowthCard } from "@/components/features/admin/team-growth/team-growth-card";
@@ -265,7 +266,7 @@ function CommandHeader({
                 data?.monitor.stale
                   ? t("admin.monitorStale")
                   : data?.monitor.health.lastStatus
-                    ? `${t("admin.monitorLast")}: ${data.monitor.health.lastStatus}`
+                    ? `${t("admin.monitorLast")}: ${formatAdminMonitorStatus(data.monitor.health.lastStatus, t)}`
                     : t("admin.monitorNoRuns")
               }
             />
@@ -275,7 +276,7 @@ function CommandHeader({
           href="/settings"
           className="text-sm font-medium text-orange-600 hover:underline inline-flex items-center gap-1"
         >
-          {t("admin.orgSettingsLink")} <span aria-hidden>{isRTL ? "<-" : "->"}</span>
+          {t("admin.orgSettingsLink")} <span aria-hidden>{isRTL ? "←" : "→"}</span>
         </Link>
       </div>
 
@@ -419,7 +420,7 @@ function MonitorCard({ monitor }: { monitor: AdminMonitorSummary }) {
       <CardContent className="space-y-4">
         <div>
           <div className="text-3xl font-bold text-[#0F2942]">
-            {monitor.health.lastStatus || t("admin.monitorNoRuns")}
+            {formatAdminMonitorStatus(monitor.health.lastStatus, t)}
           </div>
           <p className="text-sm text-slate-500">
             {monitor.health.lastRunAt
@@ -454,7 +455,7 @@ function MonitorCard({ monitor }: { monitor: AdminMonitorSummary }) {
           {monitor.runs.slice(0, 5).map((run) => (
             <li key={run.id} className="py-2 text-sm flex items-center justify-between gap-3">
               <span className="text-[#0F2942]">
-                {run.status}
+                {formatAdminMonitorStatus(run.status, t)}
                 {run.dryRun ? ` (${t("admin.monitorDry")})` : ""}
               </span>
               <span className="text-xs text-slate-500">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { User, Building2, Users, Briefcase, Save } from "lucide-react";
@@ -26,7 +26,7 @@ const clientSchema = z.object({
 type ClientFormData = z.input<typeof clientSchema>;
 
 interface ClientFormProps {
-  initialData?: Partial<ClientFormData> & {
+  initialData?: Omit<Partial<ClientFormData>, "type"> & {
     type?: string;
   };
   clientId?: number;
@@ -53,7 +53,7 @@ export function ClientForm({ initialData, clientId, mode = "create", onSuccess }
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors },
   } = useForm<ClientFormData>({
     resolver: zodResolver(clientSchema),
@@ -74,7 +74,7 @@ export function ClientForm({ initialData, clientId, mode = "create", onSuccess }
     },
   });
 
-  const selectedType = watch("type");
+  const selectedType = useWatch({ control, name: "type" });
 
   const onSubmit = (data: ClientFormData) => {
     // Map UI types to API types
@@ -105,7 +105,7 @@ export function ClientForm({ initialData, clientId, mode = "create", onSuccess }
       updateClient({ id: clientId, input: payload }, {
         onSuccess: () => {
           onSuccess?.();
-          router.back();
+          router.push(`/clients/${clientId}`);
         },
       });
     }

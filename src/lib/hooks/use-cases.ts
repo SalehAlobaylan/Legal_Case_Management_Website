@@ -8,12 +8,24 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
-import type { Case, CreateCaseInput } from "@/lib/types/case";
+import type { Case, CaseStatus, CreateCaseInput } from "@/lib/types/case";
 import { toast } from "@/components/ui/use-toast";
 
 interface PatchCaseInput {
   id: number;
   updates: Partial<CreateCaseInput>;
+}
+
+interface BulkMutationResult<T> {
+  successful: T[];
+  failedCount: number;
+  totalCount: number;
+}
+
+function firstSettledError(results: PromiseSettledResult<unknown>[]): unknown {
+  return results.find(
+    (result): result is PromiseRejectedResult => result.status === "rejected"
+  )?.reason;
 }
 
 export function useCases() {
@@ -105,6 +117,100 @@ export function useDeleteCase() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cases"] });
       toast({ title: "Case deleted successfully" });
+    },
+  });
+}
+
+export function useBulkUpdateCaseStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (
+      input: { caseIds: number[]; status: CaseStatus }
+    ): Promise<BulkMutationResult<Case>> => {
+      const results = await Promise.allSettled(
+        input.caseIds.map(async (id) => {
+          const { data } = await apiClient.put<{ case: Case }>(
+            `/api/cases/${id}`,
+            { status: input.status }
+          );
+          return data.case;
+        })
+      );
+
+      const successful = results
+        .filter((result): result is PromiseFulfilledResult<Case> => result.status === "fulfilled")
+        .map((result) => result.value);
+
+      if (successful.length === 0) {
+        throw firstSettledError(results) || new Error("Failed to update selected cases.");
+      }
+
+      return {
+        successful,
+        failedCount: results.length - successful.length,
+        totalCount: results.length,
+      };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["cases"] });
+      result.successful.forEach((case_) => {
+        queryClient.invalidateQueries({ queryKey: ["case", case_.id] });
+      });
+      toast({
+        title:
+          result.failedCount > 0
+            ? "Some case statuses updated"
+            : "Case statuses updated",
+        description:
+          result.failedCount > 0
+            ? `${result.successful.length} of ${result.totalCount} cases updated.`
+            : `${result.successful.length} case${result.successful.length === 1 ? "" : "s"} updated.`,
+      });
+    },
+  });
+}
+
+export function useBulkDeleteCases() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (caseIds: number[]): Promise<BulkMutationResult<number>> => {
+      const results = await Promise.allSettled(
+        caseIds.map((id) => apiClient.delete(`/api/cases/${id}`))
+      );
+      const successful = results.reduce<number[]>((ids, result, index) => {
+        if (result.status === "fulfilled") {
+          ids.push(caseIds[index]);
+        }
+        return ids;
+      }, []);
+
+      if (successful.length === 0) {
+        throw firstSettledError(results) || new Error("Failed to delete selected cases.");
+      }
+
+      return {
+        successful,
+        failedCount: results.length - successful.length,
+        totalCount: results.length,
+      };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["cases"] });
+      result.successful.forEach((id) => {
+        queryClient.removeQueries({ queryKey: ["case", id] });
+      });
+      toast({
+        title:
+          result.failedCount > 0
+            ? "Some cases deleted"
+            : "Cases deleted",
+        description:
+          result.failedCount > 0
+            ? `${result.successful.length} of ${result.totalCount} cases deleted.`
+            : `${result.successful.length} case${result.successful.length === 1 ? "" : "s"} deleted.`,
+      });
     },
   });
 }

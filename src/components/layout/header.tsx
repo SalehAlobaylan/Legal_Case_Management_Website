@@ -29,11 +29,23 @@ import { cn } from "@/lib/utils/cn";
 import { LanguageToggle } from "@/components/layout/language-toggle";
 import { ConnectionStatusIndicator } from "@/components/layout/connection-status";
 import { useChatStore } from "@/lib/store/chat-store";
-import { searchApi, type UnifiedSearchResponse } from "@/lib/api/search";
+import {
+  searchApi,
+  type SearchResultCase,
+  type SearchResultClient,
+  type SearchResultRegulation,
+  type UnifiedSearchResponse,
+} from "@/lib/api/search";
+import { formatAdminRole } from "@/lib/utils/admin-labels";
 
 // Question word patterns for intent detection
 const AR_QUESTION_WORDS = /^(ما|هل|كيف|لماذا|أين|متى|من|ماذا|ماهي|ماهو)/;
 const EN_QUESTION_WORDS = /^(what|how|why|when|where|who|is|can|does|should|would|could|do|are|was|were)\b/i;
+
+type SearchResultItem =
+  | { type: "case"; data: SearchResultCase }
+  | { type: "client"; data: SearchResultClient }
+  | { type: "regulation"; data: SearchResultRegulation };
 
 /* =============================================================================
    HEADER COMPONENT
@@ -81,7 +93,7 @@ export function Header({
   // Total result count for keyboard nav
   const flatResults = React.useMemo(() => {
     if (!results) return [];
-    const items: { type: "case" | "client" | "regulation"; data: any }[] = [];
+    const items: SearchResultItem[] = [];
     results.cases.forEach((c) => items.push({ type: "case", data: c }));
     results.clients.forEach((c) => items.push({ type: "client", data: c }));
     results.regulations.forEach((r) => items.push({ type: "regulation", data: r }));
@@ -102,8 +114,8 @@ export function Header({
       .toUpperCase();
   }, [user?.fullName]);
 
-  const userName = user?.fullName || "User";
-  const userRole = user?.role || "Lawyer";
+  const userName = user?.fullName || t("common.unknown");
+  const userRole = formatAdminRole(user?.role || "lawyer", t);
 
   // Debounced search
   React.useEffect(() => {
@@ -155,7 +167,7 @@ export function Header({
     onSearch?.(value);
   };
 
-  const navigateToResult = (item: { type: string; data: any }) => {
+  const navigateToResult = (item: SearchResultItem) => {
     setIsFocused(false);
     setSearchQuery("");
     setResults(null);
@@ -231,7 +243,11 @@ export function Header({
   };
 
   const handleNotifications = () => {
-    onNotificationsClick ? onNotificationsClick() : router.push("/alerts");
+    if (onNotificationsClick) {
+      onNotificationsClick();
+    } else {
+      router.push("/alerts");
+    }
   };
   const handleLogout = () => {
     setShowUserMenu(false);
@@ -715,7 +731,7 @@ export function Header({
                           <FileText className="h-3 w-3" />
                           {isRTL ? "القضايا" : "Cases"}
                         </div>
-                        {results!.cases.map((c, i) => (
+                        {results!.cases.map((c) => (
                           <button
                             key={`m-case-${c.id}`}
                             type="button"

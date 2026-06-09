@@ -308,7 +308,19 @@ describe("MuseumWalkthroughProvider", () => {
       </MuseumWalkthroughProvider>
     );
 
-    fireEvent.click(screen.getByTestId("museum-tour-launcher"));
+    // Autostart the tour (no anchors mounted in this test). Let the 700ms
+    // autostart fire and the capture effect mount its polling loop.
+    await act(async () => {
+      jest.advanceTimersByTime(800);
+    });
+
+    // With the wait-for-anchor loop, the "anchor missing" notice only shows
+    // after the poll budget (~3s of 100ms ticks) is exhausted — until then the
+    // panel waits (centered fallback, no scary warning). Advance past the
+    // budget so the graceful fallback notice renders.
+    await act(async () => {
+      jest.advanceTimersByTime(3500);
+    });
 
     await waitFor(() => {
       expect(screen.getByText("museumTour.anchorFallback")).toBeInTheDocument();

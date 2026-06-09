@@ -82,7 +82,7 @@ export function OrgPulseCard({
               key: String(it.caseId),
               href: `/cases/${it.caseId}`,
               label: `${it.caseNumber} — ${it.title}`,
-              meta: `${it.unreviewed} ${t("admin.pulseAiPerCase") || "to review"}`,
+              meta: `${it.unreviewed} ${t("admin.pulseAiPerCase")}`,
             }))}
           />
           <PulseTile

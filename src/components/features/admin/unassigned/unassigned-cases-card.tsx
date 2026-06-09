@@ -23,6 +23,10 @@ import { useI18n } from "@/lib/hooks/use-i18n";
 import { useAssignCase, useBulkAssignCases } from "@/lib/hooks/use-cases";
 import type { AdminUnassignedCase } from "@/lib/api/admin";
 import { formatDate } from "@/lib/utils/format";
+import {
+  formatAdminCaseStatus,
+  formatAdminCaseType,
+} from "@/lib/utils/admin-labels";
 
 export function UnassignedCasesCard({
   unassigned,
@@ -93,11 +97,11 @@ export function UnassignedCasesCard({
                 <Checkbox
                   checked={allChecked}
                   onCheckedChange={(c) => toggleAll(c)}
-                  aria-label="Select all"
+                  aria-label={t("admin.selectAll")}
                 />
                 {selected.size === 0
                   ? t("admin.selectAll")
-                  : (t("admin.bulkSelected") || "{{n}} selected").replace(
+                  : t("admin.bulkSelected").replace(
                       "{{n}}",
                       String(selected.size)
                     )}
@@ -165,7 +169,9 @@ export function UnassignedCasesCard({
                         {c.caseNumber} — {c.title}
                       </Link>
                       <div className="text-xs text-slate-500 mt-0.5">
-                        {c.caseType} • {c.status} • {t("admin.createdLabel")}{" "}
+                        {formatAdminCaseType(c.caseType, t)} •{" "}
+                        {formatAdminCaseStatus(c.status, t)} •{" "}
+                        {t("admin.createdLabel")}{" "}
                         {formatDate(c.createdAt)}
                       </div>
                     </div>

@@ -58,6 +58,11 @@ import {
   findSegmentById,
   stripInlineDecorations,
 } from "@/lib/utils/text-segmentation";
+import { useMuseumMode } from "@/lib/hooks/use-museum-mode";
+import type {
+  RegulationAmendmentImpact,
+  RegulationInsights,
+} from "@/lib/types/regulation";
 
 interface RegulationDetailPageProps {
   params: Promise<{
@@ -112,6 +117,176 @@ function getStatusStyle(status: string) {
   return STATUS_STYLES[status.toLowerCase()] || STATUS_STYLES.draft;
 }
 
+function getMuseumRegulationInsights(isRTL: boolean): RegulationInsights {
+  return {
+    regulationId: 0,
+    regulationVersionId: null,
+    languageCode: isRTL ? "ar" : "en",
+    status: "ready",
+    summary: isRTL
+      ? "يعرض التحليل التجريبي ملخصًا تنفيذيًا لأهم الالتزامات والمخاطر النظامية في النص، مع إبراز النقاط التي تحتاج إلى متابعة من الفريق القانوني قبل اعتماد أي إجراء تشغيلي."
+      : "This demo analysis summarizes the regulation's main obligations and risk points, highlighting the areas the legal team should review before operational decisions are made.",
+    obligations: isRTL
+      ? [
+          {
+            title: "توثيق الامتثال",
+            description:
+              "ينبغي الاحتفاظ بسجل واضح يثبت تطبيق المتطلبات النظامية وربطه بالمسؤول الداخلي عن كل التزام.",
+            severity: "medium",
+          },
+          {
+            title: "مراجعة الإجراءات",
+            description:
+              "تحتاج السياسات الداخلية إلى مراجعة دورية للتأكد من توافقها مع النسخة السارية من اللائحة.",
+            severity: "medium",
+          },
+        ]
+      : [
+          {
+            title: "Compliance evidence",
+            description:
+              "Maintain a clear record showing how each regulatory requirement is applied and who owns it internally.",
+            severity: "medium",
+          },
+          {
+            title: "Procedure review",
+            description:
+              "Internal policies should be reviewed periodically against the currently effective regulation text.",
+            severity: "medium",
+          },
+        ],
+    riskFlags: isRTL
+      ? [
+          {
+            title: "مخاطر التأخر في التطبيق",
+            description:
+              "أي تأخير في تحديث الإجراءات أو العقود المرتبطة قد يرفع احتمالية المخالفات أو النزاعات.",
+            severity: "high",
+          },
+        ]
+      : [
+          {
+            title: "Delayed implementation risk",
+            description:
+              "Delays in updating related procedures or agreements may increase compliance and dispute exposure.",
+            severity: "high",
+          },
+        ],
+    keyDates: isRTL
+      ? [
+          { label: "تاريخ النفاذ", value: "حسب النسخة الرسمية", source: "demo" },
+          { label: "موعد المراجعة", value: "خلال 30 يومًا", source: "demo" },
+        ]
+      : [
+          { label: "Effective date", value: "Per official version", source: "demo" },
+          { label: "Review window", value: "Within 30 days", source: "demo" },
+        ],
+    citations: isRTL
+      ? [
+          {
+            snippet:
+              "تُستخلص مواضع الاستدلال من النص النظامي وتُعرض هنا كأدلة مختصرة تدعم التحليل.",
+            sectionRef: "معاينة",
+            relevance: 0.91,
+          },
+        ]
+      : [
+          {
+            snippet:
+              "Evidence snippets are extracted from the regulation text and shown here to support the analysis.",
+            sectionRef: "Preview",
+            relevance: 0.91,
+          },
+        ],
+    method: "museum-preview",
+    errorCode: null,
+    warnings: [],
+    updatedAt: new Date(0).toISOString(),
+  };
+}
+
+function getMuseumAmendmentImpact(isRTL: boolean): RegulationAmendmentImpact {
+  return {
+    regulationId: 0,
+    fromVersion: 1,
+    toVersion: 2,
+    languageCode: isRTL ? "ar" : "en",
+    status: "ready",
+    whatChanged: isRTL
+      ? [
+          {
+            title: "تحديث نطاق التطبيق",
+            description:
+              "توضح المعاينة كيف يلخص النظام الفروقات بين النسخ ويربطها بالمواد المتأثرة.",
+            severity: "medium",
+          },
+        ]
+      : [
+          {
+            title: "Scope update",
+            description:
+              "The preview shows how version differences are summarized and tied back to affected clauses.",
+            severity: "medium",
+          },
+        ],
+    legalImpact: isRTL
+      ? [
+          {
+            title: "أثر قانوني محتمل",
+            description:
+              "قد تتطلب التعديلات إعادة تقييم الالتزامات التعاقدية والإجراءات التشغيلية المرتبطة.",
+            severity: "high",
+          },
+        ]
+      : [
+          {
+            title: "Potential legal impact",
+            description:
+              "The amendment may require reassessing related contractual obligations and operating procedures.",
+            severity: "high",
+          },
+        ],
+    affectedParties: isRTL
+      ? [
+          {
+            title: "الفرق المتأثرة",
+            description:
+              "الإدارة القانونية، الامتثال، والفرق التشغيلية التي تعتمد على النسخة السابقة من النص.",
+            severity: "medium",
+          },
+        ]
+      : [
+          {
+            title: "Affected teams",
+            description:
+              "Legal, compliance, and operational teams relying on the previous regulation text.",
+            severity: "medium",
+          },
+        ],
+    citations: isRTL
+      ? [
+          {
+            snippet:
+              "تعرض المعاينة الدليل النصي الذي يشرح سبب اعتبار التغيير مؤثرًا.",
+            sectionRef: "مقارنة تجريبية",
+            relevance: 0.88,
+          },
+        ]
+      : [
+          {
+            snippet:
+              "The preview includes textual evidence explaining why the change is considered material.",
+            sectionRef: "Demo comparison",
+            relevance: 0.88,
+          },
+        ],
+    method: "museum-preview",
+    errorCode: null,
+    warnings: [],
+    updatedAt: new Date(0).toISOString(),
+  };
+}
+
 export default function RegulationDetailPage({ params }: RegulationDetailPageProps) {
   return (
     <React.Suspense fallback={<RegulationDetailLoader />}>
@@ -142,6 +317,7 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
   const searchParams = useSearchParams();
   const { t, isRTL } = useI18n();
   const { toast } = useToast();
+  const isMuseum = useMuseumMode();
   const tabFromUrl = searchParams?.get("tab") ?? null;
   const initialTab: AllowedTab = isAllowedTab(tabFromUrl) ? tabFromUrl : "content";
   const [activeTab, setActiveTab] = React.useState<AllowedTab>(initialTab);
@@ -195,13 +371,12 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
     data: comparison,
     isLoading: isLoadingCompare,
   } = useCompareRegulationVersions(regulationId, leftVersion, rightVersion);
-  const { data: insights } = useRegulationInsights(regulationId);
+  const { data: insights, isLoading: isLoadingInsights } = useRegulationInsights(regulationId);
   const refreshInsights = useRefreshRegulationInsights(regulationId);
-  const { data: amendmentImpact } = useRegulationAmendmentImpact(
-    regulationId,
-    leftVersion,
-    rightVersion
-  );
+  const {
+    data: amendmentImpact,
+    isLoading: isLoadingAmendmentImpact,
+  } = useRegulationAmendmentImpact(regulationId, leftVersion, rightVersion);
   const refreshAmendmentImpact = useRefreshRegulationAmendmentImpact(regulationId);
 
   // Deep-link to a specific article via URL hash (e.g. #article-5). Must be
@@ -304,8 +479,22 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
   const issuanceDate = normalizeDate(metadata.issuanceDateG || metadata.issueDateG);
   const validFromDate = normalizeDate(metadata.gregorianValidFromDate || metadata.activationDateG);
   const statusStyle = getStatusStyle(regulation.status);
-  const insightsStatus = insights?.status || "not_generated";
-  const amendmentImpactStatus = amendmentImpact?.status || "not_generated";
+  const shouldUseMuseumInsights =
+    isMuseum && !isLoadingInsights && insights?.status !== "ready";
+  const displayInsights = shouldUseMuseumInsights
+    ? getMuseumRegulationInsights(isRTL)
+    : insights;
+  const shouldUseMuseumAmendmentImpact =
+    isMuseum && !isLoadingAmendmentImpact && amendmentImpact?.status !== "ready";
+  const displayAmendmentImpact = shouldUseMuseumAmendmentImpact
+    ? getMuseumAmendmentImpact(isRTL)
+    : amendmentImpact;
+  const insightsStatus = isLoadingInsights
+    ? "loading"
+    : displayInsights?.status || "not_generated";
+  const amendmentImpactStatus = isLoadingAmendmentImpact
+    ? "loading"
+    : displayAmendmentImpact?.status || "not_generated";
   const canTriggerAmendmentImpact =
     Number.isInteger(leftVersion) &&
     Number.isInteger(rightVersion) &&
@@ -595,7 +784,7 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
           <TabsList className="mb-6 border-b pb-2 md:pb-0 w-full flex-wrap justify-around gap-x-3 gap-y-3 md:flex-nowrap md:gap-8 md:justify-start">
             <TabsTrigger
               value="content"
-              className="justify-center md:justify-start gap-2 px-3 md:px-5 py-2 md:py-0 text-xs md:text-sm leading-tight whitespace-nowrap"
+              className="justify-center md:justify-start gap-2 px-3 md:px-5 pt-2 pb-3 md:pt-0 md:pb-4 text-xs md:text-sm leading-tight whitespace-nowrap"
             >
               <FileText className="h-4 w-4 shrink-0" />
               <span>{t("regulations.fullContent") || "Content"}</span>
@@ -603,7 +792,7 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
             <TabsTrigger
               value="insights"
               data-tour-id="regulation-ai-analysis"
-              className="justify-center md:justify-start gap-2 px-3 md:px-5 py-2 md:py-0 text-xs md:text-sm leading-tight whitespace-nowrap"
+              className="justify-center md:justify-start gap-2 px-3 md:px-5 pt-2 pb-3 md:pt-0 md:pb-4 text-xs md:text-sm leading-tight whitespace-nowrap"
             >
               <Sparkles className="h-4 w-4 shrink-0" />
               <span>{t("regulations.ai.title") || "AI Analysis"}</span>
@@ -611,7 +800,7 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
             <TabsTrigger
               value="versions"
               data-tour-id="regulation-versions"
-              className="justify-center md:justify-start gap-2 px-3 md:px-5 py-2 md:py-0 text-xs md:text-sm leading-tight whitespace-nowrap"
+              className="justify-center md:justify-start gap-2 px-3 md:px-5 pt-2 pb-3 md:pt-0 md:pb-4 text-xs md:text-sm leading-tight whitespace-nowrap"
             >
               <Clock3 className="h-4 w-4 shrink-0" />
               <span>{t("regulations.versions") || "Versions"}</span>
@@ -624,7 +813,7 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
             <TabsTrigger
               value="compare"
               data-tour-id="regulation-compare"
-              className="justify-center md:justify-start gap-2 px-3 md:px-5 py-2 md:py-0 text-xs md:text-sm leading-tight whitespace-nowrap"
+              className="justify-center md:justify-start gap-2 px-3 md:px-5 pt-2 pb-3 md:pt-0 md:pb-4 text-xs md:text-sm leading-tight whitespace-nowrap"
             >
               <GitCompare className="h-4 w-4 shrink-0" />
               <span>{t("regulations.compareVersions") || "Compare"}</span>
@@ -682,7 +871,7 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
                         }
                       )
                     }
-                    disabled={refreshInsights.isPending}
+                    disabled={isLoadingInsights || refreshInsights.isPending}
                     className="gap-2"
                   >
                     {refreshInsights.isPending ? (
@@ -696,6 +885,12 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
                   </Button>
                 </MuseumGuard>
               </div>
+
+              {shouldUseMuseumInsights && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800">
+                  {t("museumTour.previewNote")}
+                </div>
+              )}
 
               {insightsStatus === "not_generated" && (
                 <div
@@ -713,7 +908,9 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
                 </div>
               )}
 
-              {(insightsStatus === "pending" || insightsStatus === "processing") && (
+              {(insightsStatus === "loading" ||
+                insightsStatus === "pending" ||
+                insightsStatus === "processing") && (
                 <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-700">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   <p className="text-sm">
@@ -728,14 +925,14 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
                   <p className="text-sm font-semibold text-rose-700">
                     {t("regulations.ai.failed") || "AI analysis failed"}
                   </p>
-                  {insights?.errorCode && (
-                    <p className="text-xs text-rose-600">{insights.errorCode}</p>
+                  {displayInsights?.errorCode && (
+                    <p className="text-xs text-rose-600">{displayInsights.errorCode}</p>
                   )}
                   <AIFailureHint />
                 </div>
               )}
 
-              {insightsStatus === "ready" && insights && (
+              {insightsStatus === "ready" && displayInsights && (
                 <div className="space-y-4">
                   <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                     <h3 className="mb-2 text-sm font-bold text-[#0F2942]">
@@ -747,8 +944,8 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
                         isRTL && "font-arabic-reader"
                       )}
                     >
-                      {insights.summary
-                        ? stripInlineDecorations(insights.summary)
+                      {displayInsights.summary
+                        ? stripInlineDecorations(displayInsights.summary)
                         : t("common.notAvailable")}
                     </p>
                   </article>
@@ -758,7 +955,7 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
                       {t("regulations.ai.obligations") || "Compliance Obligations"}
                     </h3>
                     <div className="space-y-2">
-                      {(insights.obligations || []).map((item, index) => (
+                      {(displayInsights.obligations || []).map((item, index) => (
                         <div key={`obl-${index}`} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
                           <p
                             className={cn(
@@ -787,7 +984,7 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
                       {t("regulations.ai.riskFlags") || "Risk Flags"}
                     </h3>
                     <div className="space-y-2">
-                      {(insights.riskFlags || []).map((item, index) => (
+                      {(displayInsights.riskFlags || []).map((item, index) => (
                         <div key={`risk-${index}`} className="rounded-lg border border-amber-200 bg-white p-3">
                           <p
                             className={cn(
@@ -815,7 +1012,7 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
                       {t("regulations.ai.keyDates") || "Key Dates"}
                     </h3>
                     <div className="space-y-2">
-                      {(insights.keyDates || []).map((item, index) => (
+                      {(displayInsights.keyDates || []).map((item, index) => (
                         <div
                           key={`date-${index}`}
                           className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
@@ -836,7 +1033,7 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
                       {t("regulations.ai.evidenceSnippets") || "Evidence Snippets"}
                     </h3>
                     <div className="space-y-2">
-                      {(insights.citations || []).map((item, index) => (
+                      {(displayInsights.citations || []).map((item, index) => (
                         <blockquote
                           key={`cite-${index}`}
                           className={cn(
@@ -1040,7 +1237,11 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
                             }
                           );
                         }}
-                        disabled={!canTriggerAmendmentImpact || refreshAmendmentImpact.isPending}
+                        disabled={
+                          !canTriggerAmendmentImpact ||
+                          isLoadingAmendmentImpact ||
+                          refreshAmendmentImpact.isPending
+                        }
                         className="gap-2"
                       >
                         {refreshAmendmentImpact.isPending ? (
@@ -1055,7 +1256,8 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
                     </MuseumGuard>
                   </div>
 
-                  {(amendmentImpactStatus === "pending" ||
+                  {(amendmentImpactStatus === "loading" ||
+                    amendmentImpactStatus === "pending" ||
                     amendmentImpactStatus === "processing") && (
                     <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -1074,14 +1276,20 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
                     </div>
                   )}
 
-                  {amendmentImpactStatus === "ready" && amendmentImpact && (
+                  {shouldUseMuseumAmendmentImpact && (
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
+                      {t("museumTour.previewNote")}
+                    </div>
+                  )}
+
+                  {amendmentImpactStatus === "ready" && displayAmendmentImpact && (
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                       <article className="rounded-lg border border-slate-200 bg-slate-50 p-3">
                         <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-600">
                           {t("regulations.ai.whatChanged") || "What Changed"}
                         </h4>
                         <div className="space-y-2">
-                          {amendmentImpact.whatChanged.map((item, index) => (
+                          {displayAmendmentImpact.whatChanged.map((item, index) => (
                             <p
                               key={`changed-${index}`}
                               className={cn(
@@ -1100,7 +1308,7 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
                           {t("regulations.ai.legalImpact") || "Legal Impact"}
                         </h4>
                         <div className="space-y-2">
-                          {amendmentImpact.legalImpact.map((item, index) => (
+                          {displayAmendmentImpact.legalImpact.map((item, index) => (
                             <p
                               key={`impact-${index}`}
                               className={cn(
@@ -1120,7 +1328,7 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
                           {t("regulations.ai.affectedParties") || "Who Is Affected"}
                         </h4>
                         <div className="space-y-2">
-                          {amendmentImpact.affectedParties.map((item, index) => (
+                          {displayAmendmentImpact.affectedParties.map((item, index) => (
                             <p
                               key={`party-${index}`}
                               className={cn(
@@ -1137,13 +1345,13 @@ function RegulationDetailPageInner({ params }: RegulationDetailPageProps) {
                   )}
 
                   {amendmentImpactStatus === "ready" &&
-                    amendmentImpact &&
-                    amendmentImpact.citations.length > 0 && (
+                    displayAmendmentImpact &&
+                    displayAmendmentImpact.citations.length > 0 && (
                       <div className="space-y-2">
                         <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">
                           {t("regulations.ai.evidenceSnippets") || "Evidence Snippets"}
                         </h4>
-                        {amendmentImpact.citations.map((item, index) => (
+                        {displayAmendmentImpact.citations.map((item, index) => (
                           <blockquote
                             key={`impact-cite-${index}`}
                             className={cn(

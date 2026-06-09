@@ -9,7 +9,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
     profileApi,
     ProfileStats,
-    ProfileActivity,
     UpdateProfileRequest,
     ActivitiesQueryParams,
     ActivitiesResponse,
@@ -50,10 +49,10 @@ export function useUpdateProfile() {
                 description: "Profile updated successfully",
             });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             toast({
                 title: "Error",
-                description: error.message || "Failed to update profile",
+                description: error instanceof Error ? error.message : "Failed to update profile",
                 variant: "destructive",
             });
         },
@@ -77,7 +76,7 @@ export function useUploadAvatar() {
                 description: "Profile picture updated",
             });
         },
-        onError: (error: any) => {
+        onError: () => {
             toast({
                 title: "Error",
                 description: "Failed to upload image",

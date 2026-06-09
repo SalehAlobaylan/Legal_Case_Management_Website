@@ -17,6 +17,10 @@ import {
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { formatDate } from "@/lib/utils/format";
 import type { AdminActivityRow } from "@/lib/api/admin";
+import {
+  formatAdminActivityAction,
+  formatAdminActivityType,
+} from "@/lib/utils/admin-labels";
 
 export function TeamMomentumCard({
   activity,
@@ -43,9 +47,10 @@ export function TeamMomentumCard({
                 className="text-sm flex items-center justify-between border-b border-slate-50 pb-2 last:border-0"
               >
                 <span className="text-[#0F2942]">
-                  <strong>{a.userName || "Someone"}</strong>{" "}
+                  <strong>{a.userName || t("admin.unknownActor")}</strong>{" "}
                   <span className="text-slate-500">
-                    {a.action} {a.type}
+                    {formatAdminActivityAction(a.action, t)}{" "}
+                    {formatAdminActivityType(a.type, t)}
                   </span>{" "}
                   {a.title && (
                     <span className="text-slate-600">— {a.title}</span>
