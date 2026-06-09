@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Playfair_Display, Noto_Sans_Arabic } from "next/font/google";
+import { Inter, Playfair_Display, Noto_Sans_Arabic, Noto_Kufi_Arabic } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/providers/query-provider";
 import { Toaster } from "@/components/ui/toaster";
@@ -26,6 +26,17 @@ const notoArabic = Noto_Sans_Arabic({
   display: "swap",
   variable: "--font-arabic",
   weight: ["400", "500", "600", "700"],
+});
+
+/**
+ * Noto Kufi Arabic - Display font for Arabic headlines
+ * Used for: bold landing-page display headings and the صلة wordmark
+ */
+const notoKufi = Noto_Kufi_Arabic({
+  subsets: ["arabic"],
+  display: "swap",
+  variable: "--font-kufi",
+  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
 /**
@@ -86,7 +97,7 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${notoArabic.variable} ${playfair.variable} font-sans antialiased`}
+        className={`${inter.variable} ${notoArabic.variable} ${notoKufi.variable} ${playfair.variable} font-sans antialiased`}
       >
         <ThemeProvider
           attribute="class"

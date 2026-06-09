@@ -1,585 +1,1202 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+/*
+ * Silah — creative marketing landing page.
+ * Adapted from the Claude Design handoff bundle ("connected geometry" motif):
+ * getignore.com's floating-decoration energy translated into Silah's navy +
+ * orange brand. Arabic-first / RTL with an EN/LTR mirror, scroll-reveal,
+ * parallax, product mockups, and a geometric "skyline" footer.
+ */
+
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import {
   Scale,
+  BookOpen,
   Sparkles,
-  Bell,
-  LayoutDashboard,
-  ChevronRight,
-  Check,
+  Gavel,
   FileText,
-  Shield,
-  Search,
-  BarChart3,
   History,
-  Clock,
-  Languages,
+  CalendarClock,
+  Lock,
+  Shield,
+  MapPin,
+  Search,
+  Check,
+  ArrowUpRight,
+  type LucideIcon,
 } from "lucide-react";
 import { useI18n } from "@/lib/hooks/use-i18n";
 import { useMuseumLogin } from "@/lib/hooks/use-auth";
-import { LanguageToggle } from "@/components/layout/language-toggle";
 
-// --- Helper Components ---
+/* ──────────────────────────── tokens (literals) ─────────────────────────── */
+const NAVY = { 900: "#0a1c2e", 800: "#0F2942", 700: "#152e46", 600: "#1E3A56", 500: "#2A4D70" };
+const ORANGE = { 700: "#92400e", 600: "#B45309", 500: "#D97706", 400: "#fb923c" };
+const SLATE_200 = "#e5e7eb";
+const SLATE_600 = "#4b5563";
+const SHADOW_XS = "0 1px 2px 0 rgb(0 0 0 / 0.05)";
+const SHADOW_MD = "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)";
+const SHADOW_SM = "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)";
 
-type HeroRow = {
-  icon: "scale" | "bell" | "history" | "search" | "file";
-  title: string;
-  badge: string;
-  tone: "green" | "orange" | "blue";
-  done?: boolean;
+/* ──────────────────────────── icon map ──────────────────────────── */
+const ICONS: Record<string, LucideIcon> = {
+  scale: Scale,
+  bookOpen: BookOpen,
+  sparkles: Sparkles,
+  gavel: Gavel,
+  fileText: FileText,
+  history: History,
+  calClock: CalendarClock,
+  lock: Lock,
+  shield: Shield,
+  mapPin: MapPin,
+  search: Search,
+  check: Check,
+  arrowUR: ArrowUpRight,
 };
 
-type HeroExample = {
-  key: string;
-  status: string;
-  caseId: string;
-  title: string;
-  description: string;
-  panelTitle: string;
-  panelStatus: string;
-  footer: string;
-  rows: HeroRow[];
+function Icon({
+  name,
+  size = 20,
+  className = "",
+  stroke = 2,
+  style,
+}: {
+  name: string;
+  size?: number;
+  className?: string;
+  stroke?: number;
+  style?: CSSProperties;
+}) {
+  const Cmp = ICONS[name] ?? Scale;
+  return <Cmp size={size} strokeWidth={stroke} className={className} style={style} aria-hidden="true" />;
+}
+
+/* ──────────────────────────── bilingual copy ─────────────────────────── */
+type Finding = { t: string; d: string; m: string };
+type AlertItem = { icon: string; name: string; meta: string; desc: string; tag: string; tone: BadgeTone };
+type TaskItem = { name: string; meta: string; tag: string; tone: string; who: string; urgent?: boolean };
+type Plan = { name: string; price: string; unit: string; desc: string; cta: string; featured: boolean; feats: string[] };
+
+type Copy = {
+  dir: "rtl" | "ltr";
+  toggle: string;
+  ui: string;
+  display: string;
+  nav: { links: { id: string; t: string }[]; cta: string };
+  hero: { eyebrow: string; title: string[]; sub: string; cta1: string; cta2: string; trust: string };
+  analysis: {
+    eyebrow: string; title: string[]; body: string;
+    caseTitle: string; caseMeta: string; caseText: string;
+    aiLabel: string; aiHead: string; findings: Finding[]; disclaimer: string; footer: string;
+  };
+  regs: { eyebrow: string; title: string[]; body: string; panelTitle: string; panelTime: string; items: AlertItem[] };
+  priority: { eyebrow: string; title: string[]; body: string; panelTitle: string; panelTime: string; items: TaskItem[] };
+  bilingual: { eyebrow: string; title: string[]; body: string; terms: string[]; termsEn: string[] };
+  privacy: { eyebrow: string; title: string[]; body: string; bullets: { icon: string; t: string }[]; seal: string };
+  pricing: { eyebrow: string; title: string[]; body: string; perMo: string; save: string; plans: Plan[] };
+  beta: {
+    eyebrow: string; title: string[]; body: string; placeholder: string; button: string;
+    success: string; successSub: string; fine: string;
+  };
+  footer: { tagline: string; cols: { h: string; links: string[] }[]; rights: string; made: string };
+  appWindow: {
+    greet: string; sub: string; stats: [string, string][]; insight: string;
+    case: string; caseMeta: string; open: string; search: string;
+  };
 };
 
-// [HIDDEN FOR GRADUATION PRESENTATION — re-enable when payment is ready]
-// const PricingCard = ({ ... }) => ( ... );
+const COPY: Record<"ar" | "en", Copy> = {
+  ar: {
+    dir: "rtl", toggle: "EN", ui: "ui-ar", display: "display-ar",
+    nav: {
+      links: [
+        { id: "analysis", t: "التحليل" },
+        { id: "regs", t: "التتبّع" },
+        { id: "priority", t: "الأولوية" },
+        { id: "privacy", t: "الخصوصية" },
+        { id: "pricing", t: "الأسعار" },
+      ],
+      cta: "ابدأ الآن",
+    },
+    hero: {
+      eyebrow: "مدعومة بالذكاء الاصطناعي",
+      title: ["كلّ قضية،", "متصلة بنظامها"],
+      sub: "صلة تربط قضاياك بالأنظمة السعودية التي تحكمها، وتنبّهك في اللحظة التي تتغيّر فيها.",
+      cta1: "ابدأ الآن", cta2: "شاهد كيف تعمل",
+      trust: "تعمل بالعربية أولًا · متوافقة مع أنظمة المملكة",
+    },
+    analysis: {
+      eyebrow: "تحليل القضايا بالذكاء الاصطناعي",
+      title: ["تقرأ النظام،", "لا القضية فقط"],
+      body: "صلة تطالع وقائع قضيتك، ثم تستحضر المواد والأنظمة ذات الصلة — مع نسبة تطابق لكل مصدر، وتنبيه صريح بمراجعة النص الأصلي قبل الاعتماد عليه.",
+      caseTitle: "نزاع عمّالي — فصل تعسّفي",
+      caseMeta: "قضية رقم ‎CASE-2025-١٤٢",
+      caseText: "أنهى صاحب العمل عقد الموكّل دون إشعار مكتوب بعد ٤ سنوات من الخدمة، مع وجود مستحقات نهاية خدمة غير مسدّدة.",
+      aiLabel: "تحليل صلة",
+      aiHead: "وُجدت ٣ أنظمة ذات صلة",
+      findings: [
+        { t: "نظام العمل — المادة ٧٧", d: "تعويض الفصل دون سبب مشروع", m: "٩٨٪" },
+        { t: "نظام العمل — المادة ٨٥", d: "احتساب مكافأة نهاية الخدمة", m: "٩٤٪" },
+        { t: "اللائحة التنفيذية — الفصل الخامس", d: "إجراءات الإشعار والإنهاء", m: "٨٧٪" },
+      ],
+      disclaimer: "مُولّد بالذكاء الاصطناعي — راجع النص الأصلي قبل الاعتماد عليه.",
+      footer: "وُلّد قبل دقيقتين · مستوى الثقة ٨٧٪",
+    },
+    regs: {
+      eyebrow: "تتبّع تغيّر الأنظمة",
+      title: ["حين يتغيّر النظام،", "تعرف أثره فورًا"],
+      body: "لا تكتشف التعديل متأخرًا. صلة تراقب الأنظمة المرتبطة بقضاياك، وتُظهر لك القضايا المتأثرة لحظة صدور أي تعديل.",
+      panelTitle: "تنبيهات نظامية",
+      panelTime: "اليوم ٩:٤١",
+      items: [
+        { icon: "gavel", name: "نظام العمل — المادة ٧٧", meta: "الآن", desc: "تعديل على صياغة التعويض", tag: "٣ قضايا متأثرة", tone: "accent" },
+        { icon: "bookOpen", name: "لائحة المنافسات والمشتريات", meta: "منذ ساعتين", desc: "إصدار نسخة جديدة", tag: "نسخة جديدة", tone: "warning" },
+        { icon: "fileText", name: "نظام المعاملات المدنية", meta: "أمس", desc: "مقارنة جاهزة للمراجعة", tag: "المقارنة جاهزة", tone: "info" },
+        { icon: "history", name: "نظام الإثبات", meta: "منذ ٣ أيام", desc: "لا تغييرات مؤثرة", tag: "تمت المراجعة", tone: "success" },
+      ],
+    },
+    priority: {
+      eyebrow: "ما الذي يحتاجك الآن",
+      title: ["ليست كل قضية", "تحتاجك في هذه اللحظة"],
+      body: "جلسة غدًا، مراجعة معلّقة، موكّل ينتظر ردًا — صلة ترتّب يومك حسب الأولوية، فتبدأ بما يهم وتؤجّل ما يحتمل الانتظار.",
+      panelTitle: "مهام اليوم",
+      panelTime: "الثلاثاء · ٤ مهام",
+      items: [
+        { name: "شركة الأفق · نزاع عمّالي", meta: "جلسة غدًا ٩ ص", tag: "عاجل", tone: "accent", who: "الأفق", urgent: true },
+        { name: "مؤسسة البيان · عقد توريد", meta: "مذكرة بانتظار المراجعة", tag: "مراجعة معلّقة", tone: "warning", who: "البيان" },
+        { name: "أحمد الزهراني · توكيل", meta: "بانتظار ردّ الموكّل", tag: "منذ ٣ أيام", tone: "default", who: "أحمد" },
+        { name: "أرشيف ٢٠٢٤ · قضايا مغلقة", meta: "لا إجراء مطلوب", tag: "مؤرشف", tone: "muted", who: "أرشيف" },
+      ],
+    },
+    bilingual: {
+      eyebrow: "عربية أولًا",
+      title: ["بلسانك،", "وبالإنجليزية حين تحتاج"],
+      body: "واجهة عربية كاملة من اليمين إلى اليسار، بأرقام عربية ومصطلحات قانونية دقيقة — وإنجليزية جاهزة لفريقك ومراسلاتك الدولية.",
+      terms: ["قضية", "نظام", "جلسة", "موكّل", "محكمة", "نجيز", "لائحة", "مذكرة", "اختصاص", "حكم", "توكيل", "مرافعة"],
+      termsEn: ["Case", "Regulation", "Hearing", "Client", "Court", "Najiz", "Bylaw", "Brief", "Jurisdiction", "Verdict", "Mandate", "Pleading"],
+    },
+    privacy: {
+      eyebrow: "الخصوصية بالتصميم",
+      title: ["بياناتك", "ملكك وحدك"],
+      body: "تشفير كامل، وصلاحيات دقيقة، وسيادة بيانات داخل المملكة. ما يخص موكّليك لا يغادر نطاق ثقتك.",
+      bullets: [
+        { icon: "lock", t: "تشفير من الطرف إلى الطرف" },
+        { icon: "shield", t: "صلاحيات حسب الدور" },
+        { icon: "mapPin", t: "استضافة داخل المملكة" },
+        { icon: "history", t: "سجلّ تدقيق كامل" },
+      ],
+      seal: "محفوظ ومشفّر",
+    },
+    pricing: {
+      eyebrow: "الأسعار",
+      title: ["اشتراك واحد،", "بلا تعقيد"],
+      body: "ابدأ مجانًا، ووسّع حين ينمو مكتبك.",
+      perMo: "/ شهريًا", save: "وفّر ٢٠٪",
+      plans: [
+        { name: "للمحامي الفرد", price: "٢٩٩", unit: "ر.س", desc: "لكل مستخدم، يُدفع شهريًا", cta: "ابدأ الآن", featured: false,
+          feats: ["قضايا غير محدودة", "تحليل ذكي للقضايا", "تتبّع تغيّر الأنظمة", "واجهة عربية كاملة"] },
+        { name: "لمكتب المحاماة", price: "٢٤٩", unit: "ر.س", desc: "لكل مستخدم، يُدفع سنويًا", cta: "تواصل معنا", featured: true,
+          feats: ["كل ما في خطة الفرد", "صلاحيات وأدوار للفريق", "سجلّ تدقيق وتقارير", "دعم مخصّص وتهيئة"] },
+      ],
+    },
+    beta: {
+      eyebrow: "نسخة تجريبية خاصة",
+      title: ["انضمّ مبكرًا", "إلى صلة"],
+      body: "اترك بريدك، وسنرسل لك دعوة فور جاهزية النسخة التجريبية.",
+      placeholder: "بريدك الإلكتروني",
+      button: "اطلب دعوة",
+      success: "تم تسجيلك في القائمة",
+      successSub: "سنتواصل معك لحظة فتح النسخة التجريبية.",
+      fine: "بلا إزعاج — رسالة واحدة فقط عند جاهزية مقعدك.",
+    },
+    footer: {
+      tagline: "تربط القضايا بالأنظمة، والمحامين بما يهم.",
+      cols: [
+        { h: "المنتج", links: ["التحليل", "التتبّع", "الأولوية", "الأسعار"] },
+        { h: "الشركة", links: ["من نحن", "المدوّنة", "الوظائف"] },
+        { h: "قانوني", links: ["الخصوصية", "الشروط", "الامتثال"] },
+      ],
+      rights: "© ٢٠٢٦ صلة. جميع الحقوق محفوظة.",
+      made: "صُنع في المملكة العربية السعودية",
+    },
+    appWindow: {
+      greet: "أهلاً، أستاذ صالح", sub: "نظرة سريعة على يومك",
+      stats: [["قضايا", "١٢"], ["موكّلون", "٤٧"], ["تنبيهات", "٣"]],
+      insight: "المادة ٧٧ عُدّلت — ٣ قضايا متأثرة",
+      case: "شركة الأفق · نزاع عمّالي", caseMeta: "جلسة غدًا ٩ ص",
+      open: "مفتوحة", search: "ابحث في القضايا والأنظمة…",
+    },
+  },
+  en: {
+    dir: "ltr", toggle: "ع", ui: "ui-en", display: "display-en",
+    nav: {
+      links: [
+        { id: "analysis", t: "Analysis" },
+        { id: "regs", t: "Tracking" },
+        { id: "priority", t: "Priority" },
+        { id: "privacy", t: "Privacy" },
+        { id: "pricing", t: "Pricing" },
+      ],
+      cta: "Get Started",
+    },
+    hero: {
+      eyebrow: "Powered by AI",
+      title: ["Every case,", "linked to its law"],
+      sub: "Silah connects your cases to the Saudi regulations that govern them — and alerts you the moment they change.",
+      cta1: "Get Started", cta2: "See how it works",
+      trust: "Arabic-first · Built for Saudi regulation",
+    },
+    analysis: {
+      eyebrow: "AI Case Analysis",
+      title: ["It reads the law,", "not just the case"],
+      body: "Silah studies the facts of your case, then surfaces the relevant articles and regulations — each with a match score and a clear prompt to verify the original text before relying on it.",
+      caseTitle: "Labor Dispute — Wrongful Termination",
+      caseMeta: "Case #CASE-2025-142",
+      caseText: "The employer ended the client’s contract without written notice after 4 years of service, with unpaid end-of-service entitlements.",
+      aiLabel: "Silah Analysis",
+      aiHead: "Found 3 relevant regulations",
+      findings: [
+        { t: "Labor Law — Article 77", d: "Compensation for termination without cause", m: "98%" },
+        { t: "Labor Law — Article 85", d: "End-of-service award calculation", m: "94%" },
+        { t: "Executive Regulation — Ch. 5", d: "Notice and termination procedure", m: "87%" },
+      ],
+      disclaimer: "AI generated — verify against the original text before relying on it.",
+      footer: "Generated 2 minutes ago · Confidence 87%",
+    },
+    regs: {
+      eyebrow: "Regulation-Change Tracking",
+      title: ["When a law changes,", "know its impact at once"],
+      body: "Never find out late. Silah watches the regulations linked to your cases and shows you exactly which ones are affected the moment an amendment lands.",
+      panelTitle: "Regulation Alerts",
+      panelTime: "Today 9:41",
+      items: [
+        { icon: "gavel", name: "Labor Law — Article 77", meta: "now", desc: "Compensation wording amended", tag: "3 cases affected", tone: "accent" },
+        { icon: "bookOpen", name: "Procurement Bylaw", meta: "2h", desc: "New version issued", tag: "New version", tone: "warning" },
+        { icon: "fileText", name: "Civil Transactions Law", meta: "yesterday", desc: "Comparison ready to review", tag: "Comparison ready", tone: "info" },
+        { icon: "history", name: "Law of Evidence", meta: "3d", desc: "No material changes", tag: "Reviewed", tone: "success" },
+      ],
+    },
+    priority: {
+      eyebrow: "What needs you now",
+      title: ["Not every case", "needs you right now"],
+      body: "A hearing tomorrow, a pending review, a client awaiting reply — Silah orders your day by priority, so you start with what matters and defer what can wait.",
+      panelTitle: "Today’s Tasks",
+      panelTime: "Tuesday · 4 tasks",
+      items: [
+        { name: "Ufuq Co. · Labor dispute", meta: "Hearing tomorrow 9 AM", tag: "Urgent", tone: "accent", who: "Ufuq", urgent: true },
+        { name: "Bayan Est. · Supply contract", meta: "Brief awaiting review", tag: "Pending review", tone: "warning", who: "Bayan" },
+        { name: "Ahmed Alzahrani · Mandate", meta: "Awaiting client reply", tag: "3 days", tone: "default", who: "Ahmed" },
+        { name: "Archive 2024 · Closed cases", meta: "No action needed", tag: "Archived", tone: "muted", who: "Arch" },
+      ],
+    },
+    bilingual: {
+      eyebrow: "Arabic-first",
+      title: ["In your tongue,", "English when you need it"],
+      body: "A full right-to-left Arabic interface with Arabic numerals and precise legal terms — and English ready for your team and international correspondence.",
+      terms: ["Case", "Regulation", "Hearing", "Client", "Court", "Najiz", "Bylaw", "Brief", "Jurisdiction", "Verdict", "Mandate", "Pleading"],
+      termsEn: ["قضية", "نظام", "جلسة", "موكّل", "محكمة", "نجيز", "لائحة", "مذكرة", "اختصاص", "حكم", "توكيل", "مرافعة"],
+    },
+    privacy: {
+      eyebrow: "Private by design",
+      title: ["Your data", "is yours alone"],
+      body: "Full encryption, granular permissions, and data sovereignty inside the Kingdom. What belongs to your clients never leaves your circle of trust.",
+      bullets: [
+        { icon: "lock", t: "End-to-end encryption" },
+        { icon: "shield", t: "Role-based permissions" },
+        { icon: "mapPin", t: "Hosted within the Kingdom" },
+        { icon: "history", t: "Full audit trail" },
+      ],
+      seal: "Sealed & encrypted",
+    },
+    pricing: {
+      eyebrow: "Pricing",
+      title: ["One subscription,", "no complexity"],
+      body: "Start free, scale as your practice grows.",
+      perMo: "/ month", save: "Save 20%",
+      plans: [
+        { name: "Solo Practitioner", price: "299", unit: "SAR", desc: "per user, billed monthly", cta: "Get Started", featured: false,
+          feats: ["Unlimited cases", "AI case analysis", "Regulation-change tracking", "Full Arabic interface"] },
+        { name: "Law Firm", price: "249", unit: "SAR", desc: "per user, billed yearly", cta: "Contact us", featured: true,
+          feats: ["Everything in Solo", "Team roles & permissions", "Audit log & reports", "Dedicated support & setup"] },
+      ],
+    },
+    beta: {
+      eyebrow: "Private beta",
+      title: ["Join Silah", "early"],
+      body: "Drop your email and we’ll send an invite the moment the beta is ready.",
+      placeholder: "Your email address",
+      button: "Request access",
+      success: "You’re on the list",
+      successSub: "We’ll be in touch the moment the beta opens.",
+      fine: "No spam — just one email when your seat is ready.",
+    },
+    footer: {
+      tagline: "Linking cases to laws, and lawyers to what matters.",
+      cols: [
+        { h: "Product", links: ["Analysis", "Tracking", "Priority", "Pricing"] },
+        { h: "Company", links: ["About", "Blog", "Careers"] },
+        { h: "Legal", links: ["Privacy", "Terms", "Compliance"] },
+      ],
+      rights: "© 2026 Silah. All rights reserved.",
+      made: "Made in Saudi Arabia",
+    },
+    appWindow: {
+      greet: "Welcome, Counsel", sub: "A quick view of your day",
+      stats: [["Cases", "12"], ["Clients", "47"], ["Alerts", "3"]],
+      insight: "Article 77 amended — 3 cases affected",
+      case: "Ufuq Co. · Labor dispute", caseMeta: "Hearing tomorrow 9 AM",
+      open: "Open", search: "Search cases & regulations…",
+    },
+  },
+};
 
-export default function LandingPage() {
-  const { t, isRTL } = useI18n();
-  const museumLogin = useMuseumLogin();
-  const [activeExample, setActiveExample] = useState(0);
-  const [isPreviewPaused, setIsPreviewPaused] = useState(false);
+/* ──────────────────────────── primitives ─────────────────────────── */
+type BadgeTone = "accent" | "warning" | "info" | "success" | "default" | "muted";
 
-  const heroExamples = useMemo<HeroExample[]>(() => [
-    {
-      key: "linking",
-      status: t("landing.heroStatusOpen"),
-      caseId: "#CASE-2025-001",
-      title: t("landing.heroCaseTitle"),
-      description: t("landing.heroCaseDesc"),
-      panelTitle: t("landing.heroAiAnalysis"),
-      panelStatus: t("landing.aiComplete"),
-      footer: t("landing.foundRegulations"),
-      rows: [
-        {
-          icon: "scale",
-          title: t("landing.heroSuggestion1"),
-          badge: t("landing.heroMatch"),
-          tone: "green",
-          done: true,
-        },
-        {
-          icon: "scale",
-          title: t("landing.heroSuggestion2"),
-          badge: t("landing.heroUpdateBadge"),
-          tone: "orange",
-        },
-      ],
-    },
-    {
-      key: "alerts",
-      status: t("landing.heroStatusMonitoring"),
-      caseId: "#ALERTS-14",
-      title: t("landing.heroAlertsTitle"),
-      description: t("landing.heroAlertsDesc"),
-      panelTitle: t("landing.heroAlertsPanelTitle"),
-      panelStatus: t("landing.heroAlertsPanelStatus"),
-      footer: t("landing.heroAlertsFooter"),
-      rows: [
-        {
-          icon: "bell",
-          title: t("landing.heroAlertItem1Title"),
-          badge: t("landing.heroAlertItem1Badge"),
-          tone: "orange",
-        },
-        {
-          icon: "bell",
-          title: t("landing.heroAlertItem2Title"),
-          badge: t("landing.heroAlertItem2Badge"),
-          tone: "blue",
-          done: true,
-        },
-      ],
-    },
-    {
-      key: "versions",
-      status: t("landing.heroStatusReview"),
-      caseId: "#REG-VER-08",
-      title: t("landing.heroVersionTitle"),
-      description: t("landing.heroVersionDesc"),
-      panelTitle: t("landing.heroVersionPanelTitle"),
-      panelStatus: t("landing.heroVersionPanelStatus"),
-      footer: t("landing.heroVersionFooter"),
-      rows: [
-        {
-          icon: "history",
-          title: t("landing.heroVersionItem1Title"),
-          badge: t("landing.heroVersionItem1Badge"),
-          tone: "blue",
-          done: true,
-        },
-        {
-          icon: "file",
-          title: t("landing.heroVersionItem2Title"),
-          badge: t("landing.heroVersionItem2Badge"),
-          tone: "green",
-        },
-      ],
-    },
-    {
-      key: "search",
-      status: t("landing.heroStatusReady"),
-      caseId: "#SEARCH-22",
-      title: t("landing.heroSearchTitle"),
-      description: t("landing.heroSearchDesc"),
-      panelTitle: t("landing.heroSearchPanelTitle"),
-      panelStatus: t("landing.heroSearchPanelStatus"),
-      footer: t("landing.heroSearchFooter"),
-      rows: [
-        {
-          icon: "search",
-          title: t("landing.heroSearchItem1Title"),
-          badge: t("landing.heroSearchItem1Badge"),
-          tone: "green",
-        },
-        {
-          icon: "file",
-          title: t("landing.heroSearchItem2Title"),
-          badge: t("landing.heroSearchItem2Badge"),
-          tone: "orange",
-          done: true,
-        },
-      ],
-    },
-  ], [t]);
+const BADGE_TONES: Record<BadgeTone, { bg: string; fg: string }> = {
+  accent: { bg: "rgba(217,119,6,0.12)", fg: "#B45309" },
+  warning: { bg: "#fef3c7", fg: "#B45309" },
+  info: { bg: "#dbeafe", fg: "#1d4ed8" },
+  success: { bg: "#dcfce7", fg: "#15803d" },
+  default: { bg: "#f3f4f6", fg: "#4b5563" },
+  muted: { bg: "#f3f4f6", fg: "#9ca3af" },
+};
 
+function Badge({ tone = "default", children }: { tone?: BadgeTone; children: ReactNode }) {
+  const c = BADGE_TONES[tone] ?? BADGE_TONES.default;
+  return (
+    <span
+      className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider"
+      style={{ background: c.bg, color: c.fg }}
+    >
+      {children}
+    </span>
+  );
+}
+
+const AVATAR_BG = ["#0F2942", "#D97706", "#1E3A56", "#2A4D70"];
+function Avatar({ name, size = 38, idx = 0 }: { name: string; size?: number; idx?: number }) {
+  return (
+    <span
+      className="flex items-center justify-center rounded-xl font-extrabold text-white shrink-0"
+      style={{ width: size, height: size, background: AVATAR_BG[idx % AVATAR_BG.length], fontSize: size * 0.4 }}
+    >
+      {[...name][0]}
+    </span>
+  );
+}
+
+/* ──────────────────────────── decorations ─────────────────────────── */
+function Deco({
+  children, x, y, anim = "", par = 0, z = 0, style = {},
+}: {
+  children: ReactNode; x?: CSSProperties; y?: CSSProperties; anim?: string; par?: number; z?: number; style?: CSSProperties;
+}) {
+  return (
+    <div
+      data-par={par}
+      className={anim}
+      aria-hidden="true"
+      style={{ position: "absolute", ...x, ...y, zIndex: z, pointerEvents: "none", willChange: "transform", ...style }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function Squircle({ s = 64, fill = "none", stroke, rot = 0, radius }: { s?: number; fill?: string; stroke?: string; rot?: number; radius?: number }) {
+  return (
+    <div style={{ width: s, height: s, borderRadius: radius ?? s * 0.34, background: fill, border: stroke ? `2px solid ${stroke}` : "none", transform: `rotate(${rot}deg)` }} />
+  );
+}
+
+function DotPair({ s = 14, gap = 8, color = ORANGE[500] }: { s?: number; gap?: number; color?: string }) {
+  return (
+    <div style={{ display: "flex", gap }}>
+      {[0, 1].map((i) => (
+        <div key={i} style={{ width: s, height: s, background: color, borderRadius: s * 0.28, transform: "rotate(45deg)" }} />
+      ))}
+    </div>
+  );
+}
+
+function OrbitRing({ s = 120, stroke = "rgba(15,41,66,0.16)", dotColor = ORANGE[500], reverse = false }: { s?: number; stroke?: string; dotColor?: string; reverse?: boolean }) {
+  return (
+    <div style={{ position: "relative", width: s, height: s }}>
+      <div className={reverse ? "spin-rev" : "spin-slow"} style={{ position: "absolute", inset: 0 }}>
+        <div style={{ width: s, height: s, borderRadius: "50%", border: `2px dashed ${stroke}` }} />
+        <div style={{ position: "absolute", top: -5, left: "50%", marginLeft: -5, width: 10, height: 10, borderRadius: "50%", background: dotColor }} />
+      </div>
+    </div>
+  );
+}
+
+function PlusMark({ s = 20, color = NAVY[500], w = 2.5 }: { s?: number; color?: string; w?: number }) {
+  return (
+    <div style={{ position: "relative", width: s, height: s }}>
+      <div style={{ position: "absolute", top: "50%", left: 0, width: s, height: w, marginTop: -w / 2, background: color, borderRadius: 99 }} />
+      <div style={{ position: "absolute", left: "50%", top: 0, height: s, width: w, marginLeft: -w / 2, background: color, borderRadius: 99 }} />
+    </div>
+  );
+}
+
+function ArcMark({ s = 70, stroke = ORANGE[400], w = 3 }: { s?: number; stroke?: string; w?: number }) {
+  return (
+    <svg width={s} height={s} viewBox="0 0 100 100" fill="none">
+      <path d="M10 90 A80 80 0 0 1 90 10" stroke={stroke} strokeWidth={w} strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function PulseNode({ s = 12, color = ORANGE[500] }: { s?: number; color?: string }) {
+  return (
+    <div style={{ position: "relative", width: s, height: s }}>
+      <div className="pulse-dot" style={{ width: s, height: s, borderRadius: "50%", background: color }} />
+      <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: `1.5px solid ${color}`, animation: "silah-pingRing calc(2.8s / var(--mspeed,1)) var(--ease-out) infinite" }} />
+    </div>
+  );
+}
+
+function AmbientOrbs() {
+  return (
+    <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
+      <div className="drift" data-par="0.12" style={{ position: "absolute", top: "-12%", insetInlineEnd: "-6%", width: 620, height: 620, borderRadius: "50%", background: "radial-gradient(circle, rgba(217,119,6,0.16), rgba(217,119,6,0) 68%)", filter: "blur(20px)" }} />
+      <div className="drift" data-par="0.18" style={{ position: "absolute", top: "24%", insetInlineStart: "-14%", width: 560, height: 560, borderRadius: "50%", background: "radial-gradient(circle, rgba(30,58,86,0.14), rgba(30,58,86,0) 70%)", filter: "blur(20px)", animationDelay: "-6s" }} />
+      <div className="drift" data-par="0.1" style={{ position: "absolute", top: "64%", insetInlineEnd: "6%", width: 480, height: 480, borderRadius: "50%", background: "radial-gradient(circle, rgba(251,146,60,0.12), rgba(251,146,60,0) 70%)", filter: "blur(18px)", animationDelay: "-11s" }} />
+    </div>
+  );
+}
+
+type WebPoint = { x: number; y: number; r?: number; color?: string };
+function ConnectionWeb({ w = 560, h = 360, points, lines, className = "", style = {} }: { w?: number; h?: number; points: WebPoint[]; lines: [number, number][]; className?: string; style?: CSSProperties }) {
+  return (
+    <svg className={className} width={w} height={h} viewBox={`0 0 ${w} ${h}`} fill="none" aria-hidden="true" style={{ overflow: "visible", ...style }}>
+      {lines.map(([a, b], k) => {
+        const p1 = points[a], p2 = points[b];
+        const len = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+        return (
+          <line key={k} x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke="rgba(15,41,66,0.18)" strokeWidth="1.5" strokeDasharray={len} strokeDashoffset={len}
+            style={{ animation: `silah-dash calc(2.2s / var(--mspeed,1)) var(--ease-out) ${0.2 + k * 0.15}s forwards` }} />
+        );
+      })}
+      {points.map((p, k) => (
+        <g key={"p" + k}>
+          <circle cx={p.x} cy={p.y} r={(p.r || 5) + 4} fill={p.color || ORANGE[500]} opacity="0.14" />
+          <circle cx={p.x} cy={p.y} r={p.r || 5} fill={p.color || ORANGE[500]} />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+/* ──────────────────────────── in-view hook ─────────────────────────── */
+function useInView(threshold = 0.3) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [seen, setSeen] = useState(false);
   useEffect(() => {
-    if (isPreviewPaused || heroExamples.length <= 1) {
-      return;
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setSeen(true); io.disconnect(); } }, { threshold });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [threshold]);
+  return [ref, seen] as const;
+}
+
+/* ──────────────────────────── mockups ─────────────────────────── */
+function WinDots() {
+  return (
+    <div className="flex gap-1.5">
+      {["#ef4444", "#f59e0b", "#22c55e"].map((c) => <span key={c} className="w-3 h-3 rounded-full" style={{ background: c, opacity: 0.85 }} />)}
+    </div>
+  );
+}
+
+function AppWindow({ L }: { L: Copy }) {
+  const t = L.appWindow;
+  return (
+    <div dir={L.dir} className={`${L.ui} bg-white rounded-[26px] border border-gray-100 overflow-hidden`}
+      style={{ width: "100%", boxShadow: "0 40px 80px -24px rgba(15,41,66,0.34), 0 12px 28px -12px rgba(15,41,66,0.22)" }}>
+      <div className="h-11 px-4 flex items-center justify-between bg-[#0F2942]">
+        <WinDots />
+        <div className="flex items-center gap-2 text-white/85">
+          <Image src="/circle-logo-silah.png" alt="" width={20} height={20} className="w-5 h-5 rounded-full" />
+          <span className="text-[13px] font-bold tracking-wide" style={{ fontFamily: "var(--font-kufi)" }}>صلة</span>
+        </div>
+        <div className="w-12" />
+      </div>
+      <div className="px-5 pt-4">
+        <div className="h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center gap-2 px-3 text-gray-400">
+          <Icon name="search" size={16} />
+          <span className="text-[12px] font-medium truncate">{t.search}</span>
+          <span className="ms-auto"><Icon name="sparkles" size={14} className="text-[#D97706]" /></span>
+        </div>
+      </div>
+      <div className="px-5 pt-4">
+        <div className="text-[15px] font-bold text-[#0F2942]">{t.greet}</div>
+        <div className="text-[12px] text-gray-500 font-medium">{t.sub}</div>
+      </div>
+      <div className="px-5 pt-3 grid grid-cols-3 gap-2.5">
+        {t.stats.map(([k, v], i) => (
+          <div key={i} className="rounded-2xl border border-gray-100 bg-white p-3 text-center" style={{ boxShadow: SHADOW_XS }}>
+            <div className="text-3xl font-serif font-bold text-[#0F2942] leading-none">{v}</div>
+            <div className="text-[10.5px] text-gray-500 font-semibold mt-1.5">{k}</div>
+          </div>
+        ))}
+      </div>
+      <div className="px-5 pt-3">
+        <div className="rounded-2xl p-3 flex items-center gap-2.5" style={{ background: "rgba(217,119,6,0.08)", border: "1px solid rgba(217,119,6,0.18)" }}>
+          <span className="w-7 h-7 rounded-lg bg-[#D97706] text-white flex items-center justify-center shrink-0"><Icon name="sparkles" size={14} /></span>
+          <span className="text-[12px] font-semibold text-[#92400e] leading-snug">{t.insight}</span>
+        </div>
+      </div>
+      <div className="px-5 py-4">
+        <div className="rounded-2xl border border-gray-100 p-3 flex items-center gap-3" style={{ boxShadow: SHADOW_XS }}>
+          <span className="w-9 h-9 rounded-xl bg-[#0F2942] text-white flex items-center justify-center shrink-0"><Icon name="scale" size={17} /></span>
+          <div className="min-w-0 flex-1">
+            <div className="text-[12.5px] font-bold text-[#0F2942] truncate">{t.case}</div>
+            <div className="text-[11px] text-gray-500 font-medium truncate flex items-center gap-1"><Icon name="calClock" size={12} className="text-[#D97706]" />{t.caseMeta}</div>
+          </div>
+          <Badge tone="info">{t.open}</Badge>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AnalysisCard({ c, L }: { c: Copy["analysis"]; L: Copy }) {
+  const [ref, seen] = useInView(0.35);
+  return (
+    <div ref={ref} dir={L.dir} className={`${L.ui} w-full max-w-[440px]`}>
+      <div className="bg-white rounded-[22px] border border-gray-100 p-5" style={{ boxShadow: SHADOW_MD }}>
+        <div className="flex items-center justify-between mb-2.5">
+          <span className="text-[13px] font-bold text-[#0F2942]">{c.caseTitle}</span>
+          <span className="landing-mono text-[10px] text-gray-400">{c.caseMeta}</span>
+        </div>
+        <p className="text-[12.5px] leading-relaxed text-gray-600 font-medium m-0">{c.caseText}</p>
+      </div>
+      <div className="flex justify-center py-2">
+        <div style={{ width: 2, height: 22, background: "linear-gradient(#D9770644, #D97706)" }} />
+      </div>
+      <div className="bg-white rounded-[22px] border border-gray-100 overflow-hidden" style={{ boxShadow: "0 24px 50px -20px rgba(15,41,66,0.28)" }}>
+        <div className="px-5 pt-4 pb-3 flex items-center gap-2.5 border-b border-gray-100">
+          <span className="w-8 h-8 rounded-xl bg-[#D97706] text-white flex items-center justify-center"><Icon name="sparkles" size={16} /></span>
+          <div className="leading-tight">
+            <div className="text-[12px] font-bold text-[#0F2942]">{c.aiLabel}</div>
+            <div className="text-[13px] font-extrabold text-[#92400e]">{c.aiHead}</div>
+          </div>
+        </div>
+        <div className="p-3 flex flex-col gap-2">
+          {c.findings.map((f, i) => (
+            <div key={i} className="rounded-xl border border-gray-100 bg-gray-50/60 p-3 flex items-center gap-3"
+              style={{ opacity: seen ? 1 : 0, transform: seen ? "none" : "translateY(10px)", transition: `all .5s var(--ease-out) ${0.25 + i * 0.18}s` }}>
+              <span className="w-8 h-8 rounded-lg bg-white border border-gray-100 text-[#0F2942] flex items-center justify-center shrink-0"><Icon name="bookOpen" size={15} /></span>
+              <div className="min-w-0 flex-1">
+                <div className="text-[12px] font-bold text-[#0F2942] truncate">{f.t}</div>
+                <div className="text-[11px] text-gray-500 font-medium truncate">{f.d}</div>
+              </div>
+              <span className="text-[11px] font-extrabold text-[#16a34a] shrink-0">{f.m}</span>
+            </div>
+          ))}
+        </div>
+        <div className="px-5 py-2.5 flex items-center gap-2 border-t border-gray-100" style={{ background: "rgba(217,119,6,0.05)" }}>
+          <Icon name="sparkles" size={12} className="text-[#D97706] shrink-0" />
+          <span className="text-[10.5px] text-gray-500 font-medium leading-snug">{c.disclaimer}</span>
+        </div>
+        <div className="px-5 py-2 text-[10px] text-gray-400 font-medium border-t border-gray-100 landing-mono">{c.footer}</div>
+      </div>
+    </div>
+  );
+}
+
+function ListPanel({ title, time, children, L }: { title: string; time: string; children: ReactNode; L: Copy }) {
+  return (
+    <div dir={L.dir} className={`${L.ui} bg-white rounded-[26px] border border-gray-100 overflow-hidden w-full max-w-[440px]`}
+      style={{ boxShadow: "0 36px 70px -26px rgba(15,41,66,0.3)" }}>
+      <div className="px-5 h-14 flex items-center justify-between border-b border-gray-100">
+        <span className="text-[14px] font-extrabold text-[#0F2942]">{title}</span>
+        <span className="text-[11px] text-gray-400 font-semibold landing-mono">{time}</span>
+      </div>
+      <div className="p-2.5 flex flex-col">{children}</div>
+    </div>
+  );
+}
+
+function AlertList({ c, L }: { c: Copy["regs"]; L: Copy }) {
+  const [ref, seen] = useInView(0.3);
+  return (
+    <div ref={ref} className="w-full flex justify-center">
+      <ListPanel title={c.panelTitle} time={c.panelTime} L={L}>
+        {c.items.map((it, i) => {
+          const hot = i === 0;
+          return (
+            <div key={i} className="rounded-2xl p-3 flex items-center gap-3 transition-all"
+              style={{ background: hot ? "rgba(217,119,6,0.06)" : "transparent", border: hot ? "1px solid rgba(217,119,6,0.2)" : "1px solid transparent",
+                opacity: seen ? 1 : 0, transform: seen ? "none" : "translateY(12px)", transition: `all .55s var(--ease-out) ${i * 0.12}s` }}>
+              <span className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                style={{ background: hot ? "#D97706" : "#f3f4f6", color: hot ? "#fff" : "#0F2942" }}><Icon name={it.icon} size={18} /></span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[12.5px] font-bold text-[#0F2942] truncate">{it.name}</span>
+                  <span className="text-[10.5px] text-gray-400 font-semibold shrink-0">{it.meta}</span>
+                </div>
+                <div className="text-[11.5px] text-gray-500 font-medium truncate mt-0.5">{it.desc}</div>
+                <div className="mt-1.5"><Badge tone={it.tone}>{it.tag}</Badge></div>
+              </div>
+            </div>
+          );
+        })}
+      </ListPanel>
+    </div>
+  );
+}
+
+function PriorityList({ c, L }: { c: Copy["priority"]; L: Copy }) {
+  const [ref, seen] = useInView(0.3);
+  return (
+    <div ref={ref} className="w-full flex justify-center">
+      <ListPanel title={c.panelTitle} time={c.panelTime} L={L}>
+        {c.items.map((it, i) => (
+          <div key={i} className="rounded-2xl p-3 flex items-center gap-3"
+            style={{ background: it.urgent ? "#0F2942" : "transparent",
+              opacity: seen ? 1 : 0, transform: seen ? "none" : "translateY(12px)", transition: `all .55s var(--ease-out) ${i * 0.12}s` }}>
+            <Avatar name={it.who} size={38} idx={i} />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[12.5px] font-bold truncate" style={{ color: it.urgent ? "#fff" : "#0F2942" }}>{it.name}</span>
+                <span className="text-[10.5px] font-semibold shrink-0" style={{ color: it.urgent ? "rgba(255,255,255,.6)" : "#9ca3af" }}>{it.tag}</span>
+              </div>
+              <div className="text-[11.5px] font-medium truncate mt-0.5 flex items-center gap-1" style={{ color: it.urgent ? "rgba(255,255,255,.78)" : "#6b7280" }}>
+                {it.urgent && <Icon name="calClock" size={12} className="text-[#fb923c]" />}{it.meta}
+              </div>
+            </div>
+            {it.urgent
+              ? <span className="text-[9px] font-extrabold uppercase tracking-wider px-2 py-1 rounded-md bg-[#D97706] text-white shrink-0">{it.tag}</span>
+              : <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: it.tone === "warning" ? "#D97706" : it.tone === "muted" ? "#d1d5db" : "#cbd5e1" }} />}
+          </div>
+        ))}
+      </ListPanel>
+    </div>
+  );
+}
+
+/* ──────────────────────────── header atoms ─────────────────────────── */
+function Pill({ children, invert = false }: { children: ReactNode; invert?: boolean }) {
+  return (
+    <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full"
+      style={invert
+        ? { background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.16)" }
+        : { background: "#fff", border: `1px solid ${SLATE_200}`, boxShadow: SHADOW_XS }}>
+      <span className="w-1.5 h-1.5 rounded-full bg-[#D97706] pulse-dot" />
+      <span style={{ fontFamily: "inherit", fontSize: 11, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: invert ? "rgba(255,255,255,0.82)" : "#B45309" }}>{children}</span>
+    </span>
+  );
+}
+
+function Title({ lines, D, size = "lg", invert = false }: { lines: string[]; D: Copy; size?: "xl" | "lg" | "md"; invert?: boolean }) {
+  const sizes = {
+    xl: "text-[40px] sm:text-[58px] lg:text-[68px]",
+    lg: "text-[34px] sm:text-[46px] lg:text-[52px]",
+    md: "text-[30px] sm:text-[40px]",
+  };
+  return (
+    <h2 className={`${D.display} ${sizes[size]} m-0`} style={{ lineHeight: 1.12, color: invert ? "#fff" : "#0F2942" }}>
+      {lines.map((l, i) => (
+        <span key={i} className="block">{i === lines.length - 1 ? <span className="gradtext" style={invert ? { WebkitTextFillColor: "#fb923c", color: "#fb923c", background: "none" } : undefined}>{l}</span> : l}</span>
+      ))}
+    </h2>
+  );
+}
+
+function Lead({ children, invert = false, className = "" }: { children: ReactNode; invert?: boolean; className?: string }) {
+  return <p className={`${className} text-[16px] sm:text-[18px] leading-relaxed font-medium m-0`}
+    style={{ color: invert ? "rgba(255,255,255,0.74)" : SLATE_600, maxWidth: "46ch", textWrap: "pretty" }}>{children}</p>;
+}
+
+const SECTION = "relative w-full overflow-hidden";
+const WRAP = "relative z-10 mx-auto w-full max-w-6xl px-5 sm:px-8";
+
+/* ──────────────────────────── sections ─────────────────────────── */
+function Hero({ D, onCta, onSecondary }: { D: Copy; onCta: () => void; onSecondary: () => void }) {
+  const c = D.hero;
+  return (
+    <section className={SECTION} style={{ paddingTop: 132, paddingBottom: 96 }}>
+      <AmbientOrbs />
+      <div className="absolute inset-0 z-0" aria-hidden="true">
+        <Deco x={{ insetInlineStart: "6%" }} y={{ top: 150 }} anim="floatA" par={0.25}><Squircle s={58} fill="rgba(217,119,6,0.12)" radius={20} rot={-12} /></Deco>
+        <Deco x={{ insetInlineStart: "14%" }} y={{ top: 360 }} anim="floatC" par={0.4}><DotPair s={13} /></Deco>
+        <Deco x={{ insetInlineStart: "3%" }} y={{ bottom: 120 }} anim="floatB" par={0.18}><OrbitRing s={104} /></Deco>
+        <Deco x={{ insetInlineEnd: "7%" }} y={{ top: 120 }} anim="floatB" par={0.3}><Squircle s={42} stroke="rgba(15,41,66,0.18)" radius={14} rot={18} /></Deco>
+        <Deco x={{ insetInlineEnd: "4%" }} y={{ top: 300 }} anim="floatA" par={0.5}><ArcMark s={84} /></Deco>
+        <Deco x={{ insetInlineEnd: "16%" }} y={{ bottom: 90 }} anim="floatC" par={0.22}><PlusMark s={22} color="rgba(217,119,6,0.6)" /></Deco>
+        <Deco x={{ insetInlineEnd: "24%" }} y={{ top: 90 }} anim="floatC" par={0.34}><PulseNode s={12} /></Deco>
+      </div>
+
+      <div className={`${WRAP} grid lg:grid-cols-[1.05fr_0.95fr] gap-12 items-center`}>
+        <div className="text-center lg:text-start">
+          <div className="reveal flex justify-center lg:justify-start"><Pill>{c.eyebrow}</Pill></div>
+          <div className="reveal reveal-d1 mt-5"><Title lines={c.title} D={D} size="xl" /></div>
+          <div className="reveal reveal-d2 mt-6 flex justify-center lg:justify-start"><Lead>{c.sub}</Lead></div>
+          <div className="reveal reveal-d3 mt-8 flex flex-wrap gap-3 justify-center lg:justify-start">
+            <button onClick={onCta}
+              className="h-14 px-8 rounded-2xl bg-[#D97706] text-white text-[16px] font-bold inline-flex items-center gap-2 transition-all hover:bg-[#B45309] hover:-translate-y-0.5"
+              style={{ boxShadow: "0 10px 25px -5px rgba(146,64,14,0.4)" }}>
+              {c.cta1}<Icon name="arrowUR" size={18} className="rtl:-scale-x-100" />
+            </button>
+            <button onClick={onSecondary}
+              className="h-14 px-7 rounded-2xl bg-white text-[#0F2942] text-[16px] font-bold border-2 border-gray-200 inline-flex items-center gap-2 transition-all hover:border-[#D97706] hover:bg-orange-50/40">
+              {c.cta2}
+            </button>
+          </div>
+          <div className="reveal reveal-d4 mt-7 flex items-center gap-2.5 justify-center lg:justify-start text-gray-500">
+            <Icon name="check" size={15} className="text-[#16a34a]" />
+            <span className="text-[12.5px] font-semibold">{c.trust}</span>
+          </div>
+        </div>
+
+        <div className="relative reveal reveal-d2">
+          <ConnectionWeb className="absolute floatC" style={{ insetInlineEnd: -40, top: -46, zIndex: 0 }} w={420} h={300}
+            points={[{ x: 30, y: 40, r: 5, color: "#D97706" }, { x: 200, y: 18, r: 4, color: "#1E3A56" }, { x: 380, y: 70, r: 6, color: "#fb923c" }, { x: 120, y: 130, r: 4, color: "#1E3A56" }]}
+            lines={[[0, 1], [1, 2], [0, 3], [3, 1]]} />
+          <div data-par="-0.08" className="relative z-10 floatA" style={{ maxWidth: 420, margin: "0 auto" }}>
+            <AppWindow L={D} />
+          </div>
+          <Deco x={{ insetInlineStart: -28 }} y={{ bottom: -26 }} anim="floatB" par={0.3} z={20}><DotPair s={16} /></Deco>
+          <Deco x={{ insetInlineEnd: -20 }} y={{ bottom: 40 }} anim="floatC" par={0.4} z={5}><Squircle s={46} fill="rgba(15,41,66,0.06)" stroke="rgba(15,41,66,0.14)" radius={15} rot={-10} /></Deco>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function AnalysisSection({ D }: { D: Copy }) {
+  const c = D.analysis;
+  return (
+    <section id="analysis" className={SECTION} style={{ paddingBlock: 110 }}>
+      <div className="absolute inset-0 z-0" aria-hidden="true">
+        <Deco x={{ insetInlineStart: "8%" }} y={{ top: 60 }} anim="floatA" par={0.3}><OrbitRing s={84} reverse /></Deco>
+        <Deco x={{ insetInlineEnd: "10%" }} y={{ bottom: 70 }} anim="floatC" par={0.24}><DotPair s={12} /></Deco>
+      </div>
+      <div className={`${WRAP} grid lg:grid-cols-2 gap-14 items-center`}>
+        <div className="order-2 lg:order-1 flex justify-center reveal"><AnalysisCard c={c} L={D} /></div>
+        <div className="order-1 lg:order-2">
+          <div className="reveal"><Pill>{c.eyebrow}</Pill></div>
+          <div className="reveal reveal-d1 mt-5"><Title lines={c.title} D={D} /></div>
+          <div className="reveal reveal-d2 mt-6"><Lead>{c.body}</Lead></div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function RegsSection({ D }: { D: Copy }) {
+  const c = D.regs;
+  return (
+    <section id="regs" className={SECTION} style={{ paddingBlock: 110, background: "linear-gradient(180deg, transparent, rgba(15,41,66,0.025) 50%, transparent)" }}>
+      <div className="absolute inset-0 z-0" aria-hidden="true">
+        <Deco x={{ insetInlineEnd: "6%" }} y={{ top: 80 }} anim="floatB" par={0.34}><Squircle s={54} fill="rgba(217,119,6,0.1)" radius={18} rot={14} /></Deco>
+        <Deco x={{ insetInlineStart: "5%" }} y={{ bottom: 90 }} anim="floatA" par={0.2}><ArcMark s={72} stroke="rgba(15,41,66,0.16)" /></Deco>
+        <Deco x={{ insetInlineStart: "46%" }} y={{ top: 40 }} anim="floatC" par={0.4}><PulseNode /></Deco>
+      </div>
+      <div className={`${WRAP} grid lg:grid-cols-2 gap-14 items-center`}>
+        <div>
+          <div className="reveal"><Pill>{c.eyebrow}</Pill></div>
+          <div className="reveal reveal-d1 mt-5"><Title lines={c.title} D={D} /></div>
+          <div className="reveal reveal-d2 mt-6"><Lead>{c.body}</Lead></div>
+        </div>
+        <div className="reveal reveal-d1"><AlertList c={c} L={D} /></div>
+      </div>
+    </section>
+  );
+}
+
+function PrioritySection({ D }: { D: Copy }) {
+  const c = D.priority;
+  return (
+    <section id="priority" className={SECTION} style={{ paddingBlock: 110 }}>
+      <div className="absolute inset-0 z-0" aria-hidden="true">
+        <Deco x={{ insetInlineStart: "7%" }} y={{ top: 70 }} anim="floatC" par={0.3}><OrbitRing s={96} /></Deco>
+        <Deco x={{ insetInlineEnd: "8%" }} y={{ bottom: 80 }} anim="floatB" par={0.26}><DotPair s={14} /></Deco>
+        <Deco x={{ insetInlineEnd: "40%" }} y={{ bottom: 40 }} anim="floatA" par={0.42}><PlusMark s={20} color="rgba(15,41,66,0.4)" /></Deco>
+      </div>
+      <div className={`${WRAP} grid lg:grid-cols-2 gap-14 items-center`}>
+        <div className="order-2 lg:order-1 reveal reveal-d1"><PriorityList c={c} L={D} /></div>
+        <div className="order-1 lg:order-2">
+          <div className="reveal"><Pill>{c.eyebrow}</Pill></div>
+          <div className="reveal reveal-d1 mt-5"><Title lines={c.title} D={D} /></div>
+          <div className="reveal reveal-d2 mt-6"><Lead>{c.body}</Lead></div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function MarqueeRow({ terms, reverse = false, faded = false }: { terms: string[]; reverse?: boolean; faded?: boolean }) {
+  const items = [...terms, ...terms];
+  return (
+    <div className="marquee-mask overflow-hidden">
+      <div className="flex gap-3 w-max" style={{ animation: `${reverse ? "silah-marqueeR" : "silah-marquee"} calc(34s / var(--mspeed,1)) linear infinite` }}>
+        {items.map((t, i) => (
+          <span key={i} className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white border border-gray-100 shrink-0"
+            style={{ boxShadow: SHADOW_XS, opacity: faded ? 0.7 : 1 }}>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]" />
+            <span className="text-[17px] font-bold text-[#0F2942]">{t}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BilingualSection({ D }: { D: Copy }) {
+  const c = D.bilingual;
+  return (
+    <section className={SECTION} style={{ paddingBlock: 110 }}>
+      <div className={`${WRAP} text-center`}>
+        <div className="reveal flex justify-center"><Pill>{c.eyebrow}</Pill></div>
+        <div className="reveal reveal-d1 mt-5 flex justify-center"><Title lines={c.title} D={D} /></div>
+        <div className="reveal reveal-d2 mt-6 flex justify-center"><Lead className="text-center">{c.body}</Lead></div>
+      </div>
+      <div className="reveal reveal-d2 mt-12 flex flex-col gap-4">
+        <MarqueeRow terms={c.terms} />
+        <MarqueeRow terms={c.termsEn} reverse faded />
+      </div>
+    </section>
+  );
+}
+
+function PrivacySection({ D }: { D: Copy }) {
+  const c = D.privacy;
+  return (
+    <section id="privacy" className={SECTION} style={{ paddingBlock: 120, background: "linear-gradient(165deg, #0F2942 0%, #0a1c2e 100%)" }}>
+      <div className="absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
+        <div className="drift" style={{ position: "absolute", top: "-10%", insetInlineStart: "-6%", width: 520, height: 520, borderRadius: "50%", background: "radial-gradient(circle, rgba(217,119,6,0.18), transparent 68%)", filter: "blur(20px)" }} />
+        <div className="drift" style={{ position: "absolute", bottom: "-14%", insetInlineEnd: "-4%", width: 460, height: 460, borderRadius: "50%", background: "radial-gradient(circle, rgba(42,77,112,0.5), transparent 70%)", filter: "blur(20px)", animationDelay: "-7s" }} />
+        <Deco x={{ insetInlineEnd: "12%" }} y={{ top: 70 }} anim="floatA" par={0.3}><OrbitRing s={100} stroke="rgba(255,255,255,0.14)" dotColor="#fb923c" /></Deco>
+        <Deco x={{ insetInlineStart: "8%" }} y={{ bottom: 80 }} anim="floatC" par={0.24}><DotPair s={14} /></Deco>
+      </div>
+      <div className={`${WRAP} grid lg:grid-cols-2 gap-14 items-center`}>
+        <div>
+          <div className="reveal"><Pill invert>{c.eyebrow}</Pill></div>
+          <div className="reveal reveal-d1 mt-5"><Title lines={c.title} D={D} invert /></div>
+          <div className="reveal reveal-d2 mt-6"><Lead invert>{c.body}</Lead></div>
+          <div className="reveal reveal-d3 mt-8 grid sm:grid-cols-2 gap-3">
+            {c.bullets.map((b, i) => (
+              <div key={i} className={`${D.ui} flex items-center gap-3 rounded-2xl px-4 py-3.5`} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                <span className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(217,119,6,0.16)", color: "#fb923c" }}><Icon name={b.icon} size={17} /></span>
+                <span className="text-[13.5px] font-semibold text-white/90">{b.t}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="reveal reveal-d2 flex justify-center">
+          <div className="relative">
+            <div className="absolute inset-0 -m-8" aria-hidden="true">
+              <div className="spin-slow w-full h-full rounded-full" style={{ border: "1px dashed rgba(255,255,255,0.16)" }} />
+            </div>
+            <div className={`${D.ui} relative bg-white/[0.06] rounded-[30px] p-8 text-center`} style={{ border: "1px solid rgba(255,255,255,0.12)", backdropFilter: "blur(8px)", width: 300 }}>
+              <div className="mx-auto w-16 h-16 rounded-2xl bg-[#D97706] text-white flex items-center justify-center" style={{ boxShadow: "0 10px 25px -5px rgba(217,119,6,0.5)" }}>
+                <Icon name="lock" size={26} />
+              </div>
+              <div className="mt-5 text-white font-extrabold text-[17px]">{c.seal}</div>
+              <div className="mt-3 flex items-center justify-center gap-2 text-white/60 text-[11px] font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] pulse-dot" /> 256-bit · KSA
+              </div>
+              <div className="mt-6 flex justify-center gap-1.5">
+                {[0, 1, 2, 3, 4].map((i) => <span key={i} className="w-1.5 h-1.5 rounded-full" style={{ background: i < 4 ? "#fb923c" : "rgba(255,255,255,0.25)" }} />)}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PricingSection({ D, onCta }: { D: Copy; onCta: () => void }) {
+  const c = D.pricing;
+  return (
+    <section id="pricing" className={SECTION} style={{ paddingBlock: 110 }}>
+      <div className="absolute inset-0 z-0" aria-hidden="true">
+        <Deco x={{ insetInlineStart: "10%" }} y={{ top: 80 }} anim="floatA" par={0.26}><DotPair s={13} /></Deco>
+        <Deco x={{ insetInlineEnd: "9%" }} y={{ bottom: 90 }} anim="floatC" par={0.3}><Squircle s={48} stroke="rgba(15,41,66,0.16)" radius={16} rot={-14} /></Deco>
+      </div>
+      <div className={`${WRAP} text-center`}>
+        <div className="reveal flex justify-center"><Pill>{c.eyebrow}</Pill></div>
+        <div className="reveal reveal-d1 mt-5 flex justify-center"><Title lines={c.title} D={D} /></div>
+        <div className="reveal reveal-d2 mt-6 flex justify-center"><Lead className="text-center">{c.body}</Lead></div>
+
+        <div className="reveal reveal-d2 mt-12 grid sm:grid-cols-2 gap-5 max-w-3xl mx-auto text-start">
+          {c.plans.map((p, i) => {
+            const f = p.featured;
+            return (
+              <div key={i} className={`${D.ui} relative rounded-[28px] p-7 transition-all hover:-translate-y-1`}
+                style={f
+                  ? { background: "linear-gradient(165deg,#0F2942,#0a1c2e)", boxShadow: "0 30px 60px -20px rgba(15,41,66,0.45)" }
+                  : { background: "#fff", border: `1px solid ${SLATE_200}`, boxShadow: SHADOW_SM }}>
+                {f && <span className="absolute top-5 text-[9px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-md bg-[#D97706] text-white" style={{ insetInlineEnd: 20 }}>{c.save}</span>}
+                <div className="text-[14px] font-bold" style={{ color: f ? "rgba(255,255,255,0.8)" : "#6b7280" }}>{p.name}</div>
+                <div className="mt-3 flex items-end gap-1.5">
+                  <span className="font-serif font-bold leading-none" style={{ fontSize: 46, color: f ? "#fff" : "#0F2942" }}>{p.price}</span>
+                  <span className="text-[14px] font-bold mb-1.5" style={{ color: f ? "#fb923c" : "#D97706" }}>{p.unit}</span>
+                  <span className="text-[12px] font-medium mb-2" style={{ color: f ? "rgba(255,255,255,0.5)" : "#9ca3af" }}>{c.perMo}</span>
+                </div>
+                <div className="text-[12px] font-medium mt-1" style={{ color: f ? "rgba(255,255,255,0.55)" : "#9ca3af" }}>{p.desc}</div>
+                <div className="h-px my-5" style={{ background: f ? "rgba(255,255,255,0.12)" : SLATE_200 }} />
+                <ul className="m-0 p-0 list-none flex flex-col gap-3">
+                  {p.feats.map((ft, j) => (
+                    <li key={j} className="flex items-center gap-2.5">
+                      <span className="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style={{ background: f ? "rgba(217,119,6,0.2)" : "#fef3c7", color: "#D97706" }}><Icon name="check" size={13} stroke={2.6} /></span>
+                      <span className="text-[13px] font-semibold" style={{ color: f ? "rgba(255,255,255,0.88)" : "#374151" }}>{ft}</span>
+                    </li>
+                  ))}
+                </ul>
+                <button onClick={onCta} className="mt-7 w-full h-12 rounded-xl text-[14px] font-bold transition-all hover:-translate-y-0.5"
+                  style={f ? { background: "#D97706", color: "#fff", boxShadow: "0 10px 25px -5px rgba(146,64,14,0.5)" } : { background: "#0F2942", color: "#fff" }}>{p.cta}</button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BetaSection({ D }: { D: Copy }) {
+  const c = D.beta;
+  const [email, setEmail] = useState("");
+  const [done, setDone] = useState(false);
+  const submit = (e: React.FormEvent) => { e.preventDefault(); if (email.trim()) setDone(true); };
+  return (
+    <section id="beta" className={SECTION} style={{ paddingBlock: 110 }}>
+      <div className="absolute inset-0 z-0" aria-hidden="true">
+        <AmbientOrbs />
+        <Deco x={{ insetInlineStart: "12%" }} y={{ top: 60 }} anim="floatC" par={0.3}><OrbitRing s={88} reverse /></Deco>
+        <Deco x={{ insetInlineEnd: "14%" }} y={{ bottom: 70 }} anim="floatA" par={0.26}><DotPair s={14} /></Deco>
+      </div>
+      <div className={WRAP} style={{ maxWidth: 720 }}>
+        <div className="reveal relative rounded-[34px] bg-white px-7 sm:px-12 py-12 text-center overflow-hidden"
+          style={{ border: `1px solid ${SLATE_200}`, boxShadow: "0 40px 80px -30px rgba(15,41,66,0.28)" }}>
+          <div className="absolute inset-x-0 top-0 h-1.5" style={{ background: "linear-gradient(90deg,#0F2942,#D97706,#fb923c)" }} />
+          <div className="mx-auto w-14 h-14 rounded-2xl bg-[#0F2942] text-white flex items-center justify-center mb-6">
+            <Image src="/circle-logo-silah.png" alt="" width={40} height={40} className="w-10 h-10 rounded-full" />
+          </div>
+          <div className="flex justify-center"><Pill>{c.eyebrow}</Pill></div>
+          <div className="mt-5 flex justify-center"><Title lines={c.title} D={D} size="md" /></div>
+          {!done ? (
+            <>
+              <div className="mt-5 flex justify-center"><Lead className="text-center">{c.body}</Lead></div>
+              <form onSubmit={submit} className={`${D.ui} mt-8 flex flex-col sm:flex-row gap-3 max-w-md mx-auto`}>
+                <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={c.placeholder}
+                  className="flex-1 px-5 rounded-xl bg-gray-50 border border-gray-200 text-[15px] font-medium text-[#0F2942] placeholder:text-gray-400 focus:outline-none focus:border-[#D97706] focus:bg-white transition-colors"
+                  style={{ height: 52 }} />
+                <button type="submit" className="px-7 rounded-xl bg-[#D97706] text-white text-[15px] font-bold inline-flex items-center justify-center gap-2 transition-all hover:bg-[#B45309] hover:-translate-y-0.5"
+                  style={{ height: 52, boxShadow: "0 10px 25px -5px rgba(146,64,14,0.4)" }}>{c.button}</button>
+              </form>
+              <div className={`${D.ui} mt-4 text-[12px] text-gray-400 font-medium`}>{c.fine}</div>
+            </>
+          ) : (
+            <div className={`${D.ui} mt-7`} style={{ animation: "silah-bobIn .5s var(--ease-out)" }}>
+              <div className="mx-auto w-14 h-14 rounded-full bg-green-50 text-green-600 flex items-center justify-center"><Icon name="check" size={28} stroke={2.6} /></div>
+              <div className="mt-4 text-[20px] font-extrabold text-[#0F2942]">{c.success}</div>
+              <div className="mt-2 text-[14px] text-gray-500 font-medium">{c.successSub}</div>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ──────────────────────────── shell ─────────────────────────── */
+function scrollToId(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const y = window.pageYOffset + el.getBoundingClientRect().top - 84;
+  window.scrollTo({ top: y, behavior: "smooth" });
+}
+
+function Nav({ D, onToggleLang, onCta }: { D: Copy; onToggleLang: () => void; onCta: () => void }) {
+  const [solid, setSolid] = useState(false);
+  useEffect(() => {
+    const f = () => setSolid(window.scrollY > 24);
+    f(); window.addEventListener("scroll", f, { passive: true });
+    return () => window.removeEventListener("scroll", f);
+  }, []);
+  return (
+    <div className="fixed inset-x-0 top-0 z-50 flex justify-center px-4" style={{ paddingTop: solid ? 12 : 18, transition: "padding .3s var(--ease-out)" }}>
+      <nav dir={D.dir} className={`${D.ui} flex items-center gap-1 sm:gap-2 rounded-full transition-all duration-300`}
+        style={{ background: solid ? "rgba(255,255,255,0.82)" : "rgba(255,255,255,0.62)", backdropFilter: "blur(16px)",
+          border: "1px solid " + (solid ? "rgba(15,41,66,0.08)" : "rgba(255,255,255,0.5)"),
+          boxShadow: solid ? "0 12px 30px -12px rgba(15,41,66,0.2)" : "0 6px 20px -10px rgba(15,41,66,0.12)",
+          padding: "8px 8px 8px 16px", maxWidth: 980, width: "100%" }}>
+        <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="flex items-center gap-2 shrink-0">
+          <Image src="/circle-logo-silah.png" alt="Silah" width={32} height={32} className="w-8 h-8 rounded-full" />
+          <span className="text-[19px] font-extrabold text-[#0F2942]" style={{ fontFamily: "var(--font-kufi)" }}>صلة</span>
+        </button>
+        <div className="hidden md:flex items-center gap-0.5 mx-auto">
+          {D.nav.links.map((l) => (
+            <button key={l.id} onClick={() => scrollToId(l.id)}
+              className="px-3.5 py-2 rounded-full text-[13.5px] font-bold text-gray-600 hover:text-[#0F2942] hover:bg-black/[0.04] transition-colors">{l.t}</button>
+          ))}
+        </div>
+        <div className="flex items-center gap-2 shrink-0 ms-auto md:ms-0">
+          <button onClick={onToggleLang}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-extrabold text-[#0F2942] border border-gray-200 hover:border-[#D97706] hover:bg-orange-50/50 transition-colors">{D.toggle}</button>
+          <Link href="/login" className="hidden sm:inline-flex h-10 items-center px-4 rounded-full text-[13.5px] font-bold text-[#0F2942] hover:bg-black/[0.04] transition-colors">
+            {D.dir === "rtl" ? "تسجيل الدخول" : "Sign in"}
+          </Link>
+          <button onClick={onCta}
+            className="h-10 px-5 rounded-full bg-[#0F2942] text-white text-[13.5px] font-bold inline-flex items-center gap-1.5 hover:bg-[#1E3A56] transition-colors">
+            {D.nav.cta}
+          </button>
+        </div>
+      </nav>
+    </div>
+  );
+}
+
+function Skyline() {
+  const bars = [44, 78, 30, 96, 58, 120, 40, 70, 52, 90, 34, 64];
+  return (
+    <div className="relative h-[150px] w-full overflow-hidden" aria-hidden="true">
+      <ConnectionWeb className="absolute" w={560} h={90} style={{ insetInlineStart: "50%", top: 6, transform: "translateX(-50%)" }}
+        points={[{ x: 60, y: 50, r: 4, color: "#fb923c" }, { x: 200, y: 20, r: 3, color: "rgba(255,255,255,0.5)" }, { x: 330, y: 44, r: 4, color: "#fb923c" }, { x: 470, y: 16, r: 3, color: "rgba(255,255,255,0.5)" }, { x: 520, y: 56, r: 5, color: "#D97706" }]}
+        lines={[[0, 1], [1, 2], [2, 3], [3, 4]]} />
+      <div className="absolute spin-slow" style={{ insetInlineEnd: "14%", top: 10, width: 30, height: 30, borderRadius: "50%", background: "radial-gradient(circle,#fb923c,#D97706)", boxShadow: "0 0 30px 6px rgba(217,119,6,0.4)" }} />
+      <div className="absolute bottom-0 inset-x-0 flex items-end justify-center gap-2.5 px-6">
+        {bars.map((h, i) => (
+          <div key={i} className="relative" style={{ width: 30, height: h, borderRadius: "10px 10px 0 0", background: i % 3 === 0 ? "#1E3A56" : "#152e46", border: "1px solid rgba(255,255,255,0.05)" }}>
+            <span className="absolute left-1/2 -translate-x-1/2 rounded-full pulse-dot" style={{ top: 8, width: 5, height: 5, background: i % 2 ? "#fb923c" : "rgba(255,255,255,0.3)", animationDelay: `${i * 0.2}s` }} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Footer({ D }: { D: Copy }) {
+  const f = D.footer;
+  return (
+    <footer dir={D.dir} className={`${D.ui} relative`} style={{ background: "linear-gradient(180deg,#0a1c2e,#081623)" }}>
+      <Skyline />
+      <div className="relative z-10 mx-auto w-full max-w-6xl px-6 sm:px-8 pb-12 pt-4">
+        <div className="grid sm:grid-cols-[1.4fr_1fr_1fr_1fr] gap-8 sm:gap-6">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <Image src="/circle-logo-silah.png" alt="" width={36} height={36} className="w-9 h-9 rounded-full" />
+              <span className="text-[22px] font-extrabold text-white" style={{ fontFamily: "var(--font-kufi)" }}>صلة</span>
+            </div>
+            <p className="mt-4 text-[13.5px] leading-relaxed font-medium m-0" style={{ color: "rgba(255,255,255,0.6)", maxWidth: "30ch", textWrap: "pretty" }}>{f.tagline}</p>
+          </div>
+          {f.cols.map((col, i) => (
+            <div key={i}>
+              <div className="text-[11px] font-extrabold uppercase tracking-widest" style={{ color: "#fb923c" }}>{col.h}</div>
+              <ul className="mt-4 m-0 p-0 list-none flex flex-col gap-2.5">
+                {col.links.map((l, j) => (
+                  <li key={j}><a href="#" className="text-[13.5px] font-semibold transition-colors text-white/65 hover:text-white">{l}</a></li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <div className="mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+          <span className="text-[12px] font-medium" style={{ color: "rgba(255,255,255,0.45)" }}>{f.rights}</span>
+          <div className="flex items-center gap-2 text-[12px] font-semibold" style={{ color: "rgba(255,255,255,0.5)" }}>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] pulse-dot" />{f.made}
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+/* ──────────────────────────── scroll fx ─────────────────────────── */
+function useScrollFx() {
+  useEffect(() => {
+    const reveals = Array.from(document.querySelectorAll<HTMLElement>(".reveal"));
+    const show = (el: HTMLElement) => el.classList.add("in");
+    const inView = (el: HTMLElement) => { const r = el.getBoundingClientRect(); return r.top < window.innerHeight * 0.98 && r.bottom > 0; };
+
+    let io: IntersectionObserver | null = null;
+    if ("IntersectionObserver" in window) {
+      io = new IntersectionObserver((ents) => {
+        ents.forEach((e) => { if (e.isIntersecting && io) { show(e.target as HTMLElement); io.unobserve(e.target); } });
+      }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+      reveals.forEach((el) => io!.observe(el));
     }
+    reveals.forEach((el) => { if (inView(el)) show(el); });
+    const safety = window.setTimeout(() => {
+      document.querySelectorAll<HTMLElement>(".reveal:not(.in)").forEach((el) => { if (inView(el)) show(el); });
+    }, 600);
+    const safetyAll = window.setTimeout(() => {
+      document.querySelectorAll<HTMLElement>(".reveal:not(.in)").forEach((el) => {
+        el.style.transition = "none"; el.style.opacity = "1"; el.style.transform = "none"; el.classList.add("in");
+      });
+    }, 2500);
 
-    const timer = window.setInterval(() => {
-      setActiveExample((prev) => (prev + 1) % heroExamples.length);
-    }, 4500);
+    let raf = 0;
+    const pars = Array.from(document.querySelectorAll<HTMLElement>("[data-par]"));
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const vh = window.innerHeight;
+        for (const el of pars) {
+          const r = el.getBoundingClientRect();
+          const fromCenter = (r.top + r.height / 2) - vh / 2;
+          const par = parseFloat(el.getAttribute("data-par") || "0") || 0;
+          el.style.translate = "0 " + (-fromCenter * par * 0.12).toFixed(1) + "px";
+        }
+      });
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      if (io) io.disconnect();
+      window.clearTimeout(safety); window.clearTimeout(safetyAll);
+      window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+}
 
-    return () => window.clearInterval(timer);
-  }, [heroExamples.length, isPreviewPaused]);
+/* ──────────────────────────── page ─────────────────────────── */
+export default function LandingPage() {
+  const { locale, toggleLocale } = useI18n();
+  const lang: "ar" | "en" = locale === "en" ? "en" : "ar";
+  const D = COPY[lang];
+  const museumLogin = useMuseumLogin();
+  const enterApp = () => museumLogin.mutate();
 
-  const moveToExample = (nextIndex: number) => {
-    const total = heroExamples.length;
-    setActiveExample(((nextIndex % total) + total) % total);
-  };
-
-  const badgeToneClass: Record<HeroRow["tone"], string> = {
-    green: "text-green-600 bg-green-50",
-    orange: "text-[#D97706] bg-orange-50",
-    blue: "text-blue-600 bg-blue-50",
-  };
-
-  const getRowIcon = (kind: HeroRow["icon"]) => {
-    if (kind === "bell") return <Bell size={12} />;
-    if (kind === "history") return <History size={12} />;
-    if (kind === "search") return <Search size={12} />;
-    if (kind === "file") return <FileText size={12} />;
-    return <Scale size={12} />;
-  };
-
-  const currentExample = heroExamples[activeExample] ?? heroExamples[0];
-
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+  useScrollFx();
 
   return (
-    <div className="min-h-screen bg-white text-[#0F2942] overflow-hidden relative selection:bg-[#D97706] selection:text-white flex flex-col">
-      {/* Navbar + Hero wrapper with navy gradient */}
-      <div className="bg-gradient-to-b from-[#0F2942] via-[#0F2942] to-[#f8fafc] relative">
-        {/* Background accents */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute -top-[10%] -right-[10%] w-[50%] h-[60%] bg-[#D97706]/10 rounded-full blur-[120px]"></div>
-          <div className="absolute top-[40%] -left-[10%] w-[40%] h-[40%] bg-[#1E3A56]/40 rounded-full blur-[100px]"></div>
-        </div>
-
-        {/* Navbar */}
-        <nav className="relative z-20 flex justify-between items-center px-6 md:px-8 py-5 max-w-7xl mx-auto w-full">
-          <Link href="/" className="flex items-center gap-3 cursor-pointer group">
-            <div className="bg-white rounded-xl p-1.5 shadow-lg shadow-orange-900/20 group-hover:scale-105 transition-transform">
-              <Image
-                src="/silah-logo.svg"
-                alt="Silah"
-                width={32}
-                height={32}
-                className="h-8 w-auto"
-              />
-            </div>
-            <h1 className="font-bold text-2xl tracking-wide font-serif text-white">
-              {t("landing.appName")}
-            </h1>
-          </Link>
-          <div className="flex items-center gap-4 md:gap-6">
-            <button
-              onClick={() => scrollToSection("features")}
-              className="hidden md:block text-sm font-medium text-white/70 hover:text-white transition-colors"
-            >
-              {t("landing.features")}
-            </button>
-            <button
-              onClick={() => scrollToSection("how-it-works")}
-              className="hidden md:block text-sm font-medium text-white/70 hover:text-white transition-colors"
-            >
-              {t("landing.technologyLabel")}
-            </button>
-            {/* [HIDDEN FOR GRADUATION PRESENTATION] Pricing nav link
-            <button
-              onClick={() => scrollToSection("pricing")}
-              className="hidden md:block text-sm font-medium text-white/70 hover:text-white transition-colors"
-            >
-              {t("landing.pricing")}
-            </button>
-            */}
-            <LanguageToggle
-              variant="icon"
-              className="text-white/70 hover:text-white hover:bg-white/10"
-            />
-            <Link
-              href="/login"
-              className="text-white/80 hover:text-white text-sm font-bold transition-colors"
-            >
-              {t("auth.signIn")}
-            </Link>
-            <Button
-              onClick={() => museumLogin.mutate()}
-              disabled={museumLogin.isPending}
-              className="bg-[#D97706] hover:bg-[#B45309] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-orange-900/20 disabled:opacity-70"
-            >
-              {t("landing.getStarted")}
-            </Button>
-          </div>
-        </nav>
-
-        {/* ════════════════════════════════════════ */}
-        {/* HERO — Split layout: text + app preview */}
-        {/* ════════════════════════════════════════ */}
-        <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-8 pt-12 md:pt-20 pb-10 md:pb-80">
-          <div className={`flex flex-col lg:flex-row items-center gap-12 lg:gap-16 ${isRTL ? "lg:flex-row-reverse" : ""}`}>
-            {/* Text side */}
-            <div className={`flex-1 ${isRTL ? "text-right" : "text-left"}`}>
-              
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-serif mb-6 leading-[1.1] text-white">
-                {t("landing.heroTitle")}{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D97706] to-[#fb923c]">
-                  {t("landing.heroHighlight")}
-                </span>
-              </h1>
-              <p className="text-base md:text-lg text-white/70 max-w-xl mb-8 leading-relaxed">
-                {t("landing.heroDescription")}
-              </p>
-            <div className={`flex flex-col sm:flex-row gap-4 ${isRTL ? "sm:flex-row-reverse" : ""}`}>
-              <Button
-                onClick={() => museumLogin.mutate()}
-                disabled={museumLogin.isPending}
-                className="bg-[#D97706] hover:bg-[#B45309] text-white px-8 py-3.5 h-auto rounded-2xl font-bold text-base shadow-xl shadow-orange-900/20 transition-all hover:scale-105 flex items-center justify-center gap-2 group w-full sm:w-auto disabled:opacity-70 disabled:hover:scale-100"
-              >
-                {t("landing.getStarted")}{" "}
-                <ChevronRight
-                  size={18}
-                  className={`group-hover:translate-x-1 transition-transform ${isRTL ? "rotate-180 group-hover:-translate-x-1" : ""}`}
-                />
-              </Button>
-              <button
-                onClick={() => scrollToSection("how-it-works")}
-                className="px-6 py-3.5 rounded-2xl font-bold text-sm text-white border border-white/20 hover:border-white/40 hover:bg-white/10 transition-all"
-              >
-                {t("landing.technologyLabel")}
-              </button>
-            </div>
-
-            {/* Inline stats */}
-            <div className={`flex flex-wrap gap-4 sm:gap-6 mt-8 pt-6 border-t border-white/10 ${isRTL ? "flex-row-reverse" : ""}`}>
-              <div className="flex-1 min-w-[120px]">
-                <div className="text-xl sm:text-2xl font-bold text-white leading-tight mb-1">{t("landing.metric1Title")}</div>
-                <div className="text-[10px] sm:text-xs text-white/50 font-medium leading-snug">{t("landing.metric1Desc")}</div>
-              </div>
-              <div className="flex-1 min-w-[120px]">
-                <div className="text-xl sm:text-2xl font-bold text-white leading-tight mb-1">{t("landing.metric2Title")}</div>
-                <div className="text-[10px] sm:text-xs text-white/50 font-medium leading-snug">{t("landing.metric2Desc")}</div>
-              </div>
-              <div className="flex-1 min-w-[120px]">
-                <div className="text-xl sm:text-2xl font-bold text-white leading-tight mb-1">{t("landing.metric3Title")}</div>
-                <div className="text-[10px] sm:text-xs text-white/50 font-medium leading-snug">{t("landing.metric3Desc")}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* App preview side */}
-          <div className="flex-1 w-full max-w-xl lg:max-w-none">
-            <div
-              className="bg-white rounded-2xl border border-white/20 shadow-2xl shadow-black/20 overflow-hidden"
-              onMouseEnter={() => setIsPreviewPaused(true)}
-              onMouseLeave={() => setIsPreviewPaused(false)}
-              onFocusCapture={() => setIsPreviewPaused(true)}
-              onBlurCapture={() => setIsPreviewPaused(false)}
-            >
-              {/* Window chrome */}
-              <div className="h-10 bg-slate-50 border-b border-slate-200 flex items-center px-4 gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-red-400"></div>
-                <div className="w-2.5 h-2.5 rounded-full bg-amber-400"></div>
-                <div className="w-2.5 h-2.5 rounded-full bg-green-400"></div>
-              </div>
-              <div className="p-5 md:p-6 bg-slate-50">
-                <div className="mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700">
-                      {currentExample.status}
-                    </span>
-                    <span className="text-xs text-slate-400 font-mono">{currentExample.caseId}</span>
-                  </div>
-                  <h3 className="font-bold text-[#0F2942] text-base mb-1">{currentExample.title}</h3>
-                  <p className="text-xs text-slate-500 leading-relaxed">{currentExample.description}</p>
-                </div>
-
-                <div className="bg-white rounded-xl border border-slate-200 p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Sparkles size={14} className="text-[#D97706]" />
-                    <h4 className="font-bold text-[#0F2942] text-sm">{currentExample.panelTitle}</h4>
-                    <span className="ml-auto text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
-                      {currentExample.panelStatus}
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    {currentExample.rows.map((row, rowIndex) => (
-                      <div
-                        key={`${currentExample.key}-${rowIndex}`}
-                        className="p-3 bg-slate-50 rounded-lg border border-slate-100 flex justify-between items-center"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-7 h-7 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-[#0F2942]">
-                            {getRowIcon(row.icon)}
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-[#0F2942]">{row.title}</p>
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${badgeToneClass[row.tone]}`}>
-                              {row.badge}
-                            </span>
-                          </div>
-                        </div>
-                        {row.done ? (
-                          <Check size={14} className="text-green-500" />
-                        ) : (
-                          <ChevronRight size={14} className={`text-slate-400 ${isRTL ? "rotate-180" : ""}`} />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-[10px] text-slate-400 mt-3 text-center">{currentExample.footer}</p>
-                </div>
-
-                <div className="mt-3 flex items-center justify-center gap-1.5">
-                  {heroExamples.map((example, index) => (
-                    <button
-                      key={`${example.key}-dot`}
-                      type="button"
-                      onClick={() => moveToExample(index)}
-                      className={`h-1.5 rounded-full transition-all ${
-                        index === activeExample ? "w-5 bg-[#D97706]" : "w-1.5 bg-slate-300 hover:bg-slate-400"
-                      }`}
-                      aria-label={`${t("landing.heroPreviewSlideAria")} ${index + 1}`}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      </div>
-
-      {/* ══════════════════════ */}
-      {/* FEATURES — Clean grid */}
-      {/* ══════════════════════ */}
-      <div id="features" className="bg-white py-20 md:py-24 px-6 md:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-bold font-serif text-[#0F2942] mb-4">
-              {t("landing.featuresTitle")}
-            </h2>
-            <p className="text-slate-500 text-base max-w-2xl mx-auto leading-relaxed">
-              {t("landing.featuresSubtitle")}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              { icon: <Sparkles size={22} />, title: t("landing.aiMatching"), desc: t("landing.aiMatchingDesc"), color: "bg-[#D97706]" },
-              { icon: <Bell size={22} />, title: t("landing.regulationAlerts"), desc: t("landing.regulationAlertsDesc"), color: "bg-[#D97706]" },
-              { icon: <LayoutDashboard size={22} />, title: t("landing.caseManagement"), desc: t("landing.caseManagementDesc"), color: "bg-[#1E3A56]" },
-              { icon: <FileText size={22} />, title: t("landing.documentProcessing"), desc: t("landing.documentProcessingDesc"), color: "bg-[#0F2942]" },
-              { icon: <History size={22} />, title: t("landing.realTimeUpdates"), desc: t("landing.realTimeUpdatesDesc"), color: "bg-[#0F2942]" },
-              { icon: <Search size={22} />, title: t("landing.teamManagement"), desc: t("landing.teamManagementDesc"), color: "bg-[#1E3A56]" },
-            ].map((feature, idx) => (
-              <div key={idx} className="group bg-white p-6 rounded-2xl border border-slate-100 hover:border-[#D97706]/20 hover:shadow-lg transition-all duration-300">
-                <div className={`w-11 h-11 rounded-xl ${feature.color} flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform`}>
-                  {feature.icon}
-                </div>
-                <h3 className="text-lg font-bold text-[#0F2942] mb-2">{feature.title}</h3>
-                <p className="text-slate-500 text-sm leading-relaxed">{feature.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ═══════════════════════════════ */}
-      {/* HOW IT WORKS — 3-step pipeline */}
-      {/* ═══════════════════════════════ */}
-      <div id="how-it-works" className="bg-gradient-to-b from-[#f0f4fa] to-white py-20 md:py-24 px-6 md:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-14">
-            <span className="inline-block text-[#D97706] text-xs font-bold uppercase tracking-widest mb-3">
-              {t("landing.technologyLabel")}
-            </span>
-            <h2 className="text-3xl md:text-4xl font-bold font-serif text-[#0F2942] mb-4">
-              {t("landing.technologyTitle")}
-            </h2>
-            <p className="text-slate-500 text-base max-w-2xl mx-auto leading-relaxed">
-              {t("landing.technologySubtitle")}
-            </p>
-          </div>
-
-          {/* Steps */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            {[
-              { step: "1", icon: <Search size={24} />, title: t("landing.step1Title"), desc: t("landing.step1Desc") },
-              { step: "2", icon: <BarChart3 size={24} />, title: t("landing.step2Title"), desc: t("landing.step2Desc") },
-              { step: "3", icon: <Shield size={24} />, title: t("landing.step3Title"), desc: t("landing.step3Desc") },
-            ].map((item, idx) => (
-              <div key={idx} className="relative bg-[#0F2942] p-7 rounded-2xl group hover:bg-[#1E3A56] transition-all shadow-lg">
-                <div className="absolute -top-3 left-7 bg-[#D97706] text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shadow-md">
-                  {item.step}
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-[#D97706] mb-4 group-hover:scale-110 transition-transform">
-                  {item.icon}
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
-                <p className="text-white/60 text-sm leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Tech highlights */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              { icon: <Languages size={20} />, title: t("landing.metric1Title"), desc: t("landing.metric1Desc") },
-              { icon: <Clock size={20} />, title: t("landing.metric2Title"), desc: t("landing.metric2Desc") },
-              { icon: <Shield size={20} />, title: t("landing.metric3Title"), desc: t("landing.metric3Desc") },
-            ].map((item, idx) => (
-              <div key={idx} className="flex items-center gap-4 p-4 bg-white rounded-xl border border-slate-200">
-                <div className="text-[#D97706] shrink-0">{item.icon}</div>
-                <div>
-                  <h4 className="font-bold text-[#0F2942] text-sm">{item.title}</h4>
-                  <p className="text-xs text-slate-500">{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* [HIDDEN FOR GRADUATION PRESENTATION] Pricing section — re-enable when payment is ready
-      <div id="pricing" className="bg-slate-50 py-20 md:py-24 px-6 md:px-8">
-        ...
-      </div>
-      */}
-
-      {/* ═════════════════ */}
-      {/* CTA — Final push */}
-      {/* ═════════════════ */}
-      <div className="bg-[#0F2942] py-20 md:py-24 px-6 md:px-8 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-          <div className={`absolute top-0 ${isRTL ? "left-0" : "right-0"} w-1/3 h-full bg-[#1E3A56]/30`}></div>
-          <div className="absolute -top-[30%] -left-[10%] w-[40%] h-[60%] bg-[#D97706]/10 rounded-full blur-[100px]"></div>
-        </div>
-        <div className="max-w-3xl mx-auto text-center relative z-10">
-          <h2 className="text-3xl md:text-5xl font-bold font-serif mb-5 text-white">
-            {t("landing.ctaTitle")}
-          </h2>
-          <p className="text-white/70 text-base md:text-lg mb-8 max-w-xl mx-auto leading-relaxed">
-            {t("landing.ctaDescription")}
-          </p>
-          <Button
-            onClick={() => museumLogin.mutate()}
-            disabled={museumLogin.isPending}
-            className="bg-[#D97706] hover:bg-[#B45309] text-white px-10 py-4 h-auto rounded-2xl font-bold text-lg shadow-xl shadow-orange-900/40 transition-all hover:scale-105 disabled:opacity-70 disabled:hover:scale-100"
-          >
-            {t("landing.getStarted")}
-          </Button>
-          {/* [HIDDEN FOR GRADUATION PRESENTATION] No credit card line
-          <p className="text-white/40 text-sm mt-5">
-            {t("landing.noCreditCard")}
-          </p>
-          */}
-        </div>
-      </div>
-
-      {/* ════════ */}
-      {/* FOOTER   */}
-      {/* ════════ */}
-      <div className="bg-[#0a1c2e] py-14 px-8 border-t border-white/5">
-        <div className="max-w-7xl mx-auto">
-          {false && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
-            <div>
-              <h4 className="font-bold text-white mb-4 text-sm">{t("landing.footerCompany")}</h4>
-              <ul className="space-y-2">
-                <li><Link href="#" className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.footerAbout")}</Link></li>
-                <li><Link href="#" className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.footerCareers")}</Link></li>
-                <li><Link href="#" className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.footerPress")}</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-white mb-4 text-sm">{t("landing.footerProduct")}</h4>
-              <ul className="space-y-2">
-                <li><button onClick={() => scrollToSection("features")} className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.features")}</button></li>
-                <li><Link href="#" className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.footerIntegrations")}</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-white mb-4 text-sm">{t("landing.footerResources")}</h4>
-              <ul className="space-y-2">
-                <li><Link href="#" className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.footerDocs")}</Link></li>
-                <li><Link href="#" className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.footerHelp")}</Link></li>
-                <li><Link href="#" className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.footerBlog")}</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-white mb-4 text-sm">{t("landing.footerLegal")}</h4>
-              <ul className="space-y-2">
-                <li><Link href="#" className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.privacyPolicy")}</Link></li>
-                <li><Link href="#" className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.termsOfService")}</Link></li>
-                <li><Link href="#" className="text-white/50 hover:text-white transition-colors text-sm">{t("landing.footerSecurity")}</Link></li>
-              </ul>
-            </div>
-          </div>
-          )}
-
-          <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-white rounded-lg p-1">
-                <Image src="/silah-logo.svg" alt="Silah" width={20} height={20} className="h-5 w-5" />
-              </div>
-              <span className="font-bold text-white text-sm">{t("landing.appName")}</span>
-            </div>
-            <p className="text-white/30 text-xs">{t("landing.copyright")}</p>
-          </div>
-        </div>
-      </div>
+    <div
+      dir={D.dir}
+      className={`landing-root ${D.ui} relative min-h-screen`}
+      style={{ background: "#f7f3ec", color: "#0F2942", overflowX: "clip", ["--m" as string]: "1", ["--mspeed" as string]: "1.5" }}
+    >
+      <Nav D={D} onToggleLang={toggleLocale} onCta={enterApp} />
+      <main>
+        <Hero D={D} onCta={enterApp} onSecondary={() => scrollToId("analysis")} />
+        <AnalysisSection D={D} />
+        <RegsSection D={D} />
+        <PrioritySection D={D} />
+        <BilingualSection D={D} />
+        <PrivacySection D={D} />
+        <PricingSection D={D} onCta={enterApp} />
+        <BetaSection D={D} />
+      </main>
+      <Footer D={D} />
     </div>
   );
 }
