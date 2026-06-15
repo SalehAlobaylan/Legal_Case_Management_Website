@@ -21,9 +21,9 @@ export function MuseumBanner() {
   }
 
   const text = isRTL
-    ? "أنت في الوضع التجريبي — للعرض فقط. أنشئ حسابًا لتفعيل التعديل وميزات الذكاء الاصطناعي."
-    : "Demo mode — read only. Sign up to unlock editing and AI features.";
-  const cta = isRTL ? "إنشاء حساب" : "Sign up";
+    ? "أنت في الوضع التجريبي — للعرض فقط. سجّل بريدك لتفعيل التعديل وميزات الذكاء الاصطناعي."
+    : "Demo mode — read only. Enter your email to unlock editing and AI features.";
+  const cta = isRTL ? "أدخل بريدك" : "Enter email";
 
   return (
     <div
@@ -33,7 +33,7 @@ export function MuseumBanner() {
       <Eye size={15} className="shrink-0" />
       <span>{text}</span>
       <Link
-        href="/register"
+        href="/#beta"
         className="shrink-0 rounded-full bg-white/20 px-3 py-0.5 font-bold underline-offset-2 hover:bg-white/30 hover:underline"
       >
         {cta}

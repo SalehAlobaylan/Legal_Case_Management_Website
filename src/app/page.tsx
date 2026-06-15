@@ -97,7 +97,7 @@ type Copy = {
   };
   regs: { eyebrow: string; title: string[]; body: string; panelTitle: string; panelTime: string; items: AlertItem[] };
   priority: { eyebrow: string; title: string[]; body: string; panelTitle: string; panelTime: string; items: TaskItem[] };
-  privacy: { eyebrow: string; title: string[]; body: string; bullets: { icon: string; t: string }[]; seal: string };
+  privacy: { eyebrow: string; title: string[]; body: string; bullets: { icon: string; t: string }[]; seal: string; sealSub: string };
   beta: {
     eyebrow: string; title: string[]; body: string; placeholder: string; button: string;
     success: string; successSub: string; fine: string;
@@ -119,13 +119,13 @@ const COPY: Record<"ar" | "en", Copy> = {
         { id: "priority", t: "الأولوية" },
         { id: "privacy", t: "الخصوصية" },
       ],
-      cta: "ابدأ الآن",
+      cta: "استكشف",
     },
     hero: {
       eyebrow: "مدعومة بالذكاء الاصطناعي",
       title: ["كلّ قضية،", "متصلة بنظامها"],
       sub: "صلة تربط قضاياك بالأنظمة السعودية التي تحكمها، وتنبّهك في اللحظة التي تتغيّر فيها.",
-      cta1: "ابدأ الآن", cta2: "شاهد كيف تعمل",
+      cta1: "استكشف", cta2: "شاهد كيف تعمل",
       trust: "مصممة لسير العمل القانوني في المملكة",
     },
     analysis: {
@@ -172,16 +172,17 @@ const COPY: Record<"ar" | "en", Copy> = {
       ],
     },
     privacy: {
-      eyebrow: "الخصوصية بالتصميم",
-      title: ["بياناتك", "ملكك وحدك"],
-      body: "تشفير كامل، وصلاحيات دقيقة، وسيادة بيانات داخل المملكة. ما يخص موكّليك لا يغادر نطاق ثقتك.",
+      eyebrow: "أمان المؤسسات",
+      title: ["بياناتك", "محمية بالكامل"],
+      body: "معلومات منشأتك معزولة تماماً. تحكم بدقة في صلاحيات فريقك، وتتبع كل إجراء لضمان الشفافية والمسؤولية الكاملة.",
       bullets: [
-        { icon: "lock", t: "تشفير من الطرف إلى الطرف" },
-        { icon: "shield", t: "صلاحيات حسب الدور" },
-        { icon: "mapPin", t: "استضافة داخل المملكة" },
-        { icon: "history", t: "سجلّ تدقيق كامل" },
+        { icon: "shield", t: "عزل تام لبيانات المنشأة" },
+        { icon: "users", t: "صلاحيات مخصصة للفريق" },
+        { icon: "key", t: "وصول آمن" },
+        { icon: "history", t: "سجل كامل للنشاطات" },
       ],
-      seal: "محفوظ ومشفّر",
+      seal: "آمن ومحمي",
+      sealSub: "صلاحيات · سجل نشاطات",
     },
     beta: {
       eyebrow: "نسخة تجريبية خاصة",
@@ -220,13 +221,13 @@ const COPY: Record<"ar" | "en", Copy> = {
         { id: "priority", t: "Priority" },
         { id: "privacy", t: "Privacy" },
       ],
-      cta: "Get Started",
+      cta: "Explore",
     },
     hero: {
       eyebrow: "Powered by AI",
       title: ["Every case,", "linked to its law"],
       sub: "Silah connects your cases to the Saudi regulations that govern them — and alerts you the moment they change.",
-      cta1: "Get Started", cta2: "See how it works",
+      cta1: "Explore", cta2: "See how it works",
       trust: "Built for Saudi legal workflows",
     },
     analysis: {
@@ -273,16 +274,17 @@ const COPY: Record<"ar" | "en", Copy> = {
       ],
     },
     privacy: {
-      eyebrow: "Private by design",
-      title: ["Your data", "is yours alone"],
-      body: "Full encryption, granular permissions, and data sovereignty inside the Kingdom. What belongs to your clients never leaves your circle of trust.",
+      eyebrow: "Enterprise Security",
+      title: ["Your data is", "strictly protected"],
+      body: "Your firm's information is completely walled off. Control exactly who sees what, and track every action with complete accountability.",
       bullets: [
-        { icon: "lock", t: "End-to-end encryption" },
-        { icon: "shield", t: "Role-based permissions" },
-        { icon: "mapPin", t: "Hosted within the Kingdom" },
-        { icon: "history", t: "Full audit trail" },
+        { icon: "shield", t: "Strict firm isolation" },
+        { icon: "users", t: "Custom team permissions" },
+        { icon: "key", t: "Secure access" },
+        { icon: "history", t: "Complete activity logs" },
       ],
-      seal: "Sealed & encrypted",
+      seal: "Secure & Protected",
+      sealSub: "Permissions · Activity Logs",
     },
     beta: {
       eyebrow: "Private beta",
@@ -830,7 +832,7 @@ function PrivacySection({ D }: { D: Copy }) {
               </div>
               <div className="mt-5 text-white font-extrabold text-[17px]">{c.seal}</div>
               <div className="mt-3 flex items-center justify-center gap-2 text-white/60 text-[11px] font-semibold">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] pulse-dot" /> 256-bit · KSA
+                <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] pulse-dot" /> {c.sealSub}
               </div>
               <div className="mt-6 flex justify-center gap-1.5">
                 {[0, 1, 2, 3, 4].map((i) => <span key={i} className="w-1.5 h-1.5 rounded-full" style={{ background: i < 4 ? "#fb923c" : "rgba(255,255,255,0.25)" }} />)}
@@ -847,7 +849,32 @@ function BetaSection({ D }: { D: Copy }) {
   const c = D.beta;
   const [email, setEmail] = useState("");
   const [done, setDone] = useState(false);
-  const submit = (e: React.FormEvent) => { e.preventDefault(); if (email.trim()) setDone(true); };
+  const [feedbackType, setFeedbackType] = useState("");
+  const [feedbackText, setFeedbackText] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email.trim()) {
+      setLoading(true);
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/waitlist`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            email: email.trim(),
+            feedbackType: feedbackType || undefined,
+            feedbackText: feedbackText.trim() || undefined
+          }),
+        });
+        setDone(true);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
   return (
     <section id="beta" className={SECTION} style={{ paddingBlock: 110 }}>
       <div className="absolute inset-0 z-0" aria-hidden="true">
@@ -867,14 +894,46 @@ function BetaSection({ D }: { D: Copy }) {
           {!done ? (
             <>
               <div className="mt-5 flex justify-center"><Lead className="text-center">{c.body}</Lead></div>
-              <form onSubmit={submit} className={`${D.ui} mt-8 flex flex-col sm:flex-row gap-3 max-w-md mx-auto`}>
-                <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={c.placeholder}
-                  className="flex-1 px-5 rounded-xl bg-gray-50 border border-gray-200 text-[15px] font-medium text-[#0F2942] placeholder:text-gray-400 focus:outline-none focus:border-[#D97706] focus:bg-white transition-colors"
-                  style={{ height: 52 }} />
-                <button type="submit" className="px-7 rounded-xl bg-[#D97706] text-white text-[15px] font-bold inline-flex items-center justify-center gap-2 transition-all hover:bg-[#B45309] hover:-translate-y-0.5"
-                  style={{ height: 52, boxShadow: "0 10px 25px -5px rgba(146,64,14,0.4)" }}>{c.button}</button>
+              <form onSubmit={submit} className={`${D.ui} mt-8 flex flex-col gap-4 max-w-md mx-auto text-start`}>
+                <div>
+                  <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">البريد الإلكتروني</label>
+                  <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={c.placeholder}
+                    className="w-full px-5 rounded-xl bg-gray-50 border border-gray-200 text-[15px] font-medium text-[#0F2942] placeholder:text-gray-400 focus:outline-none focus:border-[#D97706] focus:bg-white transition-colors"
+                    style={{ height: 52 }} />
+                </div>
+                
+                <div>
+                  <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">هل لديك ملاحظات أو اقتراحات؟ (اختياري)</label>
+                  <select
+                    value={feedbackType}
+                    onChange={(e) => setFeedbackType(e.target.value)}
+                    className="w-full px-5 rounded-xl bg-gray-50 border border-gray-200 text-[15px] font-medium text-[#0F2942] focus:outline-none focus:border-[#D97706] focus:bg-white transition-colors appearance-none"
+                    style={{ height: 52 }}
+                  >
+                    <option value="" disabled>اختر نوع الملاحظة...</option>
+                    <option value="design">ما أعجبك التصميم أو الهوية البصرية؟</option>
+                    <option value="ai">ما أعجبتك مزايا الذكاء الاصطناعي؟</option>
+                    <option value="missing">تحس أن المنصة ناقصها مزايا مساعدة؟</option>
+                    <option value="other">أخرى</option>
+                  </select>
+                </div>
+
+                {feedbackType && (
+                  <div className="animate-in slide-in-from-top-2 fade-in duration-200">
+                    <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">تفاصيل إضافية</label>
+                    <textarea
+                      value={feedbackText}
+                      onChange={(e) => setFeedbackText(e.target.value)}
+                      placeholder="شاركنا أفكارك هنا..."
+                      className="w-full px-5 py-4 rounded-xl bg-gray-50 border border-gray-200 text-[15px] font-medium text-[#0F2942] placeholder:text-gray-400 focus:outline-none focus:border-[#D97706] focus:bg-white transition-colors resize-none"
+                      rows={3}
+                    />
+                  </div>
+                )}
+
+                <button type="submit" disabled={loading} className="w-full mt-2 rounded-xl bg-[#D97706] text-white text-[15px] font-bold inline-flex items-center justify-center gap-2 transition-all hover:bg-[#B45309] hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0"
+                  style={{ height: 52, boxShadow: "0 10px 25px -5px rgba(146,64,14,0.4)" }}>{loading ? "..." : c.button}</button>
               </form>
-              <div className={`${D.ui} mt-4 text-[12px] text-gray-400 font-medium`}>{c.fine}</div>
             </>
           ) : (
             <div className={`${D.ui} mt-7`} style={{ animation: "silah-bobIn .5s var(--ease-out)" }}>

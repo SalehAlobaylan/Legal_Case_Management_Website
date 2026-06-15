@@ -21,7 +21,6 @@ const registerSchema = z.object({
     organizationName: z.string().optional(),
     subscriptionTier: z.string().optional(),
     role: z.string().optional(),
-    termsAccepted: z.boolean().refine(val => val === true, "You must accept the terms and conditions"),
 }).refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
@@ -187,11 +186,15 @@ const {
                     <div className="space-y-5">
                         <button
                             type="button"
-                            onClick={signInWithGoogle}
-                            className="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 p-3.5 rounded-xl font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
+                            disabled={true}
+                            className="relative w-full flex items-center justify-center gap-3 bg-white border border-slate-200 p-3.5 rounded-xl font-semibold text-slate-400 cursor-not-allowed transition-all shadow-sm overflow-hidden"
                         >
-                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5 opacity-50 grayscale" alt="Google" />
                             {t("auth.signUpWithGoogle")}
+                            <span className={`absolute ${isRTL ? 'left-3' : 'right-3'} bg-slate-100 text-slate-500 text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider border border-slate-200`}>
+                                {isRTL ? "قريباً" : "Soon"}
+                            </span>
                         </button>
 
                         <div className="relative flex items-center py-1">
@@ -355,39 +358,28 @@ const {
                             </div>
                             )}
 
-<div className="flex items-start gap-3 pt-1">
-                                <input
-                                    type="checkbox"
-                                    id="terms"
-                                    className="mt-1 w-4 h-4 rounded border-slate-300 text-[#D97706] focus:ring-[#D97706] focus:ring-offset-0"
-                                    {...register("termsAccepted")}
-                                />
-                                <label htmlFor="terms" className="text-xs text-slate-500 leading-relaxed">
-                                    {t("auth.agreeToTerms")}{" "}
-                                    <Link href="#" className="text-[#0F2942] font-bold underline hover:text-[#1E3A56] transition-colors">{t("auth.termsOfService")}</Link>
-                                    {" "}{t("common.and")}{" "}
-                                    <Link href="#" className="text-[#0F2942] font-bold underline hover:text-[#1E3A56] transition-colors">{t("auth.privacyPolicy")}</Link>.
-                                </label>
-                            </div>
-                            {errors.termsAccepted && (
-                                <p className="text-sm text-red-500 font-medium animate-in slide-in-from-top-1">
-                                    {errors.termsAccepted.message}
-                                </p>
-                            )}
-
                             {error && (
                                 <div className="rounded-xl bg-red-50 p-4 text-sm font-medium text-red-600 border border-red-100 text-center">
                                     {"response" in error ? (error as { response?: { data?: { error?: string } } }).response?.data?.error : t("auth.errorOccurred")}
                                 </div>
                             )}
 
-                            <button
-                                type="submit"
-                                className="w-full bg-gradient-to-r from-[#D97706] to-[#B45309] hover:from-[#B45309] hover:to-[#D97706] text-white p-4 rounded-xl font-bold text-lg shadow-lg shadow-[#D97706]/20 transition-all hover:shadow-xl hover:shadow-[#D97706]/30 disabled:opacity-50"
-                                disabled={isPending}
-                            >
-                                {isPending ? t("auth.creatingAccount") : t("auth.createAccount")}
-                            </button>
+                            <div className="flex flex-col gap-3">
+                                <button
+                                    type="button"
+                                    disabled={true}
+                                    className="w-full bg-slate-100 text-slate-500 p-4 rounded-xl font-bold text-sm sm:text-base border border-slate-200 cursor-not-allowed"
+                                >
+                                    {isRTL ? "المنصة في مرحلة الوصول المحدود، سجل اهتمامك" : "Platform is in limited access phase, register your interest"}
+                                </button>
+
+                                <Link 
+                                    href="/#beta"
+                                    className="w-full bg-gradient-to-r from-[#D97706] to-[#B45309] hover:from-[#B45309] hover:to-[#D97706] text-white p-4 rounded-xl font-bold text-lg shadow-lg shadow-[#D97706]/20 transition-all hover:shadow-xl text-center flex items-center justify-center"
+                                >
+                                    {isRTL ? "سجل اهتمامك الآن" : "Register Your Interest"}
+                                </Link>
+                            </div>
                         </form>
 
                         <p className="text-center text-sm text-slate-500 pt-1">

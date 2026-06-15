@@ -22,7 +22,6 @@ import {
   Scale,
   BookOpen,
   Users,
-  Bell,
   Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
@@ -73,12 +72,6 @@ const navItems: NavItem[] = [
     translationKey: "nav.admin",
     path: "/admin/dashboard",
     adminOnly: true,
-  },
-  {
-    icon: Bell,
-    translationKey: "nav.alerts",
-    path: "/alerts",
-    showBadge: true,
   },
 ];
 

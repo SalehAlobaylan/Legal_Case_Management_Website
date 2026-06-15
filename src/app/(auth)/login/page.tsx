@@ -1,5 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { verifyDemoPin } from "./actions";
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -35,6 +38,57 @@ export default function SignInPage() {
     login(data);
   };
 
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pin, setPin] = useState("");
+  const [pinError, setPinError] = useState("");
+  const [attempts, setAttempts] = useState(0);
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (lockedUntil && Date.now() < lockedUntil) {
+      const timer = setInterval(() => {
+        if (Date.now() >= lockedUntil) {
+          setLockedUntil(null);
+          setAttempts(0);
+        }
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [lockedUntil]);
+
+  const handleDemoLoginClick = () => {
+    setShowPinModal(true);
+    setPin("");
+    setPinError("");
+  };
+
+  const submitPin = async () => {
+    if (lockedUntil && Date.now() < lockedUntil) {
+      setPinError(isRTL ? `محظور. حاول مرة أخرى بعد ${Math.ceil((lockedUntil - Date.now()) / 1000)} ثانية` : `Locked. Try again in ${Math.ceil((lockedUntil - Date.now()) / 1000)}s`);
+      return;
+    }
+    
+    if (!/^\d{6}$/.test(pin)) {
+      setPinError(isRTL ? "يجب أن يتكون الرمز من 6 أرقام" : "PIN must be exactly 6 digits");
+      return;
+    }
+
+    const result = await verifyDemoPin(pin);
+    if (result.success && result.email && result.password) {
+      setShowPinModal(false);
+      login({ email: result.email, password: result.password });
+    } else {
+      const newAttempts = attempts + 1;
+      setAttempts(newAttempts);
+      if (newAttempts >= 3) {
+        setLockedUntil(Date.now() + 60000);
+        setPinError(isRTL ? "محاولات كثيرة. محظور لمدة 60 ثانية." : "Too many attempts. Locked for 60 seconds.");
+      } else {
+        setPinError(isRTL ? `رمز غير صحيح. متبقي ${3 - newAttempts} محاولات.` : `Incorrect PIN. ${3 - newAttempts} attempts left.`);
+      }
+    }
+  };
+
   return (
     <div className={`min-h-screen min-h-[100dvh] flex bg-gradient-to-br from-slate-50 to-slate-100 ${isRTL ? 'flex-row-reverse' : ''}`}>
       {/* Language Toggle - Fixed Position */}
@@ -61,14 +115,18 @@ export default function SignInPage() {
         </div>
 
         <div className="relative z-10 text-white max-w-lg">
-          <Link href="/" className="inline-flex items-center gap-4 mb-10 group">
-            <div className="bg-white rounded-xl p-3 shadow-lg group-hover:scale-105 transition-transform">
+          <div className="inline-flex items-center gap-4 mb-10 group">
+            <button
+              type="button"
+              onClick={handleDemoLoginClick}
+              className="bg-white rounded-xl p-3 shadow-lg hover:scale-105 transition-transform focus:outline-none"
+            >
               <img
                 src="/silah-logo.svg"
                 alt="Silah"
-                className="h-12 w-auto"
+                className="h-12 w-auto cursor-pointer"
               />
-            </div>
+            </button>
             <div>
               <h1 className="text-2xl font-bold font-serif" style={{ color: '#D97706' }}>
                 {isRTL ? 'صلة القانوني' : 'Silah Legal'}
@@ -77,7 +135,7 @@ export default function SignInPage() {
                 {isRTL ? 'منصة للقانونيين' : 'Platform for Lawyers'}
               </p>
             </div>
-          </Link>
+          </div>
 
           <h2 className="text-4xl md:text-5xl font-bold font-serif mb-6 leading-tight tracking-tight">
             {t("auth.welcomeBack")}
@@ -86,22 +144,7 @@ export default function SignInPage() {
             &quot;{t("auth.silahQuote")}&quot;
           </p>
 
-          {/* Social Proof */}
-          <div className="flex items-center gap-5 p-5 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10">
-            <div className={`flex ${isRTL ? 'flex-row-reverse -space-x-3 space-x-reverse' : '-space-x-3'}`}>
-              <div className="w-11 h-11 rounded-full border-3 border-[#0F2942] bg-gradient-to-br from-slate-200 to-slate-300 shadow-lg"></div>
-              <div className="w-11 h-11 rounded-full border-3 border-[#0F2942] bg-gradient-to-br from-slate-300 to-slate-400 shadow-lg"></div>
-              <div className="w-11 h-11 rounded-full border-3 border-[#0F2942] bg-gradient-to-br from-slate-400 to-slate-500 shadow-lg"></div>
-            </div>
-            <div>
-              <p className="font-bold text-white mb-1">{t("auth.trustedByLawyers")}</p>
-              <div className="flex gap-0.5 text-[#D97706]">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={14} fill="currentColor" />
-                ))}
-              </div>
-            </div>
-          </div>
+
         </div>
       </div>
 
@@ -111,11 +154,15 @@ export default function SignInPage() {
           {/* Mobile Header with Gradient Background */}
           <div className="lg:hidden mb-8">
             <div className="bg-gradient-to-r from-[#0F2942] to-[#1E3A56] rounded-2xl p-6 text-center shadow-xl">
-              <Link href="/" className="inline-block mb-4">
-                <div className="inline-flex items-center justify-center rounded-full bg-white p-2.5 shadow-md">
+              <button 
+                type="button"
+                onClick={handleDemoLoginClick}
+                className="inline-block mb-4 focus:outline-none"
+              >
+                <div className="inline-flex items-center justify-center rounded-full bg-white p-2.5 shadow-md hover:scale-105 transition-transform">
                   <Image src="/silah-logo.svg" alt="Silah" width={48} height={48} className="h-12 w-auto" />
                 </div>
-              </Link>
+              </button>
               <h2 className="text-xl font-bold text-white mb-1">{t("auth.signInToSilah")}</h2>
               <p className="text-blue-200/80 text-sm">{t("auth.enterCredentials")}</p>
             </div>
@@ -131,12 +178,15 @@ export default function SignInPage() {
             {/* Google Sign In */}
             <button
               type="button"
-              onClick={signInWithGoogle}
-              className="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 p-3.5 rounded-xl font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
+              disabled={true}
+              className="relative w-full flex items-center justify-center gap-3 bg-white border border-slate-200 p-3.5 rounded-xl font-semibold text-slate-400 cursor-not-allowed transition-all shadow-sm overflow-hidden"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
+              <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5 opacity-50 grayscale" alt="Google" />
               {t("auth.signInWithGoogle")}
+              <span className={`absolute ${isRTL ? 'left-3' : 'right-3'} bg-slate-100 text-slate-500 text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider border border-slate-200`}>
+                {isRTL ? "قريباً" : "Soon"}
+              </span>
             </button>
 
             {/* Divider */}
@@ -206,24 +256,6 @@ export default function SignInPage() {
               </button>
             </form>
 
-            {/* Demo Login */}
-            <div className="relative flex items-center py-1">
-              <div className="flex-grow border-t border-slate-200"></div>
-              <span className="flex-shrink-0 mx-4 text-slate-400 text-xs uppercase font-bold tracking-wider">{t("auth.orTryDemo")}</span>
-              <div className="flex-grow border-t border-slate-200"></div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => login({ email: "ahmed@alfaisal-law.sa", password: "password123" })}
-              disabled={isPending}
-              className="w-full flex items-center justify-center gap-3 bg-[#0F2942]/5 border-2 border-dashed border-[#0F2942]/20 p-3.5 rounded-xl font-semibold text-[#0F2942] hover:bg-[#0F2942]/10 hover:border-[#0F2942]/40 transition-all disabled:opacity-50"
-            >
-              <div className="bg-[#D97706]/10 p-1 rounded-md">
-                <Scale size={16} className="text-[#D97706]" />
-              </div>
-              {t("auth.demoLogin")}
-            </button>
 
             <p className="text-center text-sm text-slate-500 pt-2">
               {t("auth.noAccount")}{" "}
@@ -234,6 +266,50 @@ export default function SignInPage() {
           </div>
         </div>
       </div>
+      {/* PIN Modal */}
+      {showPinModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl relative" dir={isRTL ? "rtl" : "ltr"}>
+            <button 
+              onClick={() => setShowPinModal(false)}
+              className={`absolute top-4 ${isRTL ? 'left-4' : 'right-4'} text-slate-400 hover:text-slate-600 transition-colors`}
+            >
+              ✕
+            </button>
+            <h3 className="text-xl font-bold text-slate-800 mb-2 font-serif text-center">
+              {isRTL ? "أدخل رمز الدخول (6 أرقام)" : "Enter 6-digit PIN"}
+            </h3>
+            <p className="text-slate-500 text-sm text-center mb-6">
+              {isRTL ? "تسجيل الدخول كمدير تجريبي محمي برمز مرور." : "Demo admin login is protected by a PIN."}
+            </p>
+            
+            <input
+              type="password"
+              maxLength={6}
+              value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+              className="w-full text-center tracking-[0.5em] text-2xl font-bold p-4 rounded-xl border border-slate-200 focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/20 transition-all bg-slate-50 mb-4"
+              placeholder="••••••"
+              onKeyDown={(e) => e.key === "Enter" && submitPin()}
+              autoFocus
+            />
+
+            {pinError && (
+              <div className="text-red-500 text-sm font-medium text-center mb-4 bg-red-50 p-3 rounded-lg border border-red-100 animate-in slide-in-from-top-2">
+                {pinError}
+              </div>
+            )}
+
+            <button
+              onClick={submitPin}
+              disabled={lockedUntil !== null && Date.now() < lockedUntil}
+              className="w-full bg-gradient-to-r from-[#0F2942] to-[#1E3A56] hover:from-[#1E3A56] hover:to-[#0F2942] text-white p-3.5 rounded-xl font-bold hover:shadow-lg transition-all disabled:opacity-50"
+            >
+              {isRTL ? "تحقق" : "Verify"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
